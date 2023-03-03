@@ -215,7 +215,6 @@ export class CfnGuardValidator implements IValidationPlugin {
       const result: GuardResult = exec(['cfn-guard', ...flags], {
         json: true,
       });
-      if (!result) throw new Error('result is empty!!!');
       if (!result.not_compliant || result.not_compliant.length === 0) {
         status = ValidationReportStatus.SUCCESS;
         return { pluginName: this.name, success: true, violations: [] };
@@ -239,8 +238,13 @@ export class CfnGuardValidator implements IValidationPlugin {
   }
 }
 
+type violationResourceMap = {
+  resource: Map<string, Pick<ValidationViolatingResource, 'locations'>>;
+  violation: Pick<ValidationViolation, 'recommendation' | 'fix'>;
+};
+
 class ViolationCheck {
-  private readonly violatingResources = new Map<string, ValidationViolatingResource & Pick<ValidationViolation, 'recommendation' | 'fix'>>();
+  private readonly violatingResources = new Map<string, violationResourceMap>();
   private readonly violation: { fix?: string; recommendation?: string } = {};
   constructor(
     private readonly ruleCheck: NonCompliantRule,
@@ -257,16 +261,25 @@ class ViolationCheck {
       const unresolvedCheck = check as UnresolvedRuleCheck;
       location = unresolvedCheck.unresolved.traversed_to.path;
     }
-    const res = this.violatingResources.get(this.violation.fix);
-    if (res) {
-      res.locations.push(location);
+    const resourceName = location.split('/')[2];
+    const violatingResource = this.violatingResources.get(this.violation.fix);
+    const result = {
+      locations: [location],
+    };
+    if (violatingResource) {
+      const resource = violatingResource.resource.get(resourceName);
+      if (resource) {
+        resource.locations.push(location);
+      } else {
+        violatingResource.resource.set(resourceName, result);
+      }
     } else {
       this.violatingResources.set(this.violation.fix, {
-        recommendation: this.violation.recommendation ?? '', // TODO: figure out what this should be
-        fix: this.violation.fix,
-        locations: [location],
-        resourceName: location.split('/')[2],
-        templatePath: this.templatePath,
+        resource: new Map([[resourceName, result]]),
+        violation: {
+          recommendation: this.violation.recommendation ?? '',
+          fix: this.violation.fix,
+        },
       });
     }
   }
@@ -296,14 +309,16 @@ class ViolationCheck {
     });
     return Array.from(this.violatingResources.values()).map(violation => {
       return {
-        recommendation: violation.recommendation,
-        fix: violation.fix,
+        recommendation: violation.violation.recommendation,
+        fix: violation.violation.fix,
         ruleName: this.ruleCheck.name,
-        violatingResources: [{
-          locations: violation.locations,
-          resourceName: violation.resourceName,
-          templatePath: violation.templatePath,
-        }],
+        violatingResources: Array.from(violation.resource.entries()).map(([key, value]) => {
+          return {
+            locations: value.locations,
+            resourceName: key,
+            templatePath: this.templatePath,
+          };
+        }),
       };
     });
   }
