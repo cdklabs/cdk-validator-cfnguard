@@ -9,6 +9,7 @@ import {
   ValidationViolationResourceAware,
   ValidationViolation,
 } from 'aws-cdk-lib';
+import { exec } from './utils';
 
 enum RuleStatus {
   FAIL = 'FAIL',
@@ -94,7 +95,7 @@ interface CheckCommon {
 }
 
 interface UnresolvedRuleCheck extends CheckCommon {
-  readonly unresolved: UnresolvedCheck;
+  readonly unresolved: UnresolvedCheckValue;
 }
 
 interface ClauseCheck extends CheckCommon {
@@ -214,6 +215,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       const result: GuardResult = exec(['cfn-guard', ...flags], {
         json: true,
       });
+      if (!result) throw new Error('result is empty!!!');
       if (!result.not_compliant || result.not_compliant.length === 0) {
         status = ValidationReportStatus.SUCCESS;
         return { pluginName: this.name, success: true, violations: [] };
@@ -226,6 +228,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       });
     } catch (e) {
       status = ValidationReportStatus.FAILURE;
+      console.error(e);
     } finally {
       return {
         pluginName: this.name,
@@ -252,14 +255,14 @@ class ViolationCheck {
       location = clauseCheck.check.Resolved?.from.path ?? clauseCheck.check.Unresolved!.value.traversed_to.path;
     } else {
       const unresolvedCheck = check as UnresolvedRuleCheck;
-      location = unresolvedCheck.unresolved.value.traversed_to.path;
+      location = unresolvedCheck.unresolved.traversed_to.path;
     }
     const res = this.violatingResources.get(this.violation.fix);
     if (res) {
       res.locations.push(location);
     } else {
       this.violatingResources.set(this.violation.fix, {
-        recommendation: '', // TODO: figure out what this should be
+        recommendation: this.violation.recommendation ?? '', // TODO: figure out what this should be
         fix: this.violation.fix,
         locations: [location],
         resourceName: location.split('/')[2],
@@ -319,42 +322,5 @@ class ViolationCheck {
         });
       }
     });
-  }
-}
-
-/**
- * Our own execute function which doesn't use shells and strings.
- */
-export function exec(commandLine: string[], options: { cwd?: string; json?: boolean; verbose?: boolean; env?: any } = { }): any {
-  const proc = spawnSync(commandLine[0], commandLine.slice(1), {
-    stdio: ['ignore', 'pipe', options.verbose ? 'inherit' : 'pipe'], // inherit STDERR in verbose mode
-    env: {
-      ...process.env,
-      ...options.env,
-    },
-    cwd: options.cwd,
-  });
-
-  if (proc.error) { throw proc.error; }
-  if (proc.status !== 0) {
-    if (process.stderr) { // will be 'null' in verbose mode
-      process.stderr.write(proc.stderr);
-    }
-    throw new Error(`Command exited with ${proc.status ? `status ${proc.status}` : `signal ${proc.signal}`}`);
-  }
-
-  const output = proc.stdout.toString('utf-8').trim();
-
-  try {
-    if (options.json) {
-      if (output.length === 0) { return {}; }
-
-      return JSON.parse(output);
-    }
-    return output;
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error('Not JSON: ' + output);
-    throw new Error('Command output is not JSON');
   }
 }
