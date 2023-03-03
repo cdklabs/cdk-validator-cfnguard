@@ -1,0 +1,190 @@
+###
+# S3_BUCKET_SSL_REQUESTS_ONLY tests
+###
+---
+- name: Empty, SKIP
+  input: {}
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: SKIP
+
+- name: No resources, SKIP
+  input:
+    Resources: {}
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: SKIP
+
+- name: S3 Bucket Policy statement only allows requests to use Secure Socket Layer (SSL), PASS
+  input:
+    Resources:
+      ExampleS3:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref rLogsBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Principal: "*"
+                Action: "s3:*"
+                Effect: "Deny"
+                Condition:
+                  Bool:
+                    "aws:SecureTransport": false
+                Resource: "*"
+
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: PASS
+
+- name: S3 Bucket Policy statement does not allow requests to use Secure Socket Layer (SSL), FAIL
+  input:
+    Resources:
+      ExampleS3:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref rLogsBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "DenyNoSSL"
+                Effect: "Allow"
+                Principal: "*"
+                Action: "s3:*"
+                Resource: "*"
+                Condition:
+                  Bool:
+                    "aws:SecureTransport": false
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: FAIL
+
+- name: S3 Bucket Policy statement does not allow requests to use Secure Socket Layer (SSL), FAIL
+  input:
+    Resources:
+      ExampleS3:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref rLogsBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action: "s3:*"
+                Effect: "Deny"
+                Principal: "*"
+                Resource: "*"
+                Condition:
+                  Bool:
+                    "aws:SecureTransport": true
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: FAIL
+
+- name: S3 Bucket Policy statement to only allow requests to use Secure Socket Layer (SSL) missing, FAIL
+  input:
+    Resources:
+      ExampleS3:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref rLogsBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "AWSLogDeliveryWrite"
+                Effect: "Allow"
+                Principal:
+                  Service:
+                    - "delivery.logs.amazonaws.com"
+                Action: "s3:PutObject"
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    "s3:x-amz-acl": "bucket-owner-full-control"
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: FAIL
+
+- name: S3 Bucket Policy statement to only allow requests to use Secure Socket Layer (SSL) missing but rule suppressed, SKIP
+  input:
+    Resources:
+      ExampleS3:
+        Type: AWS::S3::BucketPolicy
+        Metadata:
+          guard:
+            SuppressedRules:
+            - S3_BUCKET_SSL_REQUESTS_ONLY
+        Properties:
+          Bucket: !Ref rLogsBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "AWSLogDeliveryWrite"
+                Effect: "Allow"
+                Principal:
+                  Service:
+                    - "delivery.logs.amazonaws.com"
+                Action: "s3:PutObject"
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    "s3:x-amz-acl": "bucket-owner-full-control"
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: SKIP
+
+- name: S3 Bucket Policy statement less literal test 2, PASS
+  input:
+    Resources:
+      Bucket:
+        Type: AWS::S3::Bucket
+      BucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref Bucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: EnforceTls
+                Effect: Deny
+                Action: "s3:*"
+                Principal: "*"
+                Resource: "*"
+                Condition:
+                  Bool:
+                    "aws:SecureTransport": false
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: PASS
+
+- name: S3 Bucket Policy statement less literal test 3, PASS
+  input:
+    Resources:
+      Bucket:
+        Metadata:
+          guard:
+        Type: AWS::S3::Bucket
+      BucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+          Bucket: !Ref Bucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: DeleteProtection
+                Action: s3:Delete*
+                Effect: Deny
+                Principal: '*'
+                Resource:
+                  - !GetAtt Bucket.Arn
+                  - !Sub "${Bucket.Arn}/*"
+              - Sid: EnforceTls
+                Effect: Deny
+                Action: "s3:*"
+                Principal: "*"
+                Resource: "*"
+                Condition:
+                  Bool:
+                    "aws:SecureTransport": false
+  expectations:
+    rules:
+      S3_BUCKET_SSL_REQUESTS_ONLY: PASS
