@@ -245,7 +245,7 @@ class ViolationCheck {
   ) { }
 
   private setViolatingResources(check: ClauseCheck | UnresolvedRuleCheck): void {
-    this.violation.fix = this.violation.fix ?? check.messages.error_message ?? check.messages.error_message;
+    this.violation.fix = this.violation.fix ?? check.messages.custom_message ?? check.messages.error_message;
     let location: string;
     if (check.hasOwnProperty('check')) {
       const clauseCheck = check as ClauseCheck;
