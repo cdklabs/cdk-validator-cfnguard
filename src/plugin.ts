@@ -11,11 +11,46 @@ import {
 } from 'aws-cdk-lib';
 import { exec } from './utils';
 
+/**
+ * The status
+ */
 enum RuleStatus {
   FAIL = 'FAIL',
   PASS = 'PASS',
 }
 
+/**
+ * The result returned by running the cfn-guard
+ * CLI
+ *
+ * Guard does not have a standard JSON schema and the schema
+ * that is returned can be dependent on the type of rule or type
+ * of check that was executed. The results are very much an attempt to
+ * display the internals of guard to the user. Trying to make sense of that
+ * can be difficult and error prone.
+ *
+ * The result structure can depend on the way that the rule was written. For example
+ * I could write a rule like this:
+ *
+ *     rule MY_RULE {
+ *       # This is a "check" and is a `Clause` type check
+ *       Properties.SomeProp == true
+ *     }
+ *
+ * Or I could write a rule like this:
+ *
+ *     rule MY_RULE {
+ *       #  This is a "check" and is a `Rule` type check
+ *       check(Properties)
+ *     }
+ *     rule check(properties) {
+ *       properties.SomeProp == true
+ *     }
+ *
+ * Both of the above examples are checking the same thing
+ * but the schema that is returned is different because the
+ * way the rule was written is different
+ */
 interface GuardResult {
   /**
    * TODO: figure out what this is
@@ -32,22 +67,35 @@ interface GuardResult {
    * The overall status of the rule, pass or fail
    */
   readonly status: RuleStatus;
+
+  /**
+   * A list of rule results for rules that are not compliant
+   *
+   * @default - will be empty if there are no non-compliant rules
+   */
   readonly not_compliant?: { Rule: NonCompliantRule }[];
 
   /**
    * A list of rules that were run, but were not applicable to the
    * template. For example, if the template did not contain any SNS Topics
    * then any rules that applied to SNS topics would appear in this list
+   *
+   * @default - will be empty if all rules were applicable
    */
   readonly not_applicable?: string[];
 
   /**
    * A list of rules that were applicable to the template and
    * passed validation.
+   *
+   * @default - will be empty if no rules are compliant
    */
   readonly compliant?: string[];
 }
 
+/**
+ * Information returned for a rule that is not compliant
+ */
 interface NonCompliantRule {
   /**
    * The name of the Guard rule
@@ -63,23 +111,75 @@ interface NonCompliantRule {
    * TODO: this is always empty, how do rules populate this?
    */
   readonly messages?: RuleMessages;
+
+  /**
+   * List of checks that were run as part of the rule
+   * and their associated result
+   */
   readonly checks: (RuleChecks | ClauseChecks)[];
 }
 
+/**
+ * A check that is a `Rule` type
+ */
 type RuleChecks = { Rule: RuleCheck };
+
+/**
+ * A check that is a `Clause` type
+ */
 type ClauseChecks = { Clause: { [key: string]: ClauseCheck } };
+
+/**
+ * A `Rule` type check that has unresolved checks
+ */
 type UnresolvedRuleChecks = { [key: string]: UnresolvedRuleCheck };
 
+/**
+ * Messages for a given rule
+ */
 interface RuleMessages {
+  /**
+   * A custom message that can be returned by a rule.
+   * This would be a message that is defined within a
+   * rule by the rule author and is usually user friendly,
+   * but arbitrarily formatted.
+   *
+   * @default - undefined (no custom message)
+   */
   readonly custom_message?: string;
+
+  /**
+   * A guard generated message. This will always
+   * be available, but is generally not a user friendly
+   * message
+   */
   readonly error_message: string;
 }
 
 
+/**
+ * A check result for the `Rule` type check
+ */
 interface RuleCheck {
+  /**
+   * The name of the `Rule` check
+   */
   readonly name: string;
+
+  /**
+   * TODO: this is always empty, can it be populated?
+   */
   readonly metadata?: any;
+
+  /**
+   * Messages for the rule check. These messages
+   * can apply to all clause checks within the rule check
+   */
   readonly messages: RuleMessages;
+
+  /**
+   * A list of checks that were run as part of the rule check
+   */
   readonly checks: (ClauseChecks | UnresolvedRuleChecks)[];
 }
 
@@ -90,14 +190,39 @@ interface CheckCommon {
    *  '%s3_buckets_default_lock_enabled[*].Properties.ObjectLockEnabled EXISTS'
    */
   readonly context: string;
+
+  /**
+   * Messages returned by the check
+   */
   readonly messages: RuleMessages;
 
 }
 
+/**
+ * An unresolved clause check that is part of a
+ * `Rule` type check. This is only different from
+ * the `ClauseCheck.check.Unresolved` because the schema
+ * is slightly different. It doesn't need to be (it's the same information)
+ * it's just the way cfn-guard chose to render the result
+ */
 interface UnresolvedRuleCheck extends CheckCommon {
+  /**
+    * The check was "Unresolved" meaning the check was not able
+    * to completely evaluate the rule. For example if the object in
+    * question looks like
+    * { Properties: { SomeNestedProperty: { Key: 'Value' } } }
+    *
+    * And the rule is trying to evaluate that `Properties.SomeNestedProperty.Key==='Value'`
+    * it will be "Unresolved" if the template does not contain `SomeNestedProperty`.
+    * The rule will fail because it knows that if `SomeNestedProperty` doesn't exist
+    * then obviously the `Key !== 'Value'`
+    */
   readonly unresolved: UnresolvedCheckValue;
 }
 
+/**
+ * The results of a `Clause` type check
+ */
 interface ClauseCheck extends CheckCommon {
   /**
    * A check can either be 'Resolved' or 'Unresolved'
@@ -130,13 +255,35 @@ interface ClauseCheck extends CheckCommon {
   };
 };
 
+/**
+ * In an Unresolved check, this is how
+ * far the check was able to traverse to.
+ */
 interface Traversed {
+  /**
+   * The JSON path that the rule was able to traverse
+   * to. For example, `/Resources/MyCustomResource`
+   */
   readonly path: string;
+
+  /**
+   * The value at the traversed to path
+   */
   readonly value: any;
 }
 
-interface TraversedMissing {
+/**
+ * In a resolved check, the final traversed to property
+ */
+interface ResolvedTraversedTo {
+  /**
+   * This is always undefined
+   */
   readonly path?: string;
+
+  /**
+   * The expected value at this path
+   */
   readonly value: any;
 }
 
@@ -165,14 +312,40 @@ interface UnresolvedCheckValue {
   readonly reason: string;
 }
 
+/**
+ * An unresolved `Clause` check
+ */
 interface UnresolvedCheck {
+  /**
+   * Information on the unresolved check
+   */
   readonly value: UnresolvedCheckValue;
+
+  /**
+   * The comparison that the check made
+   * For example ["Exists", false]
+   */
   readonly comparison: string[];
 };
 
+/**
+ * A resolved `Clause` check
+ */
 interface ResolvedCheck {
+  /**
+   * Information on the "actual" property
+   */
   readonly from: Traversed;
-  readonly to: TraversedMissing;
+
+  /**
+   * Information on the "expected" property
+   */
+  readonly to: ResolvedTraversedTo;
+
+  /**
+   * The comparison that the check made
+   * For example ["Exists", false]
+   */
   readonly comparison: string[];
 };
 
