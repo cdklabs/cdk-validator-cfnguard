@@ -239,7 +239,7 @@ interface ClauseCheck extends CheckCommon {
      * The rule will fail because it knows that if `SomeNestedProperty` doesn't exist
      * then obviously the `Key !== 'Value'`
      */
-    Unresolved?: UnresolvedCheck;
+    UnResolved?: UnresolvedCheck;
 
     /**
      * The check that failed was able to completely resolve all properties.
@@ -349,6 +349,9 @@ interface ResolvedCheck {
   readonly comparison: string[];
 };
 
+/**
+ * A validation plugin using CFN Guard
+ */
 export class CfnGuardValidator implements IValidationPlugin {
   public readonly name: string;
   private readonly rulesPath: string;
@@ -425,11 +428,13 @@ class ViolationCheck {
   ) { }
 
   private setViolatingResources(check: ClauseCheck | UnresolvedRuleCheck): void {
-    this.violation.fix = this.violation.fix ?? check.messages.custom_message ?? check.messages.error_message;
+    this.violation.recommendation = this.violation.recommendation || check.messages.custom_message || check.messages.error_message;
+    this.violation.fix = this.violation.fix ?? check.messages.custom_message ?? '';
     let location: string;
     if (check.hasOwnProperty('check')) {
       const clauseCheck = check as ClauseCheck;
-      location = clauseCheck.check.Resolved?.from.path ?? clauseCheck.check.Unresolved!.value.traversed_to.path;
+      location = clauseCheck.check.Resolved?.from.path
+        ?? clauseCheck.check.UnResolved!.value.traversed_to.path;
     } else {
       const unresolvedCheck = check as UnresolvedRuleCheck;
       location = unresolvedCheck.unresolved.traversed_to.path;
@@ -462,7 +467,6 @@ class ViolationCheck {
       if (check.hasOwnProperty('Rule')) {
         const checkRule = check as RuleChecks;
         const rule = checkRule.Rule;
-        // then it is of type NonCompliantRule
         if (rule.messages?.custom_message) {
           const message = rule.messages.custom_message.split('\n').filter(m => m.trim() !== '');
           message.forEach(m => {
