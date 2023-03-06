@@ -3,7 +3,6 @@ import * as path from 'path';
 import {
   IValidationPlugin,
   ValidationContext,
-  ValidationReportStatus,
   ValidationViolatingResource,
   ValidationReport,
   ValidationViolationResourceAware,
@@ -359,6 +358,7 @@ export class CfnGuardValidator implements IValidationPlugin {
    * List of violations in the report.
    */
   private readonly violations: ValidationViolationResourceAware[] = [];
+  private success?: boolean;
 
   constructor() {
     this.name = 'cdk-validator-cfnguard';
@@ -386,31 +386,28 @@ export class CfnGuardValidator implements IValidationPlugin {
       '--show-summary',
       'none',
     ];
-    let status = ValidationReportStatus.FAILURE;
     try {
       const result: GuardResult = exec(['cfn-guard', ...flags], {
         json: true,
       });
       if (!result.not_compliant || result.not_compliant.length === 0) {
-        status = ValidationReportStatus.SUCCESS;
         return { pluginName: this.name, success: true, violations: [] };
       }
-      status = ValidationReportStatus.FAILURE;
+      this.success = false;
       result.not_compliant.forEach((check) => {
         const violationCheck = new ViolationCheck(check.Rule, '');
         const violation = violationCheck.processCheck();
         this.violations.push(...violation);
       });
     } catch (e) {
-      status = ValidationReportStatus.FAILURE;
+      this.success = false;
       console.error(e);
-    } finally {
-      return {
-        pluginName: this.name,
-        success: status === ValidationReportStatus.SUCCESS,
-        violations: this.violations,
-      };
     }
+    return {
+      pluginName: this.name,
+      success: this.success,
+      violations: this.violations,
+    };
   }
 }
 
