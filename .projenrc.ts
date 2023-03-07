@@ -3,7 +3,7 @@ const project = new CdklabsJsiiProject({
   author: 'AWS',
   authorAddress: 'aws-cdk-dev@amazon.com',
   defaultReleaseBranch: 'main',
-  devDeps: ['cdklabs-projen-project-types'],
+  devDeps: ['cdklabs-projen-project-types', 'mock-fs', '@types/mock-fs'],
   name: 'cdk-validator-cfnguard',
   projenrcTs: true,
   release: false,

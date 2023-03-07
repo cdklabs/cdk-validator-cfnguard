@@ -1,12 +1,13 @@
 import { spawnSync } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 import {
   IValidationPlugin,
-  ValidationContext,
+  IValidationContext,
   ValidationViolatingResource,
-  ValidationReport,
   ValidationViolationResourceAware,
   ValidationViolation,
+  ValidationPluginReport,
 } from 'aws-cdk-lib';
 import { exec } from './utils';
 
@@ -348,6 +349,11 @@ interface ResolvedCheck {
   readonly comparison: string[];
 };
 
+interface GuardExecutionConfig {
+  readonly templatePath: string;
+  readonly rulePath: string;
+}
+
 /**
  * A validation plugin using CFN Guard
  */
@@ -374,13 +380,40 @@ export class CfnGuardValidator implements IValidationPlugin {
     return status === 0;
   }
 
-  validate(context: ValidationContext): ValidationReport {
+  validate(context: IValidationContext): ValidationPluginReport {
     const templatePaths = context.templatePaths;
+
+    const executionConfig: GuardExecutionConfig[] = [];
+    function readPath(filePath: string) {
+      const stat = fs.statSync(filePath);
+      if (stat.isDirectory()) {
+        const dir = fs.readdirSync(filePath);
+        dir.forEach(d => readPath(path.join(filePath, d)));
+      } else {
+        templatePaths.forEach(template => executionConfig.push({ rulePath: filePath, templatePath: template }));
+      }
+    }
+    readPath(this.rulesPath);
+    const result = executionConfig.reduce((acc, config) => {
+      const report = this.execGuard(config);
+      return {
+        violations: [...acc.violations, ...report.violations],
+        success: acc.success === false ? false : report.success,
+      };
+    }, { violations: [], success: true } as Pick<ValidationPluginReport, 'success' | 'violations'>);
+    return {
+      pluginName: this.name,
+      ...result,
+    };
+  }
+
+  private execGuard(config: GuardExecutionConfig): Pick<ValidationPluginReport, 'success' | 'violations'> {
     const flags = [
       'validate',
       '--rules',
-      this.rulesPath,
-      ...templatePaths.flatMap(template => ['--data', template]),
+      config.rulePath,
+      '--data',
+      config.templatePath,
       '--output-format',
       'json',
       '--show-summary',
@@ -391,7 +424,7 @@ export class CfnGuardValidator implements IValidationPlugin {
         json: true,
       });
       if (!result.not_compliant || result.not_compliant.length === 0) {
-        return { pluginName: this.name, success: true, violations: [] };
+        return { success: true, violations: [] };
       }
       this.success = false;
       result.not_compliant.forEach((check) => {
@@ -404,7 +437,6 @@ export class CfnGuardValidator implements IValidationPlugin {
       console.error(e);
     }
     return {
-      pluginName: this.name,
       success: this.success,
       violations: this.violations,
     };
@@ -413,7 +445,7 @@ export class CfnGuardValidator implements IValidationPlugin {
 
 type violationResourceMap = {
   resource: Map<string, Pick<ValidationViolatingResource, 'locations'>>;
-  violation: Pick<ValidationViolation, 'recommendation' | 'fix'>;
+  violation: Pick<ValidationViolation, 'description' | 'fix'>;
 };
 
 class ViolationCheck {
@@ -452,7 +484,7 @@ class ViolationCheck {
       this.violatingResources.set(this.violation.fix, {
         resource: new Map([[resourceName, result]]),
         violation: {
-          recommendation: this.violation.recommendation ?? '',
+          description: this.violation.recommendation ?? '',
           fix: this.violation.fix,
         },
       });
@@ -483,13 +515,13 @@ class ViolationCheck {
     });
     return Array.from(this.violatingResources.values()).map(violation => {
       return {
-        recommendation: violation.violation.recommendation,
+        description: violation.violation.description,
         fix: violation.violation.fix,
         ruleName: this.ruleCheck.name,
         violatingResources: Array.from(violation.resource.entries()).map(([key, value]) => {
           return {
             locations: value.locations,
-            resourceName: key,
+            resourceLogicalId: key,
             templatePath: this.templatePath,
           };
         }),
