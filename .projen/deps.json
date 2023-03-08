@@ -1,6 +1,14 @@
 {
   "dependencies": [
     {
+      "name": "@octokit/rest",
+      "type": "build"
+    },
+    {
+      "name": "@octokit/types",
+      "type": "build"
+    },
+    {
       "name": "@types/jest",
       "version": "^27",
       "type": "build"

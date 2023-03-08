@@ -24,6 +24,14 @@
         }
       ]
     },
+    "bundle-guard": {
+      "name": "bundle-guard",
+      "steps": [
+        {
+          "exec": "ts-node projenrc/bundle-guard.ts"
+        }
+      ]
+    },
     "clobber": {
       "name": "clobber",
       "description": "hard resets to HEAD of origin and cleans the local repo",
@@ -80,6 +88,9 @@
       "steps": [
         {
           "exec": "ts-node --project tsconfig.dev.json .projenrc.ts"
+        },
+        {
+          "spawn": "bundle-guard"
         }
       ]
     },
@@ -234,6 +245,17 @@
       "steps": [
         {
           "exec": "jest --watch"
+        }
+      ]
+    },
+    "update-guard": {
+      "name": "update-guard",
+      "steps": [
+        {
+          "exec": "ts-node projenrc/update-guard.ts"
+        },
+        {
+          "spawn": "bundle-guard"
         }
       ]
     },
