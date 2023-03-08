@@ -7,6 +7,7 @@
     ".github/workflows/auto-merge.yml",
     ".github/workflows/build.yml",
     ".github/workflows/pull-request-lint.yml",
+    ".github/workflows/update-guard.yml",
     ".github/workflows/upgrade.yml",
     ".gitignore",
     ".projen/deps.json",

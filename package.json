@@ -4,8 +4,13 @@
     "type": "git",
     "url": "https://github.com/cdklabs/cdk-validator-cfnguard.git"
   },
+  "bin": {
+    "macos": "bin/macos",
+    "ubuntu": "bin/ubuntu"
+  },
   "scripts": {
     "build": "npx projen build",
+    "bundle-guard": "npx projen bundle-guard",
     "clobber": "npx projen clobber",
     "compat": "npx projen compat",
     "compile": "npx projen compile",
@@ -26,6 +31,7 @@
     "test": "npx projen test",
     "test:update": "npx projen test:update",
     "test:watch": "npx projen test:watch",
+    "update-guard": "npx projen update-guard",
     "upgrade": "npx projen upgrade",
     "watch": "npx projen watch",
     "projen": "npx projen"
@@ -36,6 +42,8 @@
     "organization": true
   },
   "devDependencies": {
+    "@octokit/rest": "^19.0.7",
+    "@octokit/types": "^9.0.0",
     "@types/jest": "^27",
     "@types/node": "^14",
     "@typescript-eslint/eslint-plugin": "^5",
