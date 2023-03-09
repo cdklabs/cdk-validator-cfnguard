@@ -49,3 +49,5 @@ junit.xml
 tsconfig.json
 !/API.md
 !/.github/workflows/auto-merge.yml
+bin
+!/.github/workflows/update-guard.yml
