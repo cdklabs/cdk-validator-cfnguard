@@ -1,4 +1,3 @@
-import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -11,6 +10,21 @@ import {
 import { ViolationCheck, GuardResult } from './check';
 import { exec } from './utils';
 
+export interface CfnGuardValidatorProps {
+  /**
+   * Enable the default Control Tower Guard rules
+   *
+   * @default true
+   */
+  readonly useControlTowerRules?: boolean;
+
+  /**
+   * List of rule names to disable
+   *
+   * @default - no rules are disabled
+   */
+  readonly disabledControlTowerRules?: string[];
+}
 
 /**
  * Configuration for running guard with
@@ -34,17 +48,18 @@ interface GuardExecutionConfig {
  */
 export class CfnGuardValidator implements IValidationPlugin {
   public readonly name: string;
-  private readonly rulesPath: string;
+  private readonly rulesPaths: string[] = [];
   private readonly guard: string;
-  /**
-   * List of violations in the report.
-   */
-  private readonly violations: ValidationViolationResourceAware[] = [];
   private success?: boolean;
+  private readonly disabledRules: string[];
+  private readonly executionConfig: GuardExecutionConfig[] = [];
 
-  constructor() {
+  constructor(props: CfnGuardValidatorProps = {}) {
     this.name = 'cdk-validator-cfnguard';
-    this.rulesPath = path.join(__dirname, '../rules');
+    this.disabledRules = props.disabledControlTowerRules ?? [];
+    if (props.useControlTowerRules ?? true) {
+      this.rulesPaths.push(path.join(__dirname, '..', 'rules', 'control-tower'));
+    }
     const osPlatform = os.platform();
     const platform = osPlatform === 'linux'
       ? 'ubuntu'
@@ -56,30 +71,24 @@ export class CfnGuardValidator implements IValidationPlugin {
     this.guard = path.join(__dirname, '..', 'bin', platform, 'cfn-guard');
   }
 
-  isReady(): boolean {
-    const { status } = spawnSync(this.guard, ['--version'], {
-      encoding: 'utf-8',
-      stdio: 'pipe',
-      env: { ...process.env },
-    });
-    return status === 0;
+  private generateGuardExecutionConfig(filePath: string, templatePaths: string[]): void {
+    const stat = fs.statSync(filePath);
+    if (stat.isDirectory()) {
+      const dir = fs.readdirSync(filePath);
+      dir.forEach(d => this.generateGuardExecutionConfig(path.join(filePath, d), templatePaths));
+    } else {
+      templatePaths.forEach(template => {
+        if (!this.disabledRules.includes(path.parse(filePath).name)) {
+          this.executionConfig.push({ rulePath: filePath, templatePath: template });
+        }
+      });
+    }
   }
 
   validate(context: IValidationContext): ValidationPluginReport {
     const templatePaths = context.templatePaths;
-
-    const executionConfig: GuardExecutionConfig[] = [];
-    function readPath(filePath: string) {
-      const stat = fs.statSync(filePath);
-      if (stat.isDirectory()) {
-        const dir = fs.readdirSync(filePath);
-        dir.forEach(d => readPath(path.join(filePath, d)));
-      } else {
-        templatePaths.forEach(template => executionConfig.push({ rulePath: filePath, templatePath: template }));
-      }
-    }
-    readPath(this.rulesPath);
-    const result = executionConfig.reduce((acc, config) => {
+    this.rulesPaths.forEach(rule => this.generateGuardExecutionConfig(rule, templatePaths));
+    const result = this.executionConfig.reduce((acc, config) => {
       const report = this.execGuard(config);
       return {
         violations: [...acc.violations, ...report.violations],
@@ -87,7 +96,6 @@ export class CfnGuardValidator implements IValidationPlugin {
       };
     }, { violations: [], success: true } as Pick<ValidationPluginReport, 'success' | 'violations'>);
     return {
-      pluginName: this.name,
       ...result,
     };
   }
@@ -104,6 +112,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       '--show-summary',
       'none',
     ];
+    const violations: ValidationViolationResourceAware[] = [];
     try {
       const result = exec([this.guard, ...flags], {
         json: true,
@@ -116,15 +125,14 @@ export class CfnGuardValidator implements IValidationPlugin {
       guardResult.not_compliant.forEach((check) => {
         const violationCheck = new ViolationCheck(check, '');
         const violation = violationCheck.processCheck();
-        this.violations.push(...violation);
+        violations.push(...violation);
       });
     } catch (e) {
       this.success = false;
-      console.error(e);
     }
     return {
       success: this.success,
-      violations: this.violations,
+      violations: violations,
     };
   }
 }

@@ -13,7 +13,8 @@ export function exec(commandLine: string[], options: { cwd?: string; json?: bool
   });
 
   if (proc.error) { throw proc.error; }
-  if (proc.status !== 0) {
+  // cfn-guard uses 5 when there are policy validation failures
+  if (proc.status !== 0 && proc.status !== 5) {
     if (process.stderr) { // will be 'null' in verbose mode
       process.stderr.write(proc.stderr);
     }

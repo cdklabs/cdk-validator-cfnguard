@@ -14,7 +14,7 @@ beforeEach(() => {
   mock({
     [path.join(__dirname, 'test-data')]: mock.load(path.join(__dirname, 'test-data')),
     [path.join(__dirname, '../rules')]: {
-      'aws-guard-rules-registry': {
+      'control-tower': {
         amazon_s3: {
           's3-rule.guard': '',
         },
@@ -36,14 +36,12 @@ describe('CfnGuardPlugin', () => {
     // GIVEN
     mock({
       [path.join(__dirname, '../rules')]: {
-        'aws-guard-rules-registry': {
-          amazon_s3: {
-            's3-rule.guard': '',
-          },
-        },
         'control-tower': {
           s3: {
             'ct-s3-rule.guard': '',
+          },
+          efs: {
+            'ct-efs-rule.guard': '',
           },
         },
       },
@@ -58,10 +56,21 @@ describe('CfnGuardPlugin', () => {
     // THEN
     expect(execMock).toHaveBeenCalledTimes(4);
     expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
-      expect.stringMatching(/.*bin\/\w+\/cfn-guard$/),
-      'validate',
       '--rules',
-      path.join(__dirname, '../rules/aws-guard-rules-registry/amazon_s3/s3-rule.guard'),
+      path.join(__dirname, '../rules/control-tower/efs/ct-efs-rule.guard'),
+      '--data',
+      'template-path-1',
+    ]), { json: true });
+    expect(execMock).toHaveBeenNthCalledWith(2, expect.arrayContaining([
+      '--rules',
+      path.join(__dirname, '../rules/control-tower/efs/ct-efs-rule.guard'),
+      '--data',
+      'template-path-2',
+    ]), { json: true });
+    expect(execMock).toHaveBeenNthCalledWith(3, expect.arrayContaining([
+      expect.stringMatching(/.*bin\/\w+\/cfn-guard$/),
+      '--rules',
+      path.join(__dirname, '../rules/control-tower/s3/ct-s3-rule.guard'),
       '--data',
       'template-path-1',
       '--output-format',
@@ -69,23 +78,44 @@ describe('CfnGuardPlugin', () => {
       '--show-summary',
       'none',
     ]), { json: true });
-    expect(execMock).toHaveBeenNthCalledWith(2, expect.arrayContaining([
-      '--rules',
-      path.join(__dirname, '../rules/aws-guard-rules-registry/amazon_s3/s3-rule.guard'),
-      '--data',
-      'template-path-2',
-    ]), { json: true });
-    expect(execMock).toHaveBeenNthCalledWith(3, expect.arrayContaining([
-      '--rules',
-      path.join(__dirname, '../rules/control-tower/s3/ct-s3-rule.guard'),
-      '--data',
-      'template-path-1',
-    ]), { json: true });
     expect(execMock).toHaveBeenNthCalledWith(4, expect.arrayContaining([
       '--rules',
       path.join(__dirname, '../rules/control-tower/s3/ct-s3-rule.guard'),
       '--data',
       'template-path-2',
+    ]), { json: true });
+  });
+
+  test('rules can be disabled', () => {
+    // GIVEN
+    mock({
+      [path.join(__dirname, '../rules')]: {
+        'control-tower': {
+          s3: {
+            'ct-s3-rule.guard': '',
+          },
+          efs: {
+            'ct-efs-rule.guard': '',
+          },
+        },
+      },
+    });
+    const validator = new plugin.CfnGuardValidator({
+      disabledControlTowerRules: [
+        'ct-s3-rule',
+      ],
+    });
+
+    validator.validate({
+      templatePaths: ['template.json'],
+    });
+
+    expect(execMock).toHaveBeenCalledTimes(1);
+    expect(execMock).toHaveBeenCalledWith(expect.arrayContaining([
+      '--rules',
+      path.join(__dirname, '../rules/control-tower/efs/ct-efs-rule.guard'),
+      '--data',
+      'template.json',
     ]), { json: true });
   });
 
@@ -101,7 +131,6 @@ describe('CfnGuardPlugin', () => {
 
     // THEN
     expect(result).toEqual({
-      pluginName: 'cdk-validator-cfnguard',
       success: false,
       violations: [{
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
@@ -128,7 +157,6 @@ describe('CfnGuardPlugin', () => {
 
     // THEN
     expect(result).toEqual({
-      pluginName: 'cdk-validator-cfnguard',
       success: false,
       violations: [{
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
@@ -169,7 +197,6 @@ describe('CfnGuardPlugin', () => {
 
     // THEN
     expect(result).toEqual({
-      pluginName: 'cdk-validator-cfnguard',
       success: false,
       violations: [{
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
@@ -201,7 +228,6 @@ describe('CfnGuardPlugin', () => {
 
     // THEN
     expect(result).toEqual({
-      pluginName: 'cdk-validator-cfnguard',
       success: false,
       violations: [{
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
@@ -245,7 +271,6 @@ describe('CfnGuardPlugin', () => {
 
     // THEN
     expect(result).toEqual({
-      pluginName: 'cdk-validator-cfnguard',
       success: false,
       violations: [{
         fix: '',
@@ -278,7 +303,6 @@ describe('CfnGuardPlugin', () => {
 
     // THEN
     expect(result).toEqual({
-      pluginName: 'cdk-validator-cfnguard',
       success: false,
       violations: [{
         fix: '',
