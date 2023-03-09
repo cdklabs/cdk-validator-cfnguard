@@ -5,14 +5,6 @@ import {
 } from 'aws-cdk-lib';
 
 /**
- * The status
- */
-enum RuleStatus {
-  FAIL = 'FAIL',
-  PASS = 'PASS',
-}
-
-/**
  * Messages for a given rule
  */
 interface RuleMessages {
@@ -35,8 +27,7 @@ interface RuleMessages {
 }
 
 /**
- * In an Unresolved check, this is how
- * far the check was able to traverse to.
+ * This is how far the check was able to traverse to.
  */
 interface Traversed {
   /**
@@ -51,22 +42,21 @@ interface Traversed {
   readonly value: any;
 }
 
+/**
+ * The result of running cfn-guard after we parse
+ * the results into a well defined schema
+ */
 export interface GuardResult {
   /**
    * TODO: figure out what this is
    * it's always an empty string
    */
   readonly name?: string;
-  /**
-   * TODO: figure out what can be in here
-   * it's always empty when I run it
-   */
-  readonly metadata?: any;
 
   /**
    * The overall status of the rule, pass or fail
    */
-  readonly status: RuleStatus;
+  readonly status: 'PASS' | 'FAIL';
 
   /**
    * A list of rule results for rules that are not compliant
@@ -101,12 +91,9 @@ interface NonCompliantRule {
   readonly name: string;
 
   /**
-   * TODO: figure out what can be in here
-   * it's always empty when I run it
-   */
-  readonly metadata?: any;
-  /**
    * TODO: this is always empty, how do rules populate this?
+   *
+   * @default - no rule messages
    */
   readonly messages?: RuleMessages;
 
@@ -126,14 +113,30 @@ interface NonCompliantRuleCheck {
 
   /**
    * Information on the properties that failed the check
+   * This can be slightly different depending on  whether the
+   * check was resolved or not.
    */
   readonly traversed: {
+    /**
+     * When the check is resolved this has information
+     * on the _expected_ value of the property that was checked.
+     *
+     * When the check is unresolved this has information on
+     * The last property it was able to resolve.
+     */
     to: Traversed;
+
+    /**
+     * When the check is unresolved this will be undefined.
+     *
+     * When the check is resolved this will contain information
+     * on the _actual_ value of the property that was checked.
+     */
     from?: Traversed;
   };
 
   /**
-   * TODO: Docs
+   * Messages for a given rule
    */
   readonly messages?: RuleMessages;
 }
@@ -145,15 +148,48 @@ type violationResourceMap = {
 
 export class ViolationCheck {
   private readonly violatingResources = new Map<string, violationResourceMap>();
-  private readonly violation: { fix?: string; recommendation?: string } = {};
+  private readonly violation: { fix?: string; description?: string } = {};
   constructor(
     private readonly ruleCheck: NonCompliantRule,
     private readonly templatePath: string,
   ) { }
 
+  /**
+   * A single guard rule can contain multiple "checks" that are run against a resource
+   * or against multiple resources. So for example you might get something like:
+   * {
+   *   name: 's3-public-buckets-prohibited',
+   *   messages: {
+   *     custom_message: 'Buckets should not be public',
+   *   },
+   *   checks: [
+   *     {
+   *       traversed: {
+   *         to: {
+   *           path: '/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy'
+   *         }
+   *       }
+   *     },
+   *     {
+   *       traversed: {
+   *         to: {
+   *           path: '/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicAcls'
+   *         }
+   *       }
+   *     }
+   *   ]
+   * }
+   *
+   * We want to display this to the user as a single violation since there is a single
+   * custom_message. This method sets up some inheritance and constructs a single violation per
+   * resource+message.
+   */
   private setViolatingResources(check: NonCompliantRuleCheck): void {
-    this.violation.recommendation = this.violation.recommendation || check.messages?.custom_message || check.messages?.error_message;
-    this.violation.fix = this.violation.fix ?? check.messages?.custom_message ?? '';
+    // pull the description from the custom message or from the error message if available
+    this.violation.description = this.violation.description || check.messages?.custom_message || check.messages?.error_message;
+    // The fix will only appear in a custom_message because it would be a user
+    // generated message
+    this.violation.fix = this.violation.fix ?? check.messages?.custom_message ?? 'N/A';
     const location = check.traversed.to.path;
     const resourceName = location.split('/')[2];
     const violatingResource = this.violatingResources.get(this.violation.fix);
@@ -171,13 +207,26 @@ export class ViolationCheck {
       this.violatingResources.set(this.violation.fix, {
         resource: new Map([[resourceName, result]]),
         violation: {
-          description: this.violation.recommendation ?? '',
+          description: this.violation.description ?? '',
           fix: this.violation.fix,
         },
       });
     }
   }
 
+  /**
+   * Process a Guard result check and return a plugin violation
+   * We are establishing a bit of a convention with the messages where we expect
+   * the custom_message field to contain a string formatted like this
+   * (based on the Control Tower rules)
+   *
+   *     [FIX]: Do something...
+   *     [XXX]: description of the rule
+   *
+   * If it does contain a structure like that then we try and parse out the
+   * fix and description fields, otherwise we just take the custom_message as
+   * is and use it for both.
+   */
   public processCheck(): ValidationViolationResourceAware[] {
     this.ruleCheck.checks.forEach(check => {
       if (check.messages?.custom_message) {
@@ -187,7 +236,7 @@ export class ViolationCheck {
           if (mes.startsWith('[FIX]')) {
             this.violation.fix = mes;
           } else {
-            this.violation.recommendation = mes;
+            this.violation.description = mes;
           }
         });
       }

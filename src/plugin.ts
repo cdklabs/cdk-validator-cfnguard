@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import {
   IValidationPlugin,
@@ -11,11 +12,22 @@ import { ViolationCheck, GuardResult } from './check';
 import { exec } from './utils';
 
 
+/**
+ * Configuration for running guard with
+ * a single rule file against a single template
+ */
 interface GuardExecutionConfig {
+  /**
+   * The path to the CloudFormation template that should
+   * be validated
+   */
   readonly templatePath: string;
+
+  /**
+   * The path to the guard rule file
+   */
   readonly rulePath: string;
 }
-
 
 /**
  * A validation plugin using CFN Guard
@@ -23,6 +35,7 @@ interface GuardExecutionConfig {
 export class CfnGuardValidator implements IValidationPlugin {
   public readonly name: string;
   private readonly rulesPath: string;
+  private readonly guard: string;
   /**
    * List of violations in the report.
    */
@@ -32,10 +45,19 @@ export class CfnGuardValidator implements IValidationPlugin {
   constructor() {
     this.name = 'cdk-validator-cfnguard';
     this.rulesPath = path.join(__dirname, '../rules');
+    const osPlatform = os.platform();
+    const platform = osPlatform === 'linux'
+      ? 'ubuntu'
+      : osPlatform === 'darwin' ? 'macos' : undefined;
+
+    if (!platform) {
+      throw new Error(`${os.platform()} not supported, must be either 'darwin' or 'linux'`);
+    }
+    this.guard = path.join(__dirname, '..', 'bin', platform, 'cfn-guard');
   }
 
   isReady(): boolean {
-    const { status } = spawnSync('cfn-guard', ['--version'], {
+    const { status } = spawnSync(this.guard, ['--version'], {
       encoding: 'utf-8',
       stdio: 'pipe',
       env: { ...process.env },
@@ -83,7 +105,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       'none',
     ];
     try {
-      const result = exec(['cfn-guard', ...flags], {
+      const result = exec([this.guard, ...flags], {
         json: true,
       });
       const guardResult: GuardResult = JSON.parse(JSON.stringify(result), reviver);
@@ -271,5 +293,4 @@ function reviver(key: string, value: any): any {
     return Object.values(value).map((v: any) => v.Rule);
   }
   return value;
-
 }
