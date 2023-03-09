@@ -58,7 +58,7 @@ describe('CfnGuardPlugin', () => {
     // THEN
     expect(execMock).toHaveBeenCalledTimes(4);
     expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
-      'cfn-guard',
+      expect.stringMatching(/.*bin\/\w+\/cfn-guard$/),
       'validate',
       '--rules',
       path.join(__dirname, '../rules/aws-guard-rules-registry/amazon_s3/s3-rule.guard'),
@@ -112,6 +112,47 @@ describe('CfnGuardPlugin', () => {
           templatePath: '',
           locations: ['/Resources/MyCustomL3ConstructBucket8C61BCA7'],
         }],
+      }],
+    });
+  });
+
+  test('guard-unresolved-nested-rule-check', () => {
+    // GIVEN
+    execMock.mockReturnValue(getData('guard-unresolved-nested-rule-check.json'));
+    const validator = new plugin.CfnGuardValidator();
+
+    // WHEN
+    const result = validator.validate({
+      templatePaths: ['./tmp'],
+    });
+
+    // THEN
+    expect(result).toEqual({
+      pluginName: 'cdk-validator-cfnguard',
+      success: false,
+      violations: [{
+        fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
+        description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
+        ruleName: 's3_bucket_level_public_access_prohibited_check',
+        violatingResources: [
+          {
+            resourceLogicalId: 'Bucket83908E77',
+            templatePath: '',
+            locations: [
+              '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
+              '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
+              '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/IgnorePublicAcls',
+              '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/RestrictPublicBuckets',
+            ],
+          },
+          {
+            resourceLogicalId: 'Bucket25524B414',
+            templatePath: '',
+            locations: [
+              '/Resources/Bucket25524B414',
+            ],
+          },
+        ],
       }],
     });
   });

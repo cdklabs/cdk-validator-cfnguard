@@ -195,7 +195,7 @@ export class CfnGuardValidator implements IValidationPlugin {
  * }
  *
  * In the above example we only care about the 'traversed_to' field,
- * so this reviver function will grab that field and pull it up the, dropping
+ * so this reviver function will grab that field and pull it up the object, dropping
  * the fields we don't care about, ending with something like
  * {
  *   checks: [{
@@ -207,90 +207,106 @@ export class CfnGuardValidator implements IValidationPlugin {
  */
 function reviver(key: string, value: any): any {
   if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-    let newValue = value;
-    Object.entries(value).forEach(([level1NestedKey, level1NestedValue]) => {
-      const nestedValue = level1NestedValue as any;
-      switch (level1NestedKey.toLowerCase()) {
-        case 'unresolved':
-          newValue = {
-            resolved: false,
-            traversed: nestedValue.traversed,
-            messages: nestedValue.messages ?? value.messages,
-          };
-          break;
-        case 'resolved':
-          newValue = {
-            resolved: true,
-            traversed: {
-              from: nestedValue.from,
-              to: {
-                path: nestedValue.from.path,
-                value: nestedValue.to.value,
-              },
-            },
-            messages: nestedValue.messages,
-          };
-          break;
-        case 'traversed_to':
-          newValue = {
-            traversed: {
-              to: {
-                path: nestedValue.path,
-                value: nestedValue.value,
-              },
-              from: nestedValue.from ? {
-                path: nestedValue.from.path,
-                value: undefined,
-              } : undefined,
-            },
-            messages: nestedValue.messages,
-          };
-          break;
-      }
-      if (level1NestedValue !== null && typeof level1NestedValue === 'object' && !Array.isArray(level1NestedValue)) {
-        Object.entries(level1NestedValue).forEach(([level2NestedKey, _level2NestedValue]) => {
-          switch (level2NestedKey.toLowerCase()) {
-            case 'traversed':
-              newValue = {
-                traversed: nestedValue.traversed,
-                resolved: nestedValue.resolved,
-                messages: nestedValue.messages ?? _level2NestedValue.messages ?? value.messages,
-              };
-              break;
-          }
-        });
-      }
-    });
-    return newValue;
+    return extractNestedObject(value);
   } else if (key === 'checks' && Array.isArray(value)) {
-    if (value.some(v => Object.values(v).some((vv: any) => {
-      if (typeof vv === 'object') {
-        if (vv.hasOwnProperty('checks')) {
-          return true;
-        }
-      }
-      return false;
-    }))) {
-      return value.flatMap(v => {
-        return Object.values(v).flatMap((checkValue: any) => {
-          return Object.values(checkValue.checks).flatMap((vv: any) => {
-            return {
-              ...vv,
-              name: checkValue.name,
-              messages: checkValue.messages ?? vv.messages,
-            };
-          });
-        });
-      });
-    }
-    return value.flatMap(v => {
-      if (Object.keys(v).includes('traversed')) {
-        return v;
-      }
-      return Object.values(v);
-    });
+    return extractNestedChecks(value);
   } else if (key === 'not_compliant') {
     return Object.values(value).map((v: any) => v.Rule);
   }
   return value;
+}
+
+/**
+ * Extract a nested 'checks' object. This also handles checks
+ * nested within checks. It will grab the checks at the level below
+ * and pull it up to the next level.
+ */
+function extractNestedChecks(checks: any[]): any[] {
+  if (checks.some(check => Object.values(check).some((value: any) => {
+    if (typeof value === 'object') {
+      if (value.hasOwnProperty('checks')) {
+        return true;
+      }
+    }
+    return false;
+  }))) {
+    return checks.flatMap(check => {
+      return Object.values(check).flatMap((checkValue: any) => {
+        return Object.values(checkValue.checks).flatMap((nestedCheckValue: any) => {
+          return {
+            ...nestedCheckValue,
+            name: checkValue.name,
+            messages: checkValue.messages ?? nestedCheckValue.messages,
+          };
+        });
+      });
+    });
+  }
+  return checks.flatMap(check => {
+    if (Object.keys(check).includes('traversed')) {
+      return check;
+    }
+    return Object.values(check);
+  });
+}
+
+/**
+ * Extract a nested object and pull it up a level
+ */
+function extractNestedObject(object: any): any {
+  let newObject = object;
+  Object.entries(object).forEach(([level1NestedKey, level1NestedValue]) => {
+    const nestedValue = level1NestedValue as any;
+    switch (level1NestedKey.toLowerCase()) {
+      case 'unresolved':
+        newObject = {
+          resolved: false,
+          traversed: nestedValue.traversed,
+          messages: nestedValue.messages ?? object.messages,
+        };
+        break;
+      case 'resolved':
+        newObject = {
+          resolved: true,
+          traversed: {
+            from: nestedValue.from,
+            to: {
+              path: nestedValue.from.path,
+              value: nestedValue.to.value,
+            },
+          },
+          messages: nestedValue.messages,
+        };
+        break;
+      case 'traversed_to':
+        newObject = {
+          traversed: {
+            to: {
+              path: nestedValue.path,
+              value: nestedValue.value,
+            },
+            from: nestedValue.from ? {
+              path: nestedValue.from.path,
+              value: undefined,
+            } : undefined,
+          },
+          messages: nestedValue.messages,
+        };
+        break;
+    }
+    if (level1NestedValue !== null && typeof level1NestedValue === 'object' && !Array.isArray(level1NestedValue)) {
+      Object.entries(level1NestedValue).forEach(([level2NestedKey, level2NestedValue]) => {
+        switch (level2NestedKey.toLowerCase()) {
+          case 'traversed':
+            newObject = {
+              traversed: nestedValue.traversed,
+              resolved: nestedValue.resolved,
+              messages: nestedValue.messages ?? level2NestedValue.messages ?? object.messages,
+            };
+            break;
+        }
+      });
+    }
+  });
+  return newObject;
 }
