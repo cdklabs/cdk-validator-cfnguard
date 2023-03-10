@@ -101,7 +101,7 @@ describe('CfnGuardPlugin', () => {
       },
     });
     const validator = new plugin.CfnGuardValidator({
-      disabledControlTowerRules: [
+      disabledRules: [
         'ct-s3-rule',
       ],
     });
@@ -114,6 +114,43 @@ describe('CfnGuardPlugin', () => {
     expect(execMock).toHaveBeenCalledWith(expect.arrayContaining([
       '--rules',
       path.join(__dirname, '../rules/control-tower/efs/ct-efs-rule.guard'),
+      '--data',
+      'template.json',
+    ]), { json: true });
+  });
+
+  test('additional rules can be provided', () => {
+    // GIVEN
+    mock({
+      [path.join(__dirname, 'local-rules')]: {
+        'directory': {
+          'dir-rule.guard': '',
+        },
+        'file-rule.guard': '',
+      },
+    });
+    const validator = new plugin.CfnGuardValidator({
+      controlTowerRulesEnabled: false,
+      rules: [
+        path.join(__dirname, 'local-rules', 'directory'),
+        path.join(__dirname, 'local-rules', 'file-rule.guard'),
+      ],
+    });
+
+    validator.validate({
+      templatePaths: ['template.json'],
+    });
+
+    expect(execMock).toHaveBeenCalledTimes(2);
+    expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
+      '--rules',
+      path.join(__dirname, 'local-rules', 'directory', 'dir-rule.guard'),
+      '--data',
+      'template.json',
+    ]), { json: true });
+    expect(execMock).toHaveBeenNthCalledWith(2, expect.arrayContaining([
+      '--rules',
+      path.join(__dirname, 'local-rules', 'file-rule.guard'),
       '--data',
       'template.json',
     ]), { json: true });

@@ -16,14 +16,26 @@ export interface CfnGuardValidatorProps {
    *
    * @default true
    */
-  readonly useControlTowerRules?: boolean;
+  readonly controlTowerRulesEnabled?: boolean;
 
   /**
    * List of rule names to disable
    *
    * @default - no rules are disabled
    */
-  readonly disabledControlTowerRules?: string[];
+  readonly disabledRules?: string[];
+
+  /**
+   * Local file paths to either a directory containing
+   * guard rules, or to an individual guard rule file
+   *
+   * If the path is to a directory then the directory must
+   * only contain guard rule and the plugin will use
+   * all the rules in the directory
+   *
+   * @default - no local rules will be used
+   */
+  readonly rules?: string[];
 }
 
 /**
@@ -56,11 +68,14 @@ export class CfnGuardValidator implements IValidationPlugin {
 
   constructor(props: CfnGuardValidatorProps = {}) {
     this.name = 'cdk-validator-cfnguard';
-    this.disabledRules = props.disabledControlTowerRules ?? [];
-    if (props.useControlTowerRules ?? true) {
+    this.disabledRules = props.disabledRules ?? [];
+    if (props.controlTowerRulesEnabled ?? true) {
       this.rulesPaths.push(path.join(__dirname, '..', 'rules', 'control-tower'));
     }
+    this.rulesPaths.push(...props.rules ?? []);
     const osPlatform = os.platform();
+    // guard calls it ubuntu but seems to apply to all linux
+    // https://github.com/aws-cloudformation/cloudformation-guard/blob/184002cdfc0ae9e29c61995aae41b7d1f1d3b26c/install-guard.sh#L43-L46
     const platform = osPlatform === 'linux'
       ? 'ubuntu'
       : osPlatform === 'darwin' ? 'macos' : undefined;
