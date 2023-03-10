@@ -175,7 +175,7 @@ describe('CfnGuardPlugin', () => {
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         violatingResources: [{
           resourceLogicalId: 'MyCustomL3ConstructBucket8C61BCA7',
-          templatePath: '',
+          templatePath: './tmp',
           locations: ['/Resources/MyCustomL3ConstructBucket8C61BCA7'],
         }],
       }],
@@ -202,7 +202,7 @@ describe('CfnGuardPlugin', () => {
         violatingResources: [
           {
             resourceLogicalId: 'Bucket83908E77',
-            templatePath: '',
+            templatePath: './tmp',
             locations: [
               '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
               '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -212,7 +212,7 @@ describe('CfnGuardPlugin', () => {
           },
           {
             resourceLogicalId: 'Bucket25524B414',
-            templatePath: '',
+            templatePath: './tmp',
             locations: [
               '/Resources/Bucket25524B414',
             ],
@@ -241,7 +241,7 @@ describe('CfnGuardPlugin', () => {
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         violatingResources: [{
           resourceLogicalId: 'Bucket83908E77',
-          templatePath: '',
+          templatePath: './tmp',
           locations: [
             '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
             '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -273,7 +273,7 @@ describe('CfnGuardPlugin', () => {
         violatingResources: [
           {
             resourceLogicalId: 'Bucket83908E77',
-            templatePath: '',
+            templatePath: './tmp',
             locations: [
               '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
               '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -283,7 +283,7 @@ describe('CfnGuardPlugin', () => {
           },
           {
             resourceLogicalId: 'Bucket25524B414',
-            templatePath: '',
+            templatePath: './tmp',
             locations: [
               '/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
               '/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -316,7 +316,7 @@ describe('CfnGuardPlugin', () => {
         violatingResources: [
           {
             resourceLogicalId: 'MyCustomL3ConstructBucket8C61BCA7',
-            templatePath: '',
+            templatePath: './tmp',
             locations: [
               '/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
               '/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -348,7 +348,7 @@ describe('CfnGuardPlugin', () => {
         violatingResources: [
           {
             resourceLogicalId: 'MyCustomL3ConstructBucket8C61BCA7',
-            templatePath: '',
+            templatePath: './tmp',
             locations: [
               '/Resources/MyCustomL3ConstructBucket8C61BCA7',
               '/Resources/MyCustomL3ConstructBucket8C61BCA7',

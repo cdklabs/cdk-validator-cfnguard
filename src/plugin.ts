@@ -86,6 +86,11 @@ export class CfnGuardValidator implements IValidationPlugin {
     this.guard = path.join(__dirname, '..', 'bin', platform, 'cfn-guard');
   }
 
+  /**
+   * This is (hopefully) a temporary solution to https://github.com/aws-cloudformation/cloudformation-guard/issues/180
+   * Rather than try and parse the output and split out the JSON entries we'll just
+   * invoke guard separately for each rule.
+   */
   private generateGuardExecutionConfig(filePath: string, templatePaths: string[]): void {
     const stat = fs.statSync(filePath);
     if (stat.isDirectory()) {
@@ -138,7 +143,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       }
       this.success = false;
       guardResult.not_compliant.forEach((check) => {
-        const violationCheck = new ViolationCheck(check, '');
+        const violationCheck = new ViolationCheck(check, config.templatePath);
         const violation = violationCheck.processCheck();
         violations.push(...violation);
       });
