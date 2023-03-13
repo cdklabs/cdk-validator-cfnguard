@@ -3,7 +3,6 @@ import {
   // Stage,
   Stack,
   aws_s3 as s3,
-  ValidationReportFormat,
 } from 'aws-cdk-lib';
 import { CfnGuardValidator } from '../src';
 
@@ -19,6 +18,9 @@ describe('CfnGuardValidator', () => {
       validationPlugins: [
         new CfnGuardValidator(),
       ],
+      context: {
+        '@aws-cdk/core:validationReportJson': true,
+      },
     });
 
     // WHEN
@@ -27,10 +29,8 @@ describe('CfnGuardValidator', () => {
 
     // THEN
     expect(() => {
-      app.synth({
-        validationReportFormat: ValidationReportFormat.JSON,
-      });
-    }).toThrow(/Validation failed. See the validation report above for details/);
+      app.synth();
+    }).toThrow();
     const report = consoleMock.mock.calls[0][0];
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toEqual(expect.arrayContaining([
@@ -43,6 +43,9 @@ describe('CfnGuardValidator', () => {
       validationPlugins: [
         new CfnGuardValidator(),
       ],
+      context: {
+        '@aws-cdk/core:validationReportJson': true,
+      },
     });
 
     // WHEN
@@ -58,9 +61,7 @@ describe('CfnGuardValidator', () => {
 
     // THEN
     expect(() => {
-      app.synth({
-        validationReportFormat: ValidationReportFormat.JSON,
-      });
+      app.synth();
     }).not.toThrow(/Validation failed. See the validation report above for details/);
   });
 });
