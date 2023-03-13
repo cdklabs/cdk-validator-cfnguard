@@ -62,7 +62,6 @@ export class CfnGuardValidator implements IValidationPlugin {
   public readonly name: string;
   private readonly rulesPaths: string[] = [];
   private readonly guard: string;
-  private success?: boolean;
   private readonly disabledRules: string[];
   private readonly executionConfig: GuardExecutionConfig[] = [];
 
@@ -133,6 +132,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       'none',
     ];
     const violations: ValidationViolationResourceAware[] = [];
+    let success: boolean;
     try {
       const result = exec([this.guard, ...flags], {
         json: true,
@@ -141,17 +141,17 @@ export class CfnGuardValidator implements IValidationPlugin {
       if (!guardResult.not_compliant || guardResult.not_compliant.length === 0) {
         return { success: true, violations: [] };
       }
-      this.success = false;
+      success = false;
       guardResult.not_compliant.forEach((check) => {
         const violationCheck = new ViolationCheck(check, config.templatePath);
         const violation = violationCheck.processCheck();
         violations.push(...violation);
       });
     } catch (e) {
-      this.success = false;
+      success = false;
     }
     return {
-      success: this.success,
+      success,
       violations: violations,
     };
   }
@@ -250,14 +250,10 @@ function reviver(key: string, value: any): any {
  * and pull it up to the next level.
  */
 function extractNestedChecks(checks: any[]): any[] {
-  if (checks.some(check => Object.values(check).some((value: any) => {
-    if (typeof value === 'object') {
-      if (value.hasOwnProperty('checks')) {
-        return true;
-      }
-    }
-    return false;
-  }))) {
+  const containsNestedChecks = checks.some(check => Object.values(check).some((value: any) => {
+    return typeof value === 'object' && value.hasOwnProperty('checks');
+  }));
+  if (containsNestedChecks) {
     return checks.flatMap(check => {
       return Object.values(check).flatMap((checkValue: any) => {
         return Object.values(checkValue.checks).flatMap((nestedCheckValue: any) => {
@@ -286,26 +282,10 @@ function extractNestedObject(object: any): any {
   Object.entries(object).forEach(([level1NestedKey, level1NestedValue]) => {
     const nestedValue = level1NestedValue as any;
     switch (level1NestedKey.toLowerCase()) {
-      case 'unresolved':
-        newObject = {
-          resolved: false,
-          traversed: nestedValue.traversed,
-          messages: nestedValue.messages ?? object.messages,
-        };
-        break;
-      case 'resolved':
-        newObject = {
-          resolved: true,
-          traversed: {
-            from: nestedValue.from,
-            to: {
-              path: nestedValue.from.path,
-              value: nestedValue.to.value,
-            },
-          },
-          messages: nestedValue.messages,
-        };
-        break;
+      // this should always be found earlier than the rest since it appears
+      // within the 'unresolved' and 'resolved' objects. The object
+      // is slightly different for each case so here we create
+      // a new object with the key 'traversed' with a consistent value
       case 'traversed_to':
         newObject = {
           traversed: {
@@ -321,7 +301,40 @@ function extractNestedObject(object: any): any {
           messages: nestedValue.messages,
         };
         break;
+      // This should be found in the "second" pass after the above
+      // 'traversed_to' case has been executed. We take the new
+      // object that was created in the `traversed_to` case and
+      // a couple other fields, dropping the rest that we don't care about
+      case 'unresolved':
+        newObject = {
+          resolved: false,
+          traversed: nestedValue.traversed,
+          messages: nestedValue.messages ?? object.messages,
+        };
+        break;
+      // This should be found in the "second" pass after the above
+      // 'traversed_to' case has been executed. We take the new
+      // object that was created in the `traversed_to` case and
+      // a couple other fields, dropping the rest that we don't care about
+      // A check can either be resolved or unresolved
+      case 'resolved':
+        newObject = {
+          resolved: true,
+          traversed: {
+            from: nestedValue.from,
+            to: {
+              path: nestedValue.from.path,
+              value: nestedValue.to.value,
+            },
+          },
+          messages: nestedValue.messages,
+        };
+        break;
     }
+    // this check will be evaluated _after_ the 'traversed_to' check and _before_ the 'resolved'
+    // and 'unresolved' checks above. There may be a case where 'traversed' is nested 2 (or 3 or 4) below
+    // 'unresolved' or 'resolved' and this will keep pulling it up until it is just one below
+    // and the above checks can work
     if (level1NestedValue !== null && typeof level1NestedValue === 'object' && !Array.isArray(level1NestedValue)) {
       Object.entries(level1NestedValue).forEach(([level2NestedKey, level2NestedValue]) => {
         switch (level2NestedKey.toLowerCase()) {
