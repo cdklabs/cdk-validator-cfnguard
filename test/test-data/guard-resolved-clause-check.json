@@ -1,0 +1,102 @@
+{
+  "name": "",
+  "metadata": {},
+  "status": "FAIL",
+  "not_compliant": [
+    {
+      "Rule": {
+        "name": "S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED",
+        "metadata": {},
+        "messages": {
+          "custom_message": null,
+          "error_message": null
+        },
+        "checks": [
+          {
+            "Clause": {
+              "Binary": {
+                "context": " %s3_buckets_level_public_access_prohibited[*].Properties.PublicAccessBlockConfiguration.BlockPublicAcls EQUALS  true",
+                "messages": {
+                  "custom_message": "",
+                  "error_message": "Check was not compliant as property value [Path=/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicAcls[L:6,C:24] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                },
+                "check": {
+                  "Resolved": {
+                    "from": {
+                      "path": "/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicAcls",
+                      "value": false
+                    },
+                    "to": {
+                      "path": "",
+                      "value": true
+                    },
+                    "comparison": [
+                      "Eq",
+                      false
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "Clause": {
+              "Binary": {
+                "context": " %s3_buckets_level_public_access_prohibited[*].Properties.PublicAccessBlockConfiguration.BlockPublicPolicy EQUALS  true",
+                "messages": {
+                  "custom_message": "",
+                  "error_message": "Check was not compliant as property value [Path=/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy[L:7,C:26] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                },
+                "check": {
+                  "Resolved": {
+                    "from": {
+                      "path": "/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy",
+                      "value": false
+                    },
+                    "to": {
+                      "path": "",
+                      "value": true
+                    },
+                    "comparison": [
+                      "Eq",
+                      false
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "Clause": {
+              "Binary": {
+                "context": " %s3_buckets_level_public_access_prohibited[*].Properties.PublicAccessBlockConfiguration.RestrictPublicBuckets EQUALS  true",
+                "messages": {
+                  "custom_message": ";    Violation: S3 Bucket Public Access controls need to be restricted.;    Fix: Set S3 Bucket PublicAccessBlockConfiguration properties for BlockPublicAcls, BlockPublicPolicy, IgnorePublicAcls, RestrictPublicBuckets parameters to true.;  ",
+                  "error_message": "Check was not compliant as property value [Path=/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/RestrictPublicBuckets[L:9,C:30] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                },
+                "check": {
+                  "Resolved": {
+                    "from": {
+                      "path": "/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/RestrictPublicBuckets",
+                      "value": false
+                    },
+                    "to": {
+                      "path": "",
+                      "value": true
+                    },
+                    "comparison": [
+                      "Eq",
+                      false
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "not_applicable": [],
+  "compliant": []
+}

@@ -8,11 +8,19 @@ const project = new CdklabsJsiiProject({
     'cdklabs-projen-project-types',
     '@octokit/types',
     '@octokit/rest',
+    'mock-fs',
+    '@types/mock-fs',
   ],
   name: 'cdk-validator-cfnguard',
   projenrcTs: true,
   release: false,
   repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
+  deps: [
+    'aws-cdk-lib',
+  ],
+  peerDeps: [
+    'aws-cdk-lib',
+  ],
 
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
