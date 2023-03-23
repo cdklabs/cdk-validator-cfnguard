@@ -8,8 +8,12 @@ const project = new CdklabsJsiiProject({
     'cdklabs-projen-project-types',
     '@octokit/types',
     '@octokit/rest',
+    'fs-extra',
+    '@types/fs-extra',
     'mock-fs',
+    'json2jsii',
     '@types/mock-fs',
+    'constructs',
   ],
   name: 'cdk-validator-cfnguard',
   projenrcTs: true,
@@ -29,7 +33,12 @@ const project = new CdklabsJsiiProject({
 
 project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
+project.gitignore.exclude('src/types.gen.ts');
 
 new BundleGuard(project);
+const bundleTask = project.addTask('bundle-rules', {
+  exec: 'ts-node projenrc/rules/bundle-rules.ts',
+});
+project.compileTask.prependSpawn(bundleTask);
 
 project.synth();

@@ -1,0 +1,62 @@
+#
+#####################################
+##           Gherkin               ##
+#####################################
+#
+# Rule Identifier:
+#   AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED
+#
+# Description:
+#   Checks whether your Auto Scaling groups that are associated with a load balancer are using Elastic Load Balancing health checks.
+#
+# Reports on:
+#    AWS::AutoScaling::AutoScalingGroup
+#
+# Evaluates:
+#    AWS CloudFormation
+#
+# Rule Parameters:
+#    NA
+#
+# Scenarios:
+# a) SKIP: when there are no Autoscaling Group resources present
+# b) SKIP: when metada has rule suppression for AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED
+# c) SKIP: 'LoadBalancerNames' or 'TargetGroupARNs' are not present
+# d) FAIL: 'HealthCheckType' is not present
+# e) FAIL: 'HealthCheckType' is present and set to a value other than 'ELB'
+# f) PASS: 'HealthCheckType' is present and set 'ELB'
+
+#
+# Select all Autoscaling Group Resources from incoming template
+#
+let autoscaling_group_elb_healthcheck_required_resources = Resources.*[ Type == "AWS::AutoScaling::AutoScalingGroup"
+  Metadata.guard.SuppressedRules not exists or
+  Metadata.guard.SuppressedRules.* != "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED"
+]
+
+rule AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED when %autoscaling_group_elb_healthcheck_required_resources !empty {
+    %autoscaling_group_elb_healthcheck_required_resources[
+        # Scenario c)
+        Properties {
+            LoadBalancerNames exists
+            LoadBalancerNames is_list
+            LoadBalancerNames not empty
+        } or
+        Properties {
+            TargetGroupARNs exists
+            TargetGroupARNs is_list
+            TargetGroupARNs not empty
+        }
+     ] {
+        Properties {
+            # Scenario d)
+            HealthCheckType exists
+            # Scenarios e) and f)
+            HealthCheckType == "ELB"
+            <<
+                Violation: AWS AutoScaling Groups with Classic Load Balancer or Target Group associations must be configured with ELB healh checks.
+                Fix: Set 'HealthCheckType' to 'ELB'
+            >>
+        }
+    }
+}

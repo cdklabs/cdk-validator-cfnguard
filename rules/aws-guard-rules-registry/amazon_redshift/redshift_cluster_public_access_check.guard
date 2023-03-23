@@ -1,0 +1,45 @@
+#
+#####################################
+##           Gherkin               ##
+#####################################
+# Rule Identifier:
+#    REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK
+#
+# Description:
+#   Redshift cluster should not be publicly accessible on the internet.
+#
+# Reports on:
+#    AWS::EKS::Cluster
+#
+# Evaluates:
+#    AWS CloudFormation
+#
+# Rule Parameters:
+#    NA
+#
+# Scenarios:
+# a) SKIP: when there is no Redshift cluster present
+# b) PASS: when Redshift Cluster resources do not have the publiclyAccessible property set (default false)
+# c) PASS: when Redshift Cluster resources have the PubliclyAccessible property set to false
+# d) FAIL: when any Redshift Cluster resources have the PubliclyAccessible property set to true
+# e) SKIP: when metada includes the suppression for rule REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK
+
+#
+# Select all Redshift cluster resources from incoming template
+#
+
+let aws_redshift_clusters_resources_public_access_check = Resources.*[ Type == 'AWS::Redshift::Cluster'
+  Metadata.guard.SuppressedRules not exists or
+  Metadata.guard.SuppressedRules.* != "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK"
+]
+
+
+rule REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK when %aws_redshift_clusters_resources_public_access_check !empty {
+    %aws_redshift_clusters_resources_public_access_check.Properties.PubliclyAccessible  not exists or
+    %aws_redshift_clusters_resources_public_access_check.Properties.PubliclyAccessible == false
+
+  <<
+    Violation: Redshift cluster should not be available to public.
+    Fix: Set the Redshift property PubliclyAccessible parameter to false.
+  >>
+}

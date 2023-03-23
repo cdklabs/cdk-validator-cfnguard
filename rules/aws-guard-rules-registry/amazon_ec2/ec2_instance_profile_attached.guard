@@ -1,0 +1,40 @@
+#
+#####################################
+##           Gherkin               ##
+#####################################
+# Rule Identifier:
+#    EC2_INSTANCE_PROFILE_ATTACHED
+#
+# Description:
+#    Checks if an Amazon Elastic Compute Cloud (Amazon EC2) instance has an Identity and Access Management (IAM) profile attached to it. 
+#
+# Reports on:
+#    AWS::EC2::Instance
+#
+# Evaluates:
+#    AWS CloudFormation
+#
+# Rule Parameters:
+#    NA
+#
+# Scenarios:
+# a) SKIP: when no EC2 Instance resources are present 
+# b) PASS: when all EC2 Instace resources have an associated IAM instance profile 
+# d) FAIL: when any EC2 Instace resources do not have an associated IAM instance profile
+# e) SKIP: hen metadata includes the suppression for rule EC2_INSTANCE_PROFILE_ATTACHED
+
+#
+# Select all EC2 Instance resources from incoming template (payload)
+#
+let ec2_instances_profile_attached = Resources.*[ Type == 'AWS::EC2::Instance' 
+  Metadata.guard.SuppressedRules not exists or
+  Metadata.guard.SuppressedRules.* != "EC2_INSTANCE_PROFILE_ATTACHED"
+]
+
+rule EC2_INSTANCE_PROFILE_ATTACHED when %ec2_instances_profile_attached !empty {
+  %ec2_instances_profile_attached.Properties.IamInstanceProfile EXISTS
+  <<
+    Violation: EC2 Instances must have IAM profile attached to it.
+    Fix: Associate the EC2 Instance property IamInstanceProfile with an IAM Instance Profile.
+  >>
+}

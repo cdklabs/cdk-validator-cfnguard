@@ -2,21 +2,33 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
-  IValidationPlugin,
-  IValidationContext,
-  ValidationViolationResourceAware,
-  ValidationPluginReport,
+  IPolicyValidationPluginBeta1,
+  IPolicyValidationContext,
+  PolicyViolation,
+  PolicyValidationPluginReport,
 } from 'aws-cdk-lib';
 import { ViolationCheck, GuardResult } from './check';
+import { RuleSet } from './types.gen';
 import { exec } from './utils';
 
 export interface CfnGuardValidatorProps {
   /**
-   * Enable the default Control Tower Guard rules
+   * Enable the CloudFormation Guard Rules Registry rules
+   *
+   * @see https://github.com/aws-cloudformation/aws-guard-rules-registry
    *
    * @default true
    */
-  readonly controlTowerRulesEnabled?: boolean;
+  readonly guardRulesRegistryEnabled?: boolean;
+
+  /**
+   * Managed rule sets from the CloudFormation Guard Rules Registry
+   *
+   * @see https://github.com/aws-cloudformation/aws-guard-rules-registry
+   *
+   * @default - all rule sets
+   */
+  readonly managedRuleSets?: RuleSet[];
 
   /**
    * List of rule names to disable
@@ -35,7 +47,7 @@ export interface CfnGuardValidatorProps {
    *
    * @default - no local rules will be used
    */
-  readonly rules?: string[];
+  readonly localRules?: string[];
 }
 
 /**
@@ -58,7 +70,7 @@ interface GuardExecutionConfig {
 /**
  * A validation plugin using CFN Guard
  */
-export class CfnGuardValidator implements IValidationPlugin {
+export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
   public readonly name: string;
   private readonly rulesPaths: string[] = [];
   private readonly guard: string;
@@ -68,10 +80,17 @@ export class CfnGuardValidator implements IValidationPlugin {
   constructor(props: CfnGuardValidatorProps = {}) {
     this.name = 'cdk-validator-cfnguard';
     this.disabledRules = props.disabledRules ?? [];
-    if (props.controlTowerRulesEnabled ?? true) {
-      this.rulesPaths.push(path.join(__dirname, '..', 'rules', 'control-tower'));
+    const ruleSets = props.managedRuleSets
+      ? new Set<string>()
+      : new Set(RuleSet.ALL().rules.map(rule => path.join(__dirname, '../rules/aws-guard-rules-registry', rule)));
+    props.managedRuleSets?.forEach(ruleSet => {
+      ruleSet.rules.forEach(rule => ruleSets.add(path.join(__dirname, '../rules/aws-guard-rules-registry', rule)));
+    });
+
+    if (props.guardRulesRegistryEnabled ?? true) {
+      this.rulesPaths.push(...Array.from(ruleSets));
     }
-    this.rulesPaths.push(...props.rules ?? []);
+    this.rulesPaths.push(...props.localRules ?? []);
     const osPlatform = os.platform();
     // guard calls it ubuntu but seems to apply to all linux
     // https://github.com/aws-cloudformation/cloudformation-guard/blob/184002cdfc0ae9e29c61995aae41b7d1f1d3b26c/install-guard.sh#L43-L46
@@ -90,21 +109,21 @@ export class CfnGuardValidator implements IValidationPlugin {
    * Rather than try and parse the output and split out the JSON entries we'll just
    * invoke guard separately for each rule.
    */
-  private generateGuardExecutionConfig(filePath: string, templatePaths: string[]): void {
-    const stat = fs.statSync(filePath);
+  private generateGuardExecutionConfig(ruleFilePath: string, templatePaths: string[]): void {
+    const stat = fs.statSync(ruleFilePath);
     if (stat.isDirectory()) {
-      const dir = fs.readdirSync(filePath);
-      dir.forEach(d => this.generateGuardExecutionConfig(path.join(filePath, d), templatePaths));
+      const dir = fs.readdirSync(ruleFilePath);
+      dir.forEach(d => this.generateGuardExecutionConfig(path.join(ruleFilePath, d), templatePaths));
     } else {
       templatePaths.forEach(template => {
-        if (!this.disabledRules.includes(path.parse(filePath).name)) {
-          this.executionConfig.push({ rulePath: filePath, templatePath: template });
+        if (!this.disabledRules.includes(path.parse(ruleFilePath).name)) {
+          this.executionConfig.push({ rulePath: ruleFilePath, templatePath: template });
         }
       });
     }
   }
 
-  validate(context: IValidationContext): ValidationPluginReport {
+  validate(context: IPolicyValidationContext): PolicyValidationPluginReport {
     const templatePaths = context.templatePaths;
     this.rulesPaths.forEach(rule => this.generateGuardExecutionConfig(rule, templatePaths));
     const result = this.executionConfig.reduce((acc, config) => {
@@ -113,13 +132,13 @@ export class CfnGuardValidator implements IValidationPlugin {
         violations: [...acc.violations, ...report.violations],
         success: acc.success === false ? false : report.success,
       };
-    }, { violations: [], success: true } as Pick<ValidationPluginReport, 'success' | 'violations'>);
+    }, { violations: [], success: true } as Pick<PolicyValidationPluginReport, 'success' | 'violations'>);
     return {
       ...result,
     };
   }
 
-  private execGuard(config: GuardExecutionConfig): Pick<ValidationPluginReport, 'success' | 'violations'> {
+  private execGuard(config: GuardExecutionConfig): Pick<PolicyValidationPluginReport, 'success' | 'violations'> {
     const flags = [
       'validate',
       '--rules',
@@ -131,7 +150,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       '--show-summary',
       'none',
     ];
-    const violations: ValidationViolationResourceAware[] = [];
+    const violations: PolicyViolation[] = [];
     let success: boolean;
     try {
       const result = exec([this.guard, ...flags], {
@@ -143,7 +162,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       }
       success = false;
       guardResult.not_compliant.forEach((check) => {
-        const violationCheck = new ViolationCheck(check, config.templatePath);
+        const violationCheck = new ViolationCheck(check, config.templatePath, config.rulePath);
         const violation = violationCheck.processCheck();
         violations.push(...violation);
       });

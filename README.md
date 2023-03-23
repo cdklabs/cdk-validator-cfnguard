@@ -65,15 +65,14 @@ new App({
 });
 ```
 
-By default the `CfnGuardValidator` plugin comes with the [Control Tower
-proactive
-controls](https://docs.aws.amazon.com/controltower/latest/userguide/proactive-controls.html)
+By default the `CfnGuardValidator` plugin comes with the [Managed Rule Sets](https://github.com/aws-cloudformation/aws-guard-rules-registry/blob/main/README.md#managed-rule-sets)
+from the [CloudFormation Rule Registry](https://github.com/aws-cloudformation/aws-guard-rules-registry)
 enabled. In order to disable these rules you can use the
-`controlTowerRulesEnabled: false` property.
+`guardRulesRegistryEnabled: false` property.
 
 ```ts
 new CfnGuardValidator({
-  controlTowerRulesEnabled: false,
+  guardRulesRegistryEnabled: false,
 });
 ```
 
@@ -82,10 +81,37 @@ It is also possible to disable individual rules.
 ```ts
 new CfnGuardValidator({
   disabledRules: [
-    'ct-s3-pr-1',
+    'iam_no_inline_policy_check',
   ],
 });
 ```
+
+### Rule Sets
+
+By default all managed rules are enabled. This is equivalent to
+
+```ts
+new CfnGuardValidator({
+  managedRuleSets: [
+    RuleSet.ALL(),
+  ],
+});
+```
+
+If you only want to enable some rule sets, you can provide the list to `managedRuleSets`.
+For example, if you only want to enable the `CIS AWS Benchmark`
+
+```ts
+new CfnGuardValidator({
+  managedRuleSets: [
+    RuleSet.CIS_AWS_BENCHMARK_LEVEL_1(),
+  ],
+});
+```
+
+Some rules apply across multiple rule sets, but each rule will only be executed
+once against a given template. For a full list of Managed Rule Sets check out
+the [CloudFormation Guard Rules Registry](https://github.com/aws-cloudformation/aws-guard-rules-registry#managed-rule-sets)
 
 ### Additional rules
 
@@ -94,7 +120,7 @@ file or directory paths.
 
 ```ts
 new CfnGuardValidator({
-  rules: [
+  localRules: [
     path.join(__dirname, 'local-rules'),
     path.join(__dirname, 's3', 'local-rules', 'my-rule.guard'),
   ]

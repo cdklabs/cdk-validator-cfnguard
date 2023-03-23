@@ -1,0 +1,65 @@
+## Config Rule Name : elb-acm-certificate-required
+## Config Rule URL: https://docs.aws.amazon.com/config/latest/developerguide/elb-acm-certificate-required.html"
+#
+#####################################
+##           Gherkin               ##
+#####################################
+#
+# Rule Identifier:
+#   ELB_ACM_CERTIFICATE_REQUIRED
+#
+# Description:
+#   This rule checks whether the Classic Load Balancer uses HTTPS/SSL certificates provided by AWS Certificate Manager (ACM).
+#   The rule will FAIL if the Classic Load Balancer configured with HTTPS/SSL listener does not use a certificate provided by ACM.
+#
+# Reports on:
+#   AWS::ElasticLoadBalancing::LoadBalancer
+#
+# Evaluates:
+#   AWS CloudFormation
+#
+# Rule Parameters:
+#   None
+#
+# Scenarios:
+# a) SKIP: when there are no Elastic Load Balancing Resources
+# b) SKIP: when metadata has rule suppression for ELB_ACM_CERTIFICATE_REQUIRED
+# c) SKIP: when there are no HTTPS or SSL 'Listeners'
+# d) FAIL: when 'SSLCertificateId' does not matches an ACM certificate ARN for all HTTPS and SSL 'Listeners'
+# e) PASS: when 'SSLCertificateId' matches an ACM certificate ARN for all HTTPS and SSL 'Listeners'
+
+#
+# Select all Elastic Load Balancing Resources from incoming template (payload)
+#
+let elb_acm_certificate_required_resources = Resources.*[ Type == 'AWS::ElasticLoadBalancing::LoadBalancer'
+  Metadata.guard.SuppressedRules not exists or
+  Metadata.guard.SuppressedRules.* != "ELB_ACM_CERTIFICATE_REQUIRED"
+]
+
+rule ELB_ACM_CERTIFICATE_REQUIRED when %elb_acm_certificate_required_resources !empty {
+    let doc = this
+    %elb_acm_certificate_required_resources.Properties {
+        Listeners[
+            # Scenario c)
+            Protocol in ['HTTPS', 'SSL']
+        ] {
+            # Scenarios d) and e)
+            SSLCertificateId exists
+            SSLCertificateId == /arn:aws[a-z0-9\-]*:acm:[a-z0-9\-]+:\d{12}:certificate\/[\w\-]{1,64}/ or 
+            SSLCertificateId {
+                Ref {
+                    let resource_logical_name = this
+                    let referenced_resource = %doc.Resources[ keys == %resource_logical_name ]
+                    %referenced_resource not empty
+                    %referenced_resource {
+                        Type == "AWS::CertificateManager::Certificate"
+                        <<
+                            Violation: Classic Load Balancer Listeners need to use HTTPS/SSL certificates provided by AWS Certificate Manager (ACM).
+                            Fix: Set the Classic Load Balancer Listeners.*.SSLCertificateId property to the ARN of an ACM Certificate.
+                        >>    
+                    }
+                }
+            }
+        }
+    }
+}

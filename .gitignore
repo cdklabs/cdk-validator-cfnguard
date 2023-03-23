@@ -50,4 +50,5 @@ tsconfig.json
 !/API.md
 !/.github/workflows/auto-merge.yml
 bin
+src/types.gen.ts
 !/.github/workflows/update-guard.yml
