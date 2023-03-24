@@ -34,6 +34,9 @@ const project = new CdklabsJsiiProject({
 project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
 project.gitignore.exclude('src/types.gen.ts');
+project.gitignore.exclude('cdk.out');
+project.gitignore.exclude('test/*.snapshot');
+project.gitignore.exclude('test/cdk-integ.out*');
 
 new BundleGuard(project);
 const bundleTask = project.addTask('bundle-rules', {

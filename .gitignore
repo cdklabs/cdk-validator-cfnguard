@@ -51,4 +51,7 @@ tsconfig.json
 !/.github/workflows/auto-merge.yml
 bin
 src/types.gen.ts
+cdk.out
+test/*.snapshot
+test/cdk-integ.out*
 !/.github/workflows/update-guard.yml
