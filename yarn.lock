@@ -11,9 +11,9 @@
     "@jridgewell/trace-mapping" "^0.3.9"
 
 "@aws-cdk/asset-awscli-v1@^2.2.69":
-  version "2.2.85"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.85.tgz#3671dc4de44f243571a806d651697bb4f49d06c1"
-  integrity sha512-oNX4HMupi2+/blbUNctA8WIwyqFTLOGhGDB+gginMSy7QHevLWb/duMlwa7Np4wpiHeiBDMF/ccc5Mfb352srg==
+  version "2.2.116"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.116.tgz#194b2be3d88941019a18c69b435a6d817bc44142"
+  integrity sha512-UHOQYF58kSAgJUGd0EUHt49PGVO5xYB69z2iwXrjsg+jvosuoE30MpEXhWeboLV7N077gN+Fjx3YkuARXz1lKw==
 
 "@aws-cdk/asset-kubectl-v20@^2.1.1":
   version "2.1.1"
@@ -21,9 +21,9 @@
   integrity sha512-U1ntiX8XiMRRRH5J1IdC+1t5CE89015cwyt5U63Cpk0GnMlN5+h9WsWMlKlPXZR4rdq/m806JRlBMRpBUB2Dhw==
 
 "@aws-cdk/asset-node-proxy-agent-v5@^2.0.58":
-  version "2.0.71"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-node-proxy-agent-v5/-/asset-node-proxy-agent-v5-2.0.71.tgz#dd269f8aa160473e006633d2f0f5384f46747693"
-  integrity sha512-vB/KF9naAYkELP6Hi5+Oib59B4ZAz6jjtrpsKNzsIZTmcTs0IIBb4nVdAuwMpMkPcwT0mzhMg2tlsiSyjrOFBA==
+  version "2.0.94"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-node-proxy-agent-v5/-/asset-node-proxy-agent-v5-2.0.94.tgz#465172f9e1de7c03e92eb73f7631869891f4957e"
+  integrity sha512-uJPea9sFl7AsxgLSzm4XGazLtbjfX1cL9WJeztWxr/Ims85Jwmbm52yUlxXMmXEiUrmJnZYRi9z+Mb3TQkYHLA==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.18.6":
   version "7.18.6"
@@ -1404,7 +1404,7 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-aws-cdk-lib@^2.66.1:
+aws-cdk-lib@2.66.1:
   version "2.66.1"
   resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.66.1.tgz#f560a8a86f755ce1507f15398e55d6c0218f9c1a"
   integrity sha512-xMnKXOnsoJLoDyl6L3BUYLPa9bqw8UoBlFGGH4gbzpBPViv9b49xvYuW+BLf7bK7IVgTzYQ+VmZKaFsj+VFouA==

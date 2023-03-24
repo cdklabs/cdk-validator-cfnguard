@@ -14,14 +14,17 @@ const project = new CdklabsJsiiProject({
     'json2jsii',
     '@types/mock-fs',
     'constructs',
+    'aws-cdk-lib',
   ],
-  name: 'cdk-validator-cfnguard',
+  name: '@cdklabs/cdk-validator-cfnguard',
+  keywords: [
+    'cdk',
+    'validator',
+    'policy as code',
+  ],
   projenrcTs: true,
   release: false,
   repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
-  deps: [
-    'aws-cdk-lib',
-  ],
   peerDeps: [
     'aws-cdk-lib',
   ],

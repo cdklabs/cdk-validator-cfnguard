@@ -1,5 +1,5 @@
 {
-  "name": "cdk-validator-cfnguard",
+  "name": "@cdklabs/cdk-validator-cfnguard",
   "repository": {
     "type": "git",
     "url": "https://github.com/cdklabs/cdk-validator-cfnguard.git"
@@ -51,6 +51,7 @@
     "@types/node": "^14",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
+    "aws-cdk-lib": "2.66.1",
     "cdklabs-projen-project-types": "^0.1.36",
     "constructs": "^10.1.276",
     "eslint": "^8",
@@ -75,9 +76,11 @@
   "peerDependencies": {
     "aws-cdk-lib": "^2.66.1"
   },
-  "dependencies": {
-    "aws-cdk-lib": "^2.66.1"
-  },
+  "keywords": [
+    "cdk",
+    "policy as code",
+    "validator"
+  ],
   "engines": {
     "node": ">= 14.18.0"
   },
@@ -130,22 +133,22 @@
     "outdir": "dist",
     "targets": {
       "java": {
-        "package": "io.github.cdklabs.cdk.validator.cfnguard",
+        "package": "io.github.cdklabs.@cdklabs/cdk.validator.cfnguard",
         "maven": {
           "groupId": "io.github.cdklabs",
-          "artifactId": "cdk-validator-cfnguard"
+          "artifactId": "@cdklabs/cdk-validator-cfnguard"
         }
       },
       "python": {
-        "distName": "cdk-validator-cfnguard",
-        "module": "cdk_validator_cfnguard"
+        "distName": "@cdklabs/cdk-validator-cfnguard",
+        "module": "@cdklabs/cdk_validator_cfnguard"
       },
       "dotnet": {
-        "namespace": "CdklabsCdkValidatorCfnguard",
-        "packageId": "CdklabsCdkValidatorCfnguard"
+        "namespace": "Cdklabs@cdklabs/cdkValidatorCfnguard",
+        "packageId": "Cdklabs@cdklabs/cdkValidatorCfnguard"
       },
       "go": {
-        "moduleName": "github.com/cdklabs/cdk-validator-cfnguard-go"
+        "moduleName": "github.com/cdklabs/@cdklabs/cdk-validator-cfnguard-go"
       }
     },
     "tsc": {
