@@ -3,6 +3,11 @@ import { App, Stack, StackProps, aws_s3 as s3 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { CfnGuardValidator } from '../src';
 
+/**
+ * This is not a real integ test since we are not deploying anything
+ * This can be used to manually test the plugin and view the output
+ */
+
 const app = new App({
   policyValidationBeta1: [new CfnGuardValidator()],
 });
