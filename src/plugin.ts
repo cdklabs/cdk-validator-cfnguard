@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
-  IValidationPlugin,
-  IValidationContext,
-  ValidationViolationResourceAware,
-  ValidationPluginReport,
+  IPolicyValidationPluginBeta1,
+  IPolicyValidationContextBeta1,
+  PolicyViolationBeta1,
+  PolicyValidationPluginReportBeta1,
 } from 'aws-cdk-lib';
 import { ViolationCheck, GuardResult } from './check';
 import { exec } from './utils';
@@ -58,7 +58,7 @@ interface GuardExecutionConfig {
 /**
  * A validation plugin using CFN Guard
  */
-export class CfnGuardValidator implements IValidationPlugin {
+export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
   public readonly name: string;
   private readonly rulesPaths: string[] = [];
   private readonly guard: string;
@@ -104,7 +104,7 @@ export class CfnGuardValidator implements IValidationPlugin {
     }
   }
 
-  validate(context: IValidationContext): ValidationPluginReport {
+  validate(context: IPolicyValidationContextBeta1): PolicyValidationPluginReportBeta1 {
     const templatePaths = context.templatePaths;
     this.rulesPaths.forEach(rule => this.generateGuardExecutionConfig(rule, templatePaths));
     const result = this.executionConfig.reduce((acc, config) => {
@@ -113,13 +113,13 @@ export class CfnGuardValidator implements IValidationPlugin {
         violations: [...acc.violations, ...report.violations],
         success: acc.success === false ? false : report.success,
       };
-    }, { violations: [], success: true } as Pick<ValidationPluginReport, 'success' | 'violations'>);
+    }, { violations: [], success: true } as Pick<PolicyValidationPluginReportBeta1, 'success' | 'violations'>);
     return {
       ...result,
     };
   }
 
-  private execGuard(config: GuardExecutionConfig): Pick<ValidationPluginReport, 'success' | 'violations'> {
+  private execGuard(config: GuardExecutionConfig): Pick<PolicyValidationPluginReportBeta1, 'success' | 'violations'> {
     const flags = [
       'validate',
       '--rules',
@@ -131,7 +131,7 @@ export class CfnGuardValidator implements IValidationPlugin {
       '--show-summary',
       'none',
     ];
-    const violations: ValidationViolationResourceAware[] = [];
+    const violations: PolicyViolationBeta1[] = [];
     let success: boolean;
     try {
       const result = exec([this.guard, ...flags], {

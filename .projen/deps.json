@@ -41,6 +41,10 @@
       "type": "build"
     },
     {
+      "name": "constructs",
+      "type": "build"
+    },
+    {
       "name": "eslint-import-resolver-node",
       "type": "build"
     },

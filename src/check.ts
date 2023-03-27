@@ -1,7 +1,6 @@
 import {
-  ValidationViolatingResource,
-  ValidationViolationResourceAware,
-  ValidationViolation,
+  PolicyViolationBeta1,
+  PolicyViolatingResourceBeta1,
 } from 'aws-cdk-lib';
 
 /**
@@ -142,8 +141,8 @@ interface NonCompliantRuleCheck {
 }
 
 type violationResourceMap = {
-  resource: Map<string, Pick<ValidationViolatingResource, 'locations'>>;
-  violation: Pick<ValidationViolation, 'description' | 'fix'>;
+  resource: Map<string, Pick<PolicyViolatingResourceBeta1, 'locations'>>;
+  violation: Pick<PolicyViolationBeta1, 'description' | 'fix'>;
 };
 
 export class ViolationCheck {
@@ -227,7 +226,7 @@ export class ViolationCheck {
    * fix and description fields, otherwise we just take the custom_message as
    * is and use it for both.
    */
-  public processCheck(): ValidationViolationResourceAware[] {
+  public processCheck(): PolicyViolationBeta1[] {
     this.ruleCheck.checks.forEach(check => {
       if (check.messages?.custom_message) {
         const message = check.messages.custom_message.split('\n').filter(m => m.trim() !== '');

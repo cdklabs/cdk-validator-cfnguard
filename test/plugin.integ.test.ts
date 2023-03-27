@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   App,
   // Stage,
@@ -6,16 +8,16 @@ import {
 } from 'aws-cdk-lib';
 import { CfnGuardValidator } from '../src';
 
-let consoleMock: jest.SpyInstance;
 
 beforeEach(() => {
-  consoleMock = jest.spyOn(console, 'error').mockImplementation(() => {});
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  jest.spyOn(console, 'log').mockImplementation(() => {});
 });
 describe('CfnGuardValidator', () => {
   test('synth fails', () => {
     // GIVEN
     const app = new App({
-      validationPlugins: [
+      policyValidationBeta1: [
         new CfnGuardValidator(),
       ],
       context: {
@@ -31,7 +33,7 @@ describe('CfnGuardValidator', () => {
     expect(() => {
       app.synth();
     }).toThrow();
-    const report = consoleMock.mock.calls[0][0];
+    const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toEqual(expect.arrayContaining([
       's3_bucket_level_public_access_prohibited_check',
@@ -40,7 +42,7 @@ describe('CfnGuardValidator', () => {
   test('synth succeeds', () => {
     // GIVEN
     const app = new App({
-      validationPlugins: [
+      policyValidationBeta1: [
         new CfnGuardValidator(),
       ],
       context: {
