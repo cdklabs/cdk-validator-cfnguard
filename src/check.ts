@@ -1,7 +1,7 @@
-import * as path from 'path';
 import {
-  PolicyViolatingResource,
-  PolicyViolation,
+  ValidationViolatingResource,
+  ValidationViolationResourceAware,
+  ValidationViolation,
 } from 'aws-cdk-lib';
 
 /**
@@ -142,8 +142,8 @@ interface NonCompliantRuleCheck {
 }
 
 type violationResourceMap = {
-  resource: Map<string, Pick<PolicyViolatingResource, 'locations'>>;
-  violation: Pick<PolicyViolation, 'description' | 'fix'>;
+  resource: Map<string, Pick<ValidationViolatingResource, 'locations'>>;
+  violation: Pick<ValidationViolation, 'description' | 'fix'>;
 };
 
 export class ViolationCheck {
@@ -152,7 +152,6 @@ export class ViolationCheck {
   constructor(
     private readonly ruleCheck: NonCompliantRule,
     private readonly templatePath: string,
-    private readonly ruleName: string,
   ) { }
 
   /**
@@ -228,28 +227,14 @@ export class ViolationCheck {
    * fix and description fields, otherwise we just take the custom_message as
    * is and use it for both.
    */
-  public processCheck(): PolicyViolation[] {
-    // a little weird, sort so that the checks with a custom message are processed first
-    // since checks inherit the messages from previous checks if they don't have one
-    // needed because of https://github.com/aws-cloudformation/aws-guard-rules-registry/issues/244
-    this.ruleCheck.checks.sort((a, b) => {
-      if (a.messages?.custom_message) return -1;
-      else if (b.messages?.custom_message) return 1;
-      return 0;
-    }).forEach(check => {
+  public processCheck(): ValidationViolationResourceAware[] {
+    this.ruleCheck.checks.forEach(check => {
       if (check.messages?.custom_message) {
-        let message = check.messages.custom_message.split(';').filter(m => m.trim() !== '');
-        if (message.length < 2) {
-          message = check.messages.custom_message.split('\n').filter(m => m.trim() !== '');
-        }
+        const message = check.messages.custom_message.split('\n').filter(m => m.trim() !== '');
         message.forEach(m => {
           const mes = m.trim();
-          if (mes.startsWith('Fix:')) {
-            this.violation.fix = mes.slice(5);
-          } else if (mes.startsWith('[FIX]:')) {
-            this.violation.fix = mes.slice(7);
-          } else if (mes.startsWith('Violation')) {
-            this.violation.description = mes.slice(11);
+          if (mes.startsWith('[FIX]')) {
+            this.violation.fix = mes;
           } else {
             this.violation.description = mes;
           }
@@ -258,14 +243,10 @@ export class ViolationCheck {
       this.setViolatingResources(check);
     });
     return Array.from(this.violatingResources.values()).map(violation => {
-      const p = path.relative(path.join(__dirname, '../rules/aws-guard-rules-registry'), this.ruleName);
       return {
         description: violation.violation.description,
         fix: violation.violation.fix,
         ruleName: this.ruleCheck.name,
-        ruleMetadata: {
-          DocumentationUrl: `https://github.com/cdklabs/cdk-validator-cfnguard/blob/main/rules/aws-guard-rules-registry/${p}`,
-        },
         violatingResources: Array.from(violation.resource.entries()).map(([key, value]) => {
           return {
             locations: value.locations,

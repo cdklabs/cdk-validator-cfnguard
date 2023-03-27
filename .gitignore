@@ -50,7 +50,6 @@ tsconfig.json
 !/API.md
 !/.github/workflows/auto-merge.yml
 bin
-src/types.gen.ts
 cdk.out
 test/*.snapshot
 test/cdk-integ.out*

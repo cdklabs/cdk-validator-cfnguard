@@ -8,10 +8,7 @@ const project = new CdklabsJsiiProject({
     'cdklabs-projen-project-types',
     '@octokit/types',
     '@octokit/rest',
-    'fs-extra',
-    '@types/fs-extra',
     'mock-fs',
-    'json2jsii',
     '@types/mock-fs',
     'constructs',
     'aws-cdk-lib',
@@ -36,15 +33,10 @@ const project = new CdklabsJsiiProject({
 
 project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
-project.gitignore.exclude('src/types.gen.ts');
 project.gitignore.exclude('cdk.out');
 project.gitignore.exclude('test/*.snapshot');
 project.gitignore.exclude('test/cdk-integ.out*');
 
 new BundleGuard(project);
-const bundleTask = project.addTask('bundle-rules', {
-  exec: 'ts-node projenrc/rules/bundle-rules.ts',
-});
-project.compileTask.prependSpawn(bundleTask);
 
 project.synth();

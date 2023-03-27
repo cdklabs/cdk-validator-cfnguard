@@ -32,14 +32,6 @@
         }
       ]
     },
-    "bundle-rules": {
-      "name": "bundle-rules",
-      "steps": [
-        {
-          "exec": "ts-node projenrc/rules/bundle-rules.ts"
-        }
-      ]
-    },
     "clobber": {
       "name": "clobber",
       "description": "hard resets to HEAD of origin and cleans the local repo",
@@ -85,9 +77,6 @@
       "name": "compile",
       "description": "Only compile",
       "steps": [
-        {
-          "spawn": "bundle-rules"
-        },
         {
           "exec": "jsii --silence-warnings=reserved-word"
         }

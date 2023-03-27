@@ -9,7 +9,7 @@ type Release = Endpoints['GET /repos/{owner}/{repo}/releases/latest']['response'
  * Query GitHub for the latest release
  */
 async function queryLatestRelease(): Promise<Release> {
-  const octokit = getOctokit('aws-cloudformation', 'cloudformation-guard');
+  const octokit = getOctokit();
   const release = await octokit.octo.request('GET /repos/{owner}/{repo}/releases/latest', {
     owner: octokit.owner,
     repo: octokit.repo,
@@ -24,7 +24,7 @@ async function queryLatestRelease(): Promise<Release> {
  */
 export async function main() {
   const release = await queryLatestRelease();
-  const version = getReleaseId('guard');
+  const version = getReleaseId();
   if (!version || release.data.id !== version) {
     fs.writeFileSync(
       path.join(__dirname, '..', 'guard-version.json'),

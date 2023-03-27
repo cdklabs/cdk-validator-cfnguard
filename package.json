@@ -4,14 +4,9 @@
     "type": "git",
     "url": "https://github.com/cdklabs/cdk-validator-cfnguard.git"
   },
-  "bin": {
-    "macos": "bin/macos",
-    "ubuntu": "bin/ubuntu"
-  },
   "scripts": {
     "build": "npx projen build",
     "bundle-guard": "npx projen bundle-guard",
-    "bundle-rules": "npx projen bundle-rules",
     "clobber": "npx projen clobber",
     "compat": "npx projen compat",
     "compile": "npx projen compile",
@@ -45,7 +40,6 @@
   "devDependencies": {
     "@octokit/rest": "^19.0.7",
     "@octokit/types": "^9.0.0",
-    "@types/fs-extra": "^11.0.1",
     "@types/jest": "^27",
     "@types/mock-fs": "^4.13.1",
     "@types/node": "^14",
@@ -53,19 +47,16 @@
     "@typescript-eslint/parser": "^5",
     "aws-cdk-lib": "2.66.1",
     "cdklabs-projen-project-types": "^0.1.36",
-    "constructs": "^10.1.276",
     "eslint": "^8",
     "eslint-import-resolver-node": "^0.3.7",
     "eslint-import-resolver-typescript": "^3.5.3",
     "eslint-plugin-import": "^2.27.5",
-    "fs-extra": "*",
     "jest": "^27",
     "jest-junit": "^13",
     "jsii": "^1.77.0",
     "jsii-diff": "^1.77.0",
     "jsii-docgen": "^7.1.19",
     "jsii-pacmak": "^1.77.0",
-    "json2jsii": "^0.3.313",
     "mock-fs": "^5.2.0",
     "npm-check-updates": "^16",
     "projen": "^0.67.78",

@@ -9,10 +9,6 @@
       "type": "build"
     },
     {
-      "name": "@types/fs-extra",
-      "type": "build"
-    },
-    {
       "name": "@types/jest",
       "version": "^27",
       "type": "build"
@@ -45,10 +41,6 @@
       "type": "build"
     },
     {
-      "name": "constructs",
-      "type": "build"
-    },
-    {
       "name": "eslint-import-resolver-node",
       "type": "build"
     },
@@ -63,10 +55,6 @@
     {
       "name": "eslint",
       "version": "^8",
-      "type": "build"
-    },
-    {
-      "name": "fs-extra",
       "type": "build"
     },
     {
@@ -93,10 +81,6 @@
     },
     {
       "name": "jsii-pacmak",
-      "type": "build"
-    },
-    {
-      "name": "json2jsii",
       "type": "build"
     },
     {
