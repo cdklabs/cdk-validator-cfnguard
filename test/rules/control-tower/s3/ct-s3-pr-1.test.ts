@@ -159,10 +159,6 @@ describe('CT.S3.PR.1', () => {
     ]);
   });
 
-  const nonBooleanConfigurations = [
-    { blockPublicAcls: Token.asAny(false), blockPublicPolicy: true, ignorePublicAcls: true, restrictPublicBuckets: true },
-  ];
-
   test('Tokenized false value fails', () => {
     // GIVEN
     const app = new App({
