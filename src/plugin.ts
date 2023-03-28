@@ -234,12 +234,15 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
  *
  */
 function reviver(key: string, value: any): any {
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+  if (key === 'not_compliant') {
+    // not_compliant can sometimes be an empty object (but not an Array), so we
+    // process this value before diving into other object values to ensure this
+    // one is always made into an Array
+    return Object.values(value).map((v: any) => v.Rule);
+  } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
     return extractNestedObject(value);
   } else if (key === 'checks' && Array.isArray(value)) {
     return extractNestedChecks(value);
-  } else if (key === 'not_compliant') {
-    return Object.values(value).map((v: any) => v.Rule);
   }
   return value;
 }

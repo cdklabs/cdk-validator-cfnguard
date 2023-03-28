@@ -66,4 +66,24 @@ describe('CfnGuardValidator', () => {
       app.synth();
     }).not.toThrow(/Validation failed. See the validation report above for details/);
   });
+
+  test('synth succeeds when stack is empty', () => {
+    // GIVEN
+    const app = new App({
+      policyValidationBeta1: [
+        new CfnGuardValidator(),
+      ],
+      context: {
+        '@aws-cdk/core:validationReportJson': true,
+      },
+    });
+
+    // WHEN
+    new Stack(app, 'Stack');
+
+    // THEN
+    expect(() => {
+      app.synth();
+    }).not.toThrow();
+  });
 });
