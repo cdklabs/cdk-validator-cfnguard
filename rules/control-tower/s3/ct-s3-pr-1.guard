@@ -2,23 +2,23 @@
 # ###################################
 ##       Rule Specification        ##
 #####################################
-# 
+#
 # Rule Identifier:
 #   s3_bucket_level_public_access_prohibited_check
-# 
+#
 # Description:
 #   Checks whether Amazon Simple Storage Service (Amazon S3) buckets have a bucket-level Block Public Access (BPA)
 #   configuration.
-# 
+#
 # Reports on:
 #   AWS::S3::Bucket
-# 
+#
 # Evaluates:
 #   AWS CloudFormation, AWS CloudFormation hook
-# 
+#
 # Rule Parameters:
 #   None
-# 
+#
 # Scenarios:
 #   Scenario: 1
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
