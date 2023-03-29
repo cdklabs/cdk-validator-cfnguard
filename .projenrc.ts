@@ -15,6 +15,7 @@ const project = new CdklabsJsiiProject({
     'jsii@^5.0.0',
   ],
   name: '@cdklabs/cdk-validator-cfnguard',
+  jsiiVersion: '~5.0.0',
   keywords: [
     'cdk',
     'validator',
