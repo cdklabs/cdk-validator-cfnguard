@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { join } from 'path';
 import {
   App,
   // Stage,
@@ -14,12 +15,17 @@ beforeEach(() => {
   jest.spyOn(console, 'error').mockImplementation(() => { });
   jest.spyOn(console, 'log').mockImplementation(() => { });
 });
+
+const GUARD_RULE_CHECK_NAME = 's3_bucket_level_public_access_prohibited_check';
+const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/s3/ct-s3-pr-1.guard');
+const VALIDATOR_CONFIG = { rules: [GUARD_RULE_PATH], controlTowerRulesEnabled: false };
+
 describe('CT.S3.PR.1', () => {
   test('Scenario 1 validation succeeds', () => {
     // GIVEN
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        new CfnGuardValidator(VALIDATOR_CONFIG),
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -36,9 +42,9 @@ describe('CT.S3.PR.1', () => {
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
-    expect(rules).not.toContain([
-      's3_bucket_level_public_access_prohibited_check',
-    ]);
+    expect(rules).not.toContain(
+      GUARD_RULE_CHECK_NAME,
+    );
   });
 
 
@@ -46,7 +52,7 @@ describe('CT.S3.PR.1', () => {
     // GIVEN
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        new CfnGuardValidator(VALIDATOR_CONFIG),
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -65,7 +71,7 @@ describe('CT.S3.PR.1', () => {
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toEqual(expect.arrayContaining([
-      's3_bucket_level_public_access_prohibited_check',
+      GUARD_RULE_CHECK_NAME,
     ]));
   });
 
@@ -73,7 +79,7 @@ describe('CT.S3.PR.1', () => {
     // GIVEN
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        new CfnGuardValidator(VALIDATOR_CONFIG),
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -92,7 +98,7 @@ describe('CT.S3.PR.1', () => {
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toContain(
-      's3_bucket_level_public_access_prohibited_check',
+      GUARD_RULE_CHECK_NAME,
     );
   });
 
@@ -100,7 +106,7 @@ describe('CT.S3.PR.1', () => {
     // GIVEN
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        new CfnGuardValidator(VALIDATOR_CONFIG),
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -119,7 +125,7 @@ describe('CT.S3.PR.1', () => {
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toContain(
-      's3_bucket_level_public_access_prohibited_check',
+      GUARD_RULE_CHECK_NAME,
     );
   });
 
@@ -127,7 +133,7 @@ describe('CT.S3.PR.1', () => {
     // GIVEN
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        new CfnGuardValidator(VALIDATOR_CONFIG),
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -154,16 +160,16 @@ describe('CT.S3.PR.1', () => {
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
-    expect(rules).not.toContain([
-      's3_bucket_level_public_access_prohibited_check',
-    ]);
+    expect(rules).not.toContain(
+      GUARD_RULE_CHECK_NAME,
+    );
   });
 
   test('Tokenized false value fails', () => {
     // GIVEN
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        new CfnGuardValidator(VALIDATOR_CONFIG),
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -190,7 +196,7 @@ describe('CT.S3.PR.1', () => {
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toContain(
-      's3_bucket_level_public_access_prohibited_check',
+      GUARD_RULE_CHECK_NAME,
     );
   });
 
@@ -198,7 +204,7 @@ describe('CT.S3.PR.1', () => {
     // GIVEN
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        new CfnGuardValidator(VALIDATOR_CONFIG),
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -225,7 +231,7 @@ describe('CT.S3.PR.1', () => {
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toContain(
-      's3_bucket_level_public_access_prohibited_check',
+      GUARD_RULE_CHECK_NAME,
     );
   });
 });
