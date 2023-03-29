@@ -336,7 +336,7 @@ function extractNestedObject(object: any): any {
     // 'unresolved' or 'resolved' and this will keep pulling it up until it is just one below
     // and the above checks can work
     if (level1NestedValue !== null && typeof level1NestedValue === 'object' && !Array.isArray(level1NestedValue)) {
-      Object.entries(level1NestedValue).forEach(([level2NestedKey, level2NestedValue]) => {
+      Object.entries((level1NestedValue as object)).forEach(([level2NestedKey, level2NestedValue]) => {
         switch (level2NestedKey.toLowerCase()) {
           case 'traversed':
             newObject = {

@@ -11,7 +11,8 @@ const project = new CdklabsJsiiProject({
     'mock-fs',
     '@types/mock-fs',
     'constructs',
-    'aws-cdk-lib',
+    'aws-cdk-lib@^2.71.0',
+    'jsii@^5.0.0',
   ],
   name: '@cdklabs/cdk-validator-cfnguard',
   keywords: [
@@ -20,10 +21,10 @@ const project = new CdklabsJsiiProject({
     'policy as code',
   ],
   projenrcTs: true,
-  release: false,
+  release: true,
   repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
   peerDeps: [
-    'aws-cdk-lib',
+    'aws-cdk-lib@^2.71.0',
   ],
 
   // deps: [],                /* Runtime dependencies of this module. */
