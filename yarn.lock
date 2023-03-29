@@ -10,20 +10,20 @@
     "@jridgewell/gen-mapping" "^0.1.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@aws-cdk/asset-awscli-v1@^2.2.69":
-  version "2.2.116"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.116.tgz#194b2be3d88941019a18c69b435a6d817bc44142"
-  integrity sha512-UHOQYF58kSAgJUGd0EUHt49PGVO5xYB69z2iwXrjsg+jvosuoE30MpEXhWeboLV7N077gN+Fjx3YkuARXz1lKw==
+"@aws-cdk/asset-awscli-v1@^2.2.97":
+  version "2.2.122"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.122.tgz#d80dd44dc7d4ae12f42f44ee44b0bb8ac9c5d67e"
+  integrity sha512-SgftgtNpuLyBh8iYP+IaliVVvn4u8E6h6wakLrzycIeb3aiy6kusLH+AtQ0N1o3OYKMjr2IzuNLJaMLQfLX9PA==
 
 "@aws-cdk/asset-kubectl-v20@^2.1.1":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@aws-cdk/asset-kubectl-v20/-/asset-kubectl-v20-2.1.1.tgz#d01c1efb867fb7f2cfd8c8b230b8eae16447e156"
   integrity sha512-U1ntiX8XiMRRRH5J1IdC+1t5CE89015cwyt5U63Cpk0GnMlN5+h9WsWMlKlPXZR4rdq/m806JRlBMRpBUB2Dhw==
 
-"@aws-cdk/asset-node-proxy-agent-v5@^2.0.58":
-  version "2.0.94"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-node-proxy-agent-v5/-/asset-node-proxy-agent-v5-2.0.94.tgz#465172f9e1de7c03e92eb73f7631869891f4957e"
-  integrity sha512-uJPea9sFl7AsxgLSzm4XGazLtbjfX1cL9WJeztWxr/Ims85Jwmbm52yUlxXMmXEiUrmJnZYRi9z+Mb3TQkYHLA==
+"@aws-cdk/asset-node-proxy-agent-v5@^2.0.77":
+  version "2.0.99"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-node-proxy-agent-v5/-/asset-node-proxy-agent-v5-2.0.99.tgz#dad2c6b6a54ffe968b0290eb5c4ab154c775ef22"
+  integrity sha512-Z4JY9HZBwAyry7Tjhstxi5CJEDW5gpa7rkXBsXH2sf5f7NrVSJWVCI8fSiLppfxl+T4QKV1xU/s3I8XcS8jw7w==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.18.6":
   version "7.18.6"
@@ -1237,7 +1237,7 @@ ajv@^6.10.0, ajv@^6.12.4:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-ajv@^8.12.0:
+ajv@^8.0.1, ajv@^8.12.0:
   version "8.12.0"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.12.0.tgz#d1a0527323e22f53562c567c00991577dfbe19d1"
   integrity sha512-sRu1kpcO9yLtYxBKvqfTeh9KzZEwO3STyX1HT+4CaDzC6HpTGYhIhPIzj9XuKU7KYDwnaeh5hcOwjy1QuJzBPA==
@@ -1374,6 +1374,11 @@ array.prototype.flatmap@^1.3.1:
     es-abstract "^1.20.4"
     es-shim-unscopables "^1.0.0"
 
+astral-regex@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/astral-regex/-/astral-regex-2.0.0.tgz#483143c567aeed4785759c0865786dc77d7d2e31"
+  integrity sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==
+
 asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
@@ -1389,14 +1394,14 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-aws-cdk-lib@2.66.1:
-  version "2.66.1"
-  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.66.1.tgz#f560a8a86f755ce1507f15398e55d6c0218f9c1a"
-  integrity sha512-xMnKXOnsoJLoDyl6L3BUYLPa9bqw8UoBlFGGH4gbzpBPViv9b49xvYuW+BLf7bK7IVgTzYQ+VmZKaFsj+VFouA==
+aws-cdk-lib@2.71.0:
+  version "2.71.0"
+  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.71.0.tgz#7a8516bfb4f3242c8b4aa7e2406bdaaba6429b1a"
+  integrity sha512-YHAeClmsv7EbXpwPIKIBWO1aOp6VdvQFPp+7P1pQMgOz9kKiMO+B/m9g74iKscICEYmbHlZJ8T2KduHxObqIQw==
   dependencies:
-    "@aws-cdk/asset-awscli-v1" "^2.2.69"
+    "@aws-cdk/asset-awscli-v1" "^2.2.97"
     "@aws-cdk/asset-kubectl-v20" "^2.1.1"
-    "@aws-cdk/asset-node-proxy-agent-v5" "^2.0.58"
+    "@aws-cdk/asset-node-proxy-agent-v5" "^2.0.77"
     "@balena/dockerignore" "^1.0.2"
     case "1.6.3"
     fs-extra "^9.1.0"
@@ -1405,6 +1410,7 @@ aws-cdk-lib@2.66.1:
     minimatch "^3.1.2"
     punycode "^2.3.0"
     semver "^7.3.8"
+    table "^6.8.1"
     yaml "1.10.2"
 
 babel-jest@^27.5.1:
@@ -4074,6 +4080,11 @@ lodash.merge@^4.6.2:
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
+lodash.truncate@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/lodash.truncate/-/lodash.truncate-4.4.2.tgz#5a350da0b1113b837ecfffd5812cbe58d6eae193"
+  integrity sha512-jttmRe7bRse52OsWIMDLaXxWqRAmtIUccAQ3garviCqJjafXOfNMO0yMfNpdD6zbGaTU0P5Nz7e7gAT6cKmJRw==
+
 lodash@^4.17.21, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
@@ -5231,6 +5242,15 @@ slash@^4.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-4.0.0.tgz#2422372176c4c6c5addb5e2ada885af984b396a7"
   integrity sha512-3dOsAHXXUkQTpOYcoAxLIorMTp4gIQr5IW3iVb7A7lFIp0VHhnynm9izx6TssdrIcVIESAlVjtnO2K8bg+Coew==
 
+slice-ansi@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/slice-ansi/-/slice-ansi-4.0.0.tgz#500e8dd0fd55b05815086255b3195adf2a45fe6b"
+  integrity sha512-qMCMfhY040cVHT43K9BFygqYbUPFZKHOg7K73mtTWJRb8pyP3fzf4Ixd5SzdEJQ6MRUg/WBnOLxghZtKKurENQ==
+  dependencies:
+    ansi-styles "^4.0.0"
+    astral-regex "^2.0.0"
+    is-fullwidth-code-point "^3.0.0"
+
 smart-buffer@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
@@ -5499,6 +5519,17 @@ synckit@^0.8.4:
   dependencies:
     "@pkgr/utils" "^2.3.1"
     tslib "^2.5.0"
+
+table@^6.8.1:
+  version "6.8.1"
+  resolved "https://registry.yarnpkg.com/table/-/table-6.8.1.tgz#ea2b71359fe03b017a5fbc296204471158080bdf"
+  integrity sha512-Y4X9zqrCftUhMeH2EptSSERdVKt/nEdijTOacGD/97EKjhQ/Qs8RTlEGABSJNNN8lac9kheH+af7yAkEWlgneA==
+  dependencies:
+    ajv "^8.0.1"
+    lodash.truncate "^4.4.2"
+    slice-ansi "^4.0.0"
+    string-width "^4.2.3"
+    strip-ansi "^6.0.1"
 
 tapable@^2.2.0:
   version "2.2.1"
