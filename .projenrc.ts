@@ -1,4 +1,6 @@
+import * as path from 'path';
 import { CdklabsJsiiProject } from 'cdklabs-projen-project-types';
+import { JsonPatch } from 'projen';
 import { BundleGuard } from './projenrc';
 const project = new CdklabsJsiiProject({
   author: 'AWS',
@@ -33,6 +35,7 @@ const project = new CdklabsJsiiProject({
   // packageName: undefined,  /* The "name" in package.json. */
 });
 
+project.tryFindObjectFile(path.join(__dirname, './.github/workflows/build.yml'))?.patch(JsonPatch.add('/jobs/build/env/GITHUB_TOKEN', '${{ secrets.GITHUB_TOKEN }}' ));
 project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
 project.gitignore.exclude('cdk.out');
