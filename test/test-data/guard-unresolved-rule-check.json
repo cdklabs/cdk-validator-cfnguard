@@ -1,0 +1,59 @@
+{
+  "name": "",
+  "metadata": {},
+  "status": "FAIL",
+  "not_compliant": [
+    {
+      "Rule": {
+        "name": "s3_bucket_level_public_access_prohibited_check",
+        "metadata": {},
+        "messages": {
+          "custom_message": null,
+          "error_message": null
+        },
+        "checks": [
+          {
+            "Rule": {
+              "name": "check",
+              "metadata": {},
+              "messages": {
+                "custom_message": "\n        [CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured\n        [FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.\n        ",
+                "error_message": null
+              },
+              "checks": [
+                {
+                  "Block": {
+                    "context": "GuardBlockAccessClause#Location[file:ct-s3-pr-1.guard, line:89, column:5]",
+                    "messages": {
+                      "custom_message": "",
+                      "error_message": "Check was not compliant as property [Properties] is missing. Value traversed to [Path=/Resources/MyCustomL3ConstructBucket8C61BCA7[L:2,C:39] Value={\"Type\":\"AWS::S3::Bucket\",\"UpdateReplacePolicy\":\"Retain\",\"DeletionPolicy\":\"Retain\",\"Metadata\":{\"aws:cdk:path\":\"CdkTestAppStack/MyCustomL3Construct/Bucket/Resource\"}}]"
+                    },
+                    "unresolved": {
+                      "traversed_to": {
+                        "path": "/Resources/MyCustomL3ConstructBucket8C61BCA7",
+                        "value": {
+                          "Type": "AWS::S3::Bucket",
+                          "UpdateReplacePolicy": "Retain",
+                          "DeletionPolicy": "Retain",
+                          "Metadata": {
+                            "aws:cdk:path": "CdkTestAppStack/MyCustomL3Construct/Bucket/Resource"
+                          }
+                        }
+                      },
+                      "remaining_query": "Properties",
+                      "reason": "Could not find key Properties inside struct at path /Resources/MyCustomL3ConstructBucket8C61BCA7[L:2,C:39]"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "not_applicable": [
+    "s3_bucket_level_public_access_prohibited_check"
+  ],
+  "compliant": []
+}

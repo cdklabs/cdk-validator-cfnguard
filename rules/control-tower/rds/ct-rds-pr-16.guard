@@ -1,0 +1,197 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_cluster_storage_encrypted_check
+# 
+# Description:
+#   This control checks whether the storage encryption is configured on Amazon Relational Database Service (RDS) database (DB) clusters that are not being restored from an existing cluster.
+# 
+# Reports on:
+#   AWS::RDS::DBCluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any RDS DB cluster resources
+#       Then: SKIP
+#   Scenario: 2
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'SourceDBClusterIdentifier' or 'ReplicationSourceIdentifier' has been provided
+#       Then: SKIP
+#   Scenario: 3
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'SourceDBClusterIdentifier' or 'ReplicationSourceIdentifier' has not been provided
+#        And: 'StorageEncrypted' has not been provided
+#       Then: FAIL
+#   Scenario: 4
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'SourceDBClusterIdentifier' or 'ReplicationSourceIdentifier' has not been provided
+#        And: 'StorageEncrypted' has been provided and set to bool(false)
+#       Then: FAIL
+#   Scenario: 5
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'SourceDBClusterIdentifier' or 'ReplicationSourceIdentifier' has not been provided
+#        And: 'StorageEncrypted' has been provided and set to bool(true)
+#       Then: PASS
+
+#
+# Constants
+#
+let RDS_CLUSTER_TYPE = "AWS::RDS::DBCluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let rds_cluster = Resources.*[ Type == %RDS_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_cluster_storage_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                                              %rds_cluster not empty {
+    check(%rds_cluster.Properties)
+        <<
+        [CT.RDS.PR.16]: Require an Amazon RDS database cluster to have encryption at rest configured
+            [FIX]: Set 'StorageEncrypted' to 'true'.
+        >>
+}
+
+rule rds_cluster_storage_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.16]: Require an Amazon RDS database cluster to have encryption at rest configured
+            [FIX]: Set 'StorageEncrypted' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(rds_cluster) {
+    %rds_cluster [
+        # Scenario 2
+        filter_sources(this)
+    ] {
+        # Scenario 3
+        StorageEncrypted exists
+
+        # Scenario 4 and 5
+        StorageEncrypted == true
+    }
+}
+
+rule filter_sources(rds_cluster) {
+    %rds_cluster {
+        # Scenario 2
+        SourceDBClusterIdentifier not exists or
+        filter_property_is_empty_string(SourceDBClusterIdentifier) or
+        filter_is_not_valid_local_reference(%INPUT_DOCUMENT, SourceDBClusterIdentifier, "AWS::RDS::DBCluster")
+
+        ReplicationSourceIdentifier not exists or
+        filter_property_is_empty_string(ReplicationSourceIdentifier) or
+        filter_replication_source_identifier(ReplicationSourceIdentifier)
+    }
+}
+
+rule filter_property_is_empty_string(value) {
+    %value {
+        this is_string
+        this == /\A\s*\z/
+    }
+}
+
+rule filter_is_not_valid_local_reference(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        this not is_string
+        this is_struct
+
+        when this.'Ref' exists {
+            'Ref' {
+                when query_for_resource(%doc, this, %referenced_resource_type) {
+                    this not exists
+                }
+                this exists
+            }
+        }
+        when this.'Ref' not exists {
+            this exists
+        }
+    }
+}
+
+rule filter_replication_source_identifier(reference_properties) {
+    filter_is_not_valid_local_reference_via_join(%INPUT_DOCUMENT, %reference_properties, "AWS::RDS::DBCluster")
+    filter_is_not_valid_local_reference_via_join(%INPUT_DOCUMENT, %reference_properties, "AWS::RDS::DBInstance")
+}
+
+rule filter_is_not_valid_local_reference_via_join(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        this not is_string
+        this is_struct
+
+        when this.'Fn::Join' exists {
+            'Fn::Join' {
+                when filter_list_contains_valid_local_reference(this[1], %doc, %referenced_resource_type) {
+                    this not exists
+                }
+                this exists
+            }
+        }
+        when this.'Fn::Join' not exists {
+            this exists
+        }
+    }
+}
+
+rule filter_list_contains_valid_local_reference(list, doc, referenced_resource_type) {
+     some %list.* {
+         check_local_references(%doc, this, %referenced_resource_type)
+     }
+ }
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

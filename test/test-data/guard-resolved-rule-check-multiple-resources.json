@@ -1,0 +1,251 @@
+{
+  "name": "",
+  "metadata": {},
+  "status": "FAIL",
+  "not_compliant": [
+    {
+      "Rule": {
+        "name": "s3_bucket_level_public_access_prohibited_check",
+        "metadata": {},
+        "messages": {
+          "custom_message": null,
+          "error_message": null
+        },
+        "checks": [
+          {
+            "Rule": {
+              "name": "check",
+              "metadata": {},
+              "messages": {
+                "custom_message": "\n        [CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured\n        [FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.\n        ",
+                "error_message": null
+              },
+              "checks": [
+                {
+                  "Clause": {
+                    "Binary": {
+                      "context": " BlockPublicAcls EQUALS  true",
+                      "messages": {
+                        "custom_message": "",
+                        "error_message": "Check was not compliant as property value [Path=/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls[L:6,C:24] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                      },
+                      "check": {
+                        "Resolved": {
+                          "from": {
+                            "path": "/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls",
+                            "value": false
+                          },
+                          "to": {
+                            "path": "",
+                            "value": true
+                          },
+                          "comparison": [
+                            "Eq",
+                            false
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Clause": {
+                    "Binary": {
+                      "context": " BlockPublicPolicy EQUALS  true",
+                      "messages": {
+                        "custom_message": "",
+                        "error_message": "Check was not compliant as property value [Path=/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy[L:7,C:26] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                      },
+                      "check": {
+                        "Resolved": {
+                          "from": {
+                            "path": "/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy",
+                            "value": false
+                          },
+                          "to": {
+                            "path": "",
+                            "value": true
+                          },
+                          "comparison": [
+                            "Eq",
+                            false
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Clause": {
+                    "Binary": {
+                      "context": " IgnorePublicAcls EQUALS  true",
+                      "messages": {
+                        "custom_message": "",
+                        "error_message": "Check was not compliant as property value [Path=/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/IgnorePublicAcls[L:8,C:25] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                      },
+                      "check": {
+                        "Resolved": {
+                          "from": {
+                            "path": "/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/IgnorePublicAcls",
+                            "value": false
+                          },
+                          "to": {
+                            "path": "",
+                            "value": true
+                          },
+                          "comparison": [
+                            "Eq",
+                            false
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Clause": {
+                    "Binary": {
+                      "context": " RestrictPublicBuckets EQUALS  true",
+                      "messages": {
+                        "custom_message": "",
+                        "error_message": "Check was not compliant as property value [Path=/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/RestrictPublicBuckets[L:9,C:30] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                      },
+                      "check": {
+                        "Resolved": {
+                          "from": {
+                            "path": "/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/RestrictPublicBuckets",
+                            "value": false
+                          },
+                          "to": {
+                            "path": "",
+                            "value": true
+                          },
+                          "comparison": [
+                            "Eq",
+                            false
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Clause": {
+                    "Binary": {
+                      "context": " BlockPublicAcls EQUALS  true",
+                      "messages": {
+                        "custom_message": "",
+                        "error_message": "Check was not compliant as property value [Path=/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/BlockPublicAcls[L:22,C:24] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                      },
+                      "check": {
+                        "Resolved": {
+                          "from": {
+                            "path": "/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/BlockPublicAcls",
+                            "value": false
+                          },
+                          "to": {
+                            "path": "",
+                            "value": true
+                          },
+                          "comparison": [
+                            "Eq",
+                            false
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Clause": {
+                    "Binary": {
+                      "context": " BlockPublicPolicy EQUALS  true",
+                      "messages": {
+                        "custom_message": "",
+                        "error_message": "Check was not compliant as property value [Path=/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy[L:23,C:26] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                      },
+                      "check": {
+                        "Resolved": {
+                          "from": {
+                            "path": "/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy",
+                            "value": false
+                          },
+                          "to": {
+                            "path": "",
+                            "value": true
+                          },
+                          "comparison": [
+                            "Eq",
+                            false
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Clause": {
+                    "Binary": {
+                      "context": " IgnorePublicAcls EQUALS  true",
+                      "messages": {
+                        "custom_message": "",
+                        "error_message": "Check was not compliant as property value [Path=/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/IgnorePublicAcls[L:24,C:25] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                      },
+                      "check": {
+                        "Resolved": {
+                          "from": {
+                            "path": "/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/IgnorePublicAcls",
+                            "value": false
+                          },
+                          "to": {
+                            "path": "",
+                            "value": true
+                          },
+                          "comparison": [
+                            "Eq",
+                            false
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "Clause": {
+                    "Binary": {
+                      "context": " RestrictPublicBuckets EQUALS  true",
+                      "messages": {
+                        "custom_message": "",
+                        "error_message": "Check was not compliant as property value [Path=/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/RestrictPublicBuckets[L:25,C:30] Value=false] not equal to value [Path=[L:0,C:0] Value=true]."
+                      },
+                      "check": {
+                        "Resolved": {
+                          "from": {
+                            "path": "/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/RestrictPublicBuckets",
+                            "value": false
+                          },
+                          "to": {
+                            "path": "",
+                            "value": true
+                          },
+                          "comparison": [
+                            "Eq",
+                            false
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "not_applicable": [
+    "s3_bucket_level_public_access_prohibited_check"
+  ],
+  "compliant": []
+}
