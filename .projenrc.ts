@@ -8,6 +8,7 @@ const project = new CdklabsJsiiProject({
   author: 'AWS',
   authorAddress: 'aws-cdk-dev@amazon.com',
   defaultReleaseBranch: 'main',
+  cdklabsPublishingDefaults: false,
   devDeps: [
     'cdklabs-projen-project-types',
     '@octokit/types',
@@ -49,9 +50,6 @@ const project = new CdklabsJsiiProject({
   publishToNuget: {
     dotNetNamespace: 'Cdklabs.CdkValidatorCfnGuard',
     packageId: 'Cdklabs.CdkValidatorCfnGuard',
-  },
-  publishToGo: {
-    moduleName: 'cdk-validator-cfnguard-go',
   },
 
   // deps: [],                /* Runtime dependencies of this module. */
