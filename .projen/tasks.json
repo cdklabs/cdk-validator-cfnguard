@@ -164,7 +164,7 @@
       "description": "Run integration snapshot tests",
       "steps": [
         {
-          "exec": "yarn integ-runner --language typescript"
+          "exec": "npx cdk synth --app \"ts-node test/integ.plugin.ts\""
         }
       ]
     },

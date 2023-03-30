@@ -172,6 +172,9 @@ describe('CfnGuardPlugin', () => {
       violations: [{
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
+        ruleMetadata: {
+          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+        },
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         violatingResources: [{
           resourceLogicalId: 'MyCustomL3ConstructBucket8C61BCA7',
@@ -199,6 +202,9 @@ describe('CfnGuardPlugin', () => {
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleName: 's3_bucket_level_public_access_prohibited_check',
+        ruleMetadata: {
+          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+        },
         violatingResources: [
           {
             resourceLogicalId: 'Bucket83908E77',
@@ -238,6 +244,9 @@ describe('CfnGuardPlugin', () => {
       violations: [{
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
+        ruleMetadata: {
+          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+        },
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         violatingResources: [{
           resourceLogicalId: 'Bucket83908E77',
@@ -269,6 +278,9 @@ describe('CfnGuardPlugin', () => {
       violations: [{
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
+        ruleMetadata: {
+          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+        },
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         violatingResources: [
           {
@@ -312,6 +324,9 @@ describe('CfnGuardPlugin', () => {
       violations: [{
         fix: '',
         description: 'Check was not compliant as property value [Path=/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicAcls[L:6,C:24] Value=false] not equal to value [Path=[L:0,C:0] Value=true].',
+        ruleMetadata: {
+          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+        },
         ruleName: 'S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED',
         violatingResources: [
           {
@@ -344,6 +359,9 @@ describe('CfnGuardPlugin', () => {
       violations: [{
         fix: '',
         description: 'Check was not compliant as property [Properties.ObjectLockEnabled] is missing. Value traversed to [Path=/Resources/MyCustomL3ConstructBucket8C61BCA7[L:2,C:39] Value={\"Type\":\"AWS::S3::Bucket\",\"UpdateReplacePolicy\":\"Retain\",\"DeletionPolicy\":\"Retain\",\"Metadata\":{\"aws:cdk:path\":\"CdkTestAppStack/MyCustomL3Construct/Bucket/Resource\"}}].',
+        ruleMetadata: {
+          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+        },
         ruleName: 'S3_BUCKET_DEFAULT_LOCK_ENABLED',
         violatingResources: [
           {
@@ -374,6 +392,9 @@ describe('CfnGuardPlugin', () => {
       success: false,
       violations: [{
         description: '[CT.CLOUDTRAIL.PR.1]: Require an AWS CloudTrail trail to have encryption at rest activated',
+        ruleMetadata: {
+          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+        },
         fix: "[FIX]: Set the 'KMSKeyId' property to a valid KMS key.",
         ruleName: 'cloud_trail_encryption_enabled_check',
         violatingResources: [

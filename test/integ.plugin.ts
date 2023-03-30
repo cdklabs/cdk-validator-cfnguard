@@ -11,7 +11,23 @@ import { CfnGuardValidator } from '../src';
 const app = new App({
   policyValidationBeta1: [new CfnGuardValidator()],
   context: {
-    '@aws-cdk/core:validationReportJson': true,
+    '@aws-cdk/aws-lambda:recognizeLayerVersion': 'true',
+    '@aws-cdk/core:checkSecretUsage': 'true',
+    '@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver': 'true',
+    '@aws-cdk/aws-ec2:uniqueImdsv2TemplateName': 'true',
+    '@aws-cdk/aws-ecs:arnFormatIncludesClusterName': 'true',
+    '@aws-cdk/aws-iam:minimizePolicies': 'true',
+    '@aws-cdk/core:validateSnapshotRemovalPolicy': 'true',
+    '@aws-cdk/aws-codepipeline:crossAccountKeyAliasStackSafeResourceName': 'true',
+    '@aws-cdk/aws-s3:createDefaultLoggingPolicy': 'true',
+    '@aws-cdk/aws-sns-subscriptions:restrictSqsDescryption': 'true',
+    '@aws-cdk/aws-apigateway:disableCloudWatchRole': 'true',
+    '@aws-cdk/core:enablePartitionLiterals': 'true',
+    '@aws-cdk/aws-events:eventsTargetQueueSameAccount': 'true',
+    '@aws-cdk/aws-iam:standardizedServicePrincipals': 'true',
+    '@aws-cdk/aws-ecs:disableExplicitDeploymentControllerForCircuitBreaker': 'true',
+    '@aws-cdk/aws-iam:importedRoleStackSafeDefaultPolicyName': 'true',
+    '@aws-cdk/aws-s3:serverAccessLogsUseBucketPolicy': 'true',
   },
 });
 

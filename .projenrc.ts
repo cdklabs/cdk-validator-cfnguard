@@ -55,7 +55,7 @@ const project = new CdklabsJsiiProject({
 
 project.addTask('integ', {
   description: 'Run integration snapshot tests',
-  exec: 'yarn integ-runner --language typescript',
+  exec: 'npx cdk synth --app "ts-node test/integ.plugin.ts"',
 });
 
 const rosettaTask = project.addTask('rosetta:extract', {

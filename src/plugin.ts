@@ -143,7 +143,7 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
       }
       success = false;
       guardResult.not_compliant.forEach((check) => {
-        const violationCheck = new ViolationCheck(check, config.templatePath);
+        const violationCheck = new ViolationCheck(check, config.templatePath, config.rulePath);
         const violation = violationCheck.processCheck();
         violations.push(...violation);
       });

@@ -1,3 +1,4 @@
+import * as path from 'path';
 import {
   PolicyViolationBeta1,
   PolicyViolatingResourceBeta1,
@@ -151,6 +152,7 @@ export class ViolationCheck {
   constructor(
     private readonly ruleCheck: NonCompliantRule,
     private readonly templatePath: string,
+    private readonly rulePath: string,
   ) { }
 
   /**
@@ -245,6 +247,9 @@ export class ViolationCheck {
       return {
         description: violation.violation.description,
         fix: violation.violation.fix,
+        ruleMetadata: {
+          DocumentationUrl: this.generateRuleDocUrl(),
+        },
         ruleName: this.ruleCheck.name,
         violatingResources: Array.from(violation.resource.entries()).map(([key, value]) => {
           return {
@@ -256,4 +261,11 @@ export class ViolationCheck {
       };
     });
   }
+  private generateRuleDocUrl(): string {
+    const serviceName = path.basename(path.dirname(this.rulePath));
+    const ruleName = path.basename(this.rulePath, '.guard');
+    const root = 'https://docs.aws.amazon.com/controltower/latest/userguide';
+    return `${root}/${serviceName}-rules.html#${ruleName}-description`;
+  }
 }
+
