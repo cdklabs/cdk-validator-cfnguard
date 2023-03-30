@@ -135,8 +135,7 @@ understand the following things about these bundled controls when run locally us
    For instance, a rule may require that an access logging bucket is specified for each S3 bucket.
    In this case, the rule can check whether you have passed a reference to a bucket in the same
    template, but it cannot verify that a hardcoded bucket name like "examplebucket" actually refers
-   to a real bucket or a bucket you own. Your CDK stack may pass the rule in this case but still
-   present a security threat to you.
+   to a real bucket or a bucket you own.
 
 You can add a layer of security protection by enabling the same proactive controls in your Control Tower
 cloud environment. There are different considerations for using these controls since they operate in a
@@ -148,7 +147,7 @@ If you do not yet have a Control Tower environment, see [What is AWS Control Tow
 
 | Control Tower rule ID | Control Tower docs link | Description |
 | --------------------- | ----------------------- | ---------------- |
-| CT.IAM.PR.7 | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/iam-rules.html#ct-iam-pr-2-description) | This control checks whether AWS Identity and Access Management (IAM) customer managed policies do not include \"Effect\": \"Allow\" with \"Action\": \"\*\" over \"Resource\": \"\*\"." |
+| CT.IAM.PR.2 | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/iam-rules.html#ct-iam-pr-2-description) | This control checks whether AWS Identity and Access Management (IAM) customer managed policies do not include \"Effect\": \"Allow\" with \"Action\": \"\*\" over \"Resource\": \"\*\"." |
 | CT.EC2.PR.5 | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/ec2-rules.html#ct-ec2-pr-5-description) | This control checks whether the Amazon EC2 network ACL inbound entry allows unrestricted incoming traffic (0.0.0.0/0 or ::/0) for SSH or RDP. |
 | CT.EC2.PR.7 | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/ec2-rules.html#ct-ec2-pr-7-description) | This control checks whether your standalone Amazon EC2 EBS volumes and new Amazon EBS volumes created through EC2 instance Block Device Mappings are encrypted at rest. |
 | CT.RDS.PR.16 | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/rds-rules.html#ct-rds-pr-16-description) | This control checks whether the storage encryption is configured on Amazon Relational Database Service (RDS) database (DB) clusters that are not being restored from an existing cluster. |
