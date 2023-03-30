@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { CdklabsJsiiProject } from 'cdklabs-projen-project-types';
-import { JsonPatch } from 'projen';
+import { JsonPatch, TextFile } from 'projen';
 import { BundleGuard } from './projenrc';
 const project = new CdklabsJsiiProject({
   author: 'AWS',
@@ -51,6 +51,43 @@ const project = new CdklabsJsiiProject({
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   // packageName: undefined,  /* The "name" in package.json. */
 });
+
+
+project.addTask('integ', {
+  description: 'Run integration snapshot tests',
+  exec: 'yarn integ-runner --language typescript',
+});
+
+const rosettaTask = project.addTask('rosetta:extract', {
+  description: 'Test rosetta extract',
+  exec: 'yarn --silent jsii-rosetta extract --strict',
+});
+project.postCompileTask.spawn(rosettaTask);
+project.addGitIgnore('.jsii.tabl.json');
+
+new TextFile(project, 'rosetta/default.ts-fixture', {
+  lines: [
+    '// Fixture with packages imported, but nothing else',
+    "import { Construct } from 'constructs';",
+    "import { CfnGuardValidator } from './src';",
+    'import {',
+    '  Stack,',
+    '  App,',
+    "} from 'aws-cdk-lib';",
+    '',
+    'class Fixture extends Stack {',
+    '  constructor(scope: Construct, id: string) {',
+    '    super(scope, id);',
+    '',
+    '    /// here',
+    '  }',
+    '}',
+  ],
+  marker: false,
+});
+
+project.postCompileTask.spawn(rosettaTask);
+project.addGitIgnore('.jsii.tabl.json');
 
 project.tryFindObjectFile(path.join(__dirname, './.github/workflows/build.yml'))?.patch(JsonPatch.add('/jobs/build/env/GITHUB_TOKEN', '${{ secrets.GITHUB_TOKEN }}' ));
 project.tsconfig?.addInclude('projenrc/**/*.ts');

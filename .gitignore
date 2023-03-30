@@ -52,6 +52,8 @@ junit.xml
 tsconfig.json
 !/API.md
 !/.github/workflows/auto-merge.yml
+!/rosetta/default.ts-fixture
+.jsii.tabl.json
 bin
 cdk.out
 test/*.snapshot

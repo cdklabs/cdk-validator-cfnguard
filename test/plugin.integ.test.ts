@@ -43,7 +43,12 @@ describe('CfnGuardValidator', () => {
     // GIVEN
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        new CfnGuardValidator({
+          controlTowerRulesEnabled: false,
+          rules: [
+            path.join(__dirname, '../rules/control-tower/s3/ct-s3-pr-1.guard'),
+          ],
+        }),
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,

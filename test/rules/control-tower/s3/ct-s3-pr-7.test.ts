@@ -179,6 +179,7 @@ describe('CT.S3.PR.7', () => {
     }).toThrow(GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN);
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
+    console.log(report);
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toContain(
       GUARD_RULE_CHECK_NAME,

@@ -4,6 +4,10 @@
     "type": "git",
     "url": "https://github.com/cdklabs/cdk-validator-cfnguard.git"
   },
+  "bin": {
+    "macos": "bin/macos",
+    "ubuntu": "bin/ubuntu"
+  },
   "scripts": {
     "build": "npx projen build",
     "bump": "npx projen bump",
@@ -15,6 +19,7 @@
     "docgen": "npx projen docgen",
     "eject": "npx projen eject",
     "eslint": "npx projen eslint",
+    "integ": "npx projen integ",
     "package": "npx projen package",
     "package-all": "npx projen package-all",
     "package:dotnet": "npx projen package:dotnet",
@@ -26,6 +31,7 @@
     "post-upgrade": "npx projen post-upgrade",
     "pre-compile": "npx projen pre-compile",
     "release": "npx projen release",
+    "rosetta:extract": "npx projen rosetta:extract",
     "test": "npx projen test",
     "test:update": "npx projen test:update",
     "test:watch": "npx projen test:watch",

@@ -321,6 +321,7 @@ function extractNestedObject(object: any): any {
       // a couple other fields, dropping the rest that we don't care about
       // A check can either be resolved or unresolved
       case 'resolved':
+      case 'inresolved':
         newObject = {
           resolved: true,
           traversed: {

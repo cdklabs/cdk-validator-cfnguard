@@ -59,7 +59,7 @@ To use this plugin in your CDK application add it to the CDK App.
 
 ```ts
 new App({
-  validationPlugins: [
+  policyValidationBeta1: [
     new CfnGuardValidator(),
   ],
 });
@@ -95,12 +95,55 @@ file or directory paths.
 ```ts
 new CfnGuardValidator({
   rules: [
-    path.join(__dirname, 'local-rules'),
-    path.join(__dirname, 's3', 'local-rules', 'my-rule.guard'),
-  ]
+    'path/to/local-rules-directory',
+    'path/to/s3/local-rules/my-rule.guard',
+  ],
 });
 ```
 
 If the path provided is a directory then the directory must only
 contain guard rule files, and all rules within the directory will be used.
+
+## Using the bundled Control Tower proactive controls in CDK
+
+The bundled Control Tower proactive controls use CloudFormation Guard
+policies that are also used in managed controls from the Control Tower
+service. You can use these CDK bundled controls without having a Control
+Tower environment in AWS, but there are many benefits to using the two together.
+
+When you enable Control Tower proactive controls in your Control Tower environment,
+the controls can stop the deployment of non-compliant resources deployed via
+CloudFormation. For more information about managed proactive controls and how they work,
+see the [Control Tower documentation](https://docs.aws.amazon.com/controltower/latest/userguide/proactive-controls.html).
+
+These CDK bundled controls and managed Control Tower proactive controls are best used together.
+In this scenario you can configure this validation plugin with the same proactive controls that
+are active in your Control Tower cloud environment. You can then quickly gain confidence
+that your CDK application will pass the Control Tower controls by running cdk synth locally
+or in a pipeline as described above.
+
+Regardless of whether you or your organization use Control Tower, however, you should
+understand the following things about these bundled controls when run locally using this plugin:
+
+1. These CloudFormation guard policies accept a limited subset of CloudFormation syntax
+   for the properties they evaluate. For instance, a property called EncryptionEnabled may
+   pass if it is specified with the literal value true, but it may fail if it is specified with
+   a reference to a CloudFormation stack parameter instead. Similarly, if a rule checks for a string
+   value, it may fail for Fn::Join objects. If you discover that a rule can be bypassed with a
+   particular configuration of a resource, please file an issue.
+2. Some rules may check references to other resources, but this reference checking is limited.
+   For instance, a rule may require that an access logging bucket is specified for each S3 bucket.
+   In this case, the rule can check whether you have passed a reference to a bucket in the same
+   template, but it cannot verify that a hardcoded bucket name like "examplebucket" actually refers
+   to a real bucket or a bucket you own. Your CDK stack may pass the rule in this case but still
+   present a security threat to you.
+
+You can add a layer of security protection by enabling the same proactive controls in your Control Tower
+cloud environment. There are different considerations for using these controls since they operate in a
+different way. For more information, see the [Control Tower proactive controls documentation](https://docs.aws.amazon.com/controltower/latest/userguide/proactive-controls.html).
+
+If you do not yet have a Control Tower environment, see [What is AWS Control Tower?](https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html).
+
+### Bundled Rules
+
 
