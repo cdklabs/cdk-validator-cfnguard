@@ -29,6 +29,23 @@ const project = new CdklabsJsiiProject({
   peerDeps: [
     'aws-cdk-lib@^2.71.0',
   ],
+  publishToPypi: {
+    distName: 'cdklabs.cdk-validator-cfnguard',
+    module: 'cdklabs.cdk_validator_cfnguard',
+  },
+  publishToMaven: {
+    javaPackage: 'io.github.cdklabs.cdkvalidatorcfnguard',
+    mavenGroupId: 'io.github.cdklabs',
+    mavenArtifactId: 'cdk-validator-cfnguard',
+    mavenEndpoint: 'https://s01.oss.sonatype.org',
+  },
+  publishToNuget: {
+    dotNetNamespace: 'Cdklabs.CdkValidatorCfnGuard',
+    packageId: 'Cdklabs.CdkValidatorCfnGuard',
+  },
+  publishToGo: {
+    moduleName: 'cdk-validator-cfnguard-go',
+  },
 
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */

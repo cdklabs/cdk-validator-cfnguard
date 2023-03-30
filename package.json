@@ -129,22 +129,22 @@
     "outdir": "dist",
     "targets": {
       "java": {
-        "package": "io.github.cdklabs.@cdklabs/cdk.validator.cfnguard",
+        "package": "io.github.cdklabs.cdkvalidatorcfnguard",
         "maven": {
           "groupId": "io.github.cdklabs",
-          "artifactId": "@cdklabs/cdk-validator-cfnguard"
+          "artifactId": "cdk-validator-cfnguard"
         }
       },
       "python": {
-        "distName": "@cdklabs/cdk-validator-cfnguard",
-        "module": "@cdklabs/cdk_validator_cfnguard"
+        "distName": "cdklabs.cdk-validator-cfnguard",
+        "module": "cdklabs.cdk_validator_cfnguard"
       },
       "dotnet": {
-        "namespace": "Cdklabs@cdklabs/cdkValidatorCfnguard",
-        "packageId": "Cdklabs@cdklabs/cdkValidatorCfnguard"
+        "namespace": "Cdklabs.CdkValidatorCfnGuard",
+        "packageId": "Cdklabs.CdkValidatorCfnGuard"
       },
       "go": {
-        "moduleName": "github.com/cdklabs/@cdklabs/cdk-validator-cfnguard-go"
+        "moduleName": "cdk-validator-cfnguard-go"
       }
     },
     "tsc": {
