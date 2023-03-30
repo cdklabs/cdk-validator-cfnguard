@@ -1,0 +1,213 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   s3_bucket_policy_ssl_requests_only_check
+# 
+# Description:
+#   This control checks whether Amazon S3 bucket policies require requests to use Secure Socket Layer (SSL).
+# 
+# Reports on:
+#   AWS::S3::BucketPolicy
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any S3 bucket policies
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket policy
+#       And: 'Policydocument' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket policy
+#       And: 'Policydocument' does not include a statement that denies Principal  ('*', AWS: '*')
+#            all Actions ('s3:*', '*') over resource ('*' or bucketArn, bucketObjectArn) when the condition
+#            "aws:SecureTransport" is "false"
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket policy
+#       And: 'Policydocument' includes a statement that denies Principal  ('*', AWS: '*')
+#            all Actions ('s3:*', '*') over resource ('*' or bucketArn, bucketObjectArn) when the condition
+#            "aws:SecureTransport" is "false"
+#      Then: PASS
+
+#
+# Constants
+#
+let S3_BUCKET_POLICY_TYPE = "AWS::S3::BucketPolicy"
+let INPUT_DOCUMENT = this
+
+let S3_BUCKET_ARN_PATTERN = /^arn:aws[a-z0-9\-]*:s3:::[a-z0-9][a-z0-9\.-]*[a-z0-9]$/
+let S3_BUCKET_OBJECT_ARN_PATTERN = /^arn:aws[a-z0-9\-]*:s3:::[a-z0-9][a-z0-9\.-]*[a-z0-9]\/\*$/
+
+#
+# Assignments
+#
+let s3_bucket_policies = Resources.*[ Type == %S3_BUCKET_POLICY_TYPE ]
+
+#
+# Primary Rules
+#
+rule s3_bucket_policy_ssl_requests_only_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                   %s3_bucket_policies not empty {
+    check(%s3_bucket_policies.Properties)
+        <<
+        [CT.S3.PR.8]: Require that Amazon S3 bucket requests use Secure Sockets Layer
+            [FIX]: Configure an Amazon S3 bucket policy statement that denies access to all principals and actions for the S3 bucket and bucket objects when a secure transport protocol is not in use.
+        >>
+}
+
+rule s3_bucket_policy_ssl_requests_only_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_POLICY_TYPE) {
+    check(%INPUT_DOCUMENT.%S3_BUCKET_POLICY_TYPE.resourceProperties)
+        <<
+        [CT.S3.PR.8]: Require that Amazon S3 bucket requests use Secure Sockets Layer
+            [FIX]: Configure an Amazon S3 bucket policy statement that denies access to all principals and actions for the S3 bucket and bucket objects when a secure transport protocol is not in use.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(s3_bucket_policy) {
+    %s3_bucket_policy {
+        # Scenario 2
+        PolicyDocument exists
+        PolicyDocument is_struct
+
+        PolicyDocument {
+            Statement exists
+            Statement is_list or
+            Statement is_struct
+
+            #Scenario 3 and 4
+            some Statement[*] {
+                check_statement_ssl_requests_only(this)
+            }
+        }
+    }
+}
+
+rule check_statement_ssl_requests_only(statement) {
+    %statement{
+        check_all_required_statement_properties(this)
+
+        Effect == "Deny"
+        Action[*] in ["s3:*", "*"]
+
+        Principal == "*" or
+        Principal {
+            AWS exists
+            AWS == "*"
+        }
+
+        Resource[*] == "*" or
+        check_resource_for_bucket_arns(Resource) or
+        check_resource_for_bucket_arn_refs(Resource)
+
+        Condition is_struct
+        Condition == {
+            "Bool": {
+                "aws:SecureTransport": "false"
+            }
+        }
+
+    }
+}
+
+rule check_all_required_statement_properties(statement) {
+    %statement {
+        Effect exists
+        Action exists
+        Principal exists
+        Condition exists
+        Resource exists
+    }
+}
+
+rule check_resource_for_bucket_arns(resource) {
+    %resource {
+        this is_list
+        this not empty
+        some this[*] == %S3_BUCKET_ARN_PATTERN
+        some this[*] == %S3_BUCKET_OBJECT_ARN_PATTERN
+    }
+}
+
+rule check_resource_for_bucket_arn_refs(resource) {
+    %resource {
+        this is_list
+        this not empty
+        some this[*] {
+            check_local_bucket_arn_reference(%INPUT_DOCUMENT, this, "AWS::S3::Bucket")
+        }
+        some this[*] {
+            check_local_bucket_object_arn_reference(%INPUT_DOCUMENT, this, "AWS::S3::Bucket")
+        }
+    }
+}
+
+rule check_local_bucket_arn_reference(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            check_get_att_bucket_arn(this)
+        }
+    }
+}
+
+rule check_local_bucket_object_arn_reference(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::Join' {
+            this is_list
+            this not empty
+            this[1][0] {
+                'Fn::GetAtt' {
+                    check_get_att_bucket_arn(this)
+                }
+            }
+            this[1][1] == "/*"
+        }
+    }
+}
+
+rule check_get_att_bucket_arn(get_att){
+    %get_att {
+        this is_list
+        this not empty
+        this[1] == "Arn"
+        query_for_resource(%doc, this[0], %referenced_resource_type)
+            <<Local Stack reference was invalid>>
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

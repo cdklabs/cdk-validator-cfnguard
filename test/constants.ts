@@ -1,0 +1,1 @@
+export const GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN = /Validation failed. See the validation report above for details/i;

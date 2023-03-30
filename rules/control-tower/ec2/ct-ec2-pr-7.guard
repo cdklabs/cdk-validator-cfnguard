@@ -1,0 +1,163 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_encrypted_volumes_check
+# 
+# Description:
+#   This control checks whether your standalone Amazon EC2 EBS volumes and new EC2 EBS volumes created through EC2 instance block device mappings are encrypted at rest.
+# 
+# Reports on:
+#   AWS::EC2::Instance, AWS::EC2::Volume
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon EC2 volume resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'BlockDeviceMappings' has not been provided or has been provided as an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'BlockDeviceMappings' has been provided as a non-empty list
+#       And: 'Ebs' has been provided in a 'BlockDeviceMappings' configuration
+#       And: 'Encrypted' has not been provided in the 'Ebs' configuration
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'BlockDeviceMappings' has been provided as a non-empty list
+#       And: 'Ebs' has been provided in a 'BlockDeviceMappings' configuration
+#       And: 'Encrypted' has been provided in the 'Ebs' configuration and set to bool(false)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 volume resource
+#       And: 'Encrypted' on the EC2 volume has not been provided
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 volume resource
+#       And: 'Encrypted' on the EC2 volume has been provided and is set to bool(false)
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'BlockDeviceMappings' has been provided as a non-empty list
+#       And: 'Ebs' has been provided in a 'BlockDeviceMappings' configuration
+#       And: 'Encrypted' has been provided in the 'Ebs' configuration and set to bool(true)
+#      Then: PASS
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 volume resource
+#       And: 'Encrypted' on the EC2 volume has been provided and is set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let EC2_VOLUME_TYPE = "AWS::EC2::Volume"
+let EC2_INSTANCE_TYPE = "AWS::EC2::Instance"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ec2_volumes = Resources.*[ Type == %EC2_VOLUME_TYPE ]
+let ec2_instances = Resources.*[ Type == %EC2_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_encrypted_volumes_check when is_cfn_template(%INPUT_DOCUMENT)
+                                      %ec2_volumes not empty {
+    check_volume(%ec2_volumes.Properties)
+        <<
+        [CT.EC2.PR.7]: Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest
+            [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
+        >>
+}
+
+rule ec2_encrypted_volumes_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_VOLUME_TYPE) {
+    check_volume(%INPUT_DOCUMENT.%EC2_VOLUME_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.7]: Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest
+            [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
+        >>
+}
+
+rule ec2_encrypted_volumes_check when is_cfn_template(%INPUT_DOCUMENT)
+                                      %ec2_instances not empty {
+    check_instance(%ec2_instances.Properties)
+        <<
+        [CT.EC2.PR.7]: Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest
+            [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
+        >>
+}
+
+rule ec2_encrypted_volumes_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_INSTANCE_TYPE) {
+    check_instance(%INPUT_DOCUMENT.%EC2_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.7]: Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest
+            [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+
+rule check_instance(ec2_instance) {
+    %ec2_instance[
+        filter_ec2_instance_block_device_mappings(this)
+    ] {
+        BlockDeviceMappings[
+            Ebs exists
+            Ebs is_struct
+        ] {
+            check_volume(Ebs)
+        }
+    }
+}
+
+rule check_volume(ec2_volume) {
+    %ec2_volume {
+        # Scenario 2
+        Encrypted exists
+        # Scenarios 3 and 4
+        Encrypted == true
+    }
+}
+
+rule filter_ec2_instance_block_device_mappings(ec2_instance) {
+    %ec2_instance {
+        BlockDeviceMappings exists
+        BlockDeviceMappings is_list
+        BlockDeviceMappings not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

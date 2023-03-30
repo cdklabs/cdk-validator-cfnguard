@@ -1,0 +1,185 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   nacl_no_unrestricted_ssh_rdp_check
+# 
+# Description:
+#   This control checks whether the Amazon EC2 network ACL inbound entry allows unrestricted incoming traffic ('0.0.0.0/0' or '::/0') for SSH or RDP.
+# 
+# Reports on:
+#   AWS::EC2::NetworkAclEntry
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EC2 network ACL entry resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 network ACL entry resource
+#       And: EC2 network ACL entry resource has no CIDR block allowing inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 network ACL entry resource
+#       And: EC2 network ACL entry resource allows inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#       And: EC2 network ACL entry resource allows all traffic
+#            ('IpProtocol' is set to '-1')
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 network ACL entry resource
+#       And: EC2 network ACL entry resource allows inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#       And: EC2 network ACL entry resource allows TCP (protocol 6) traffic
+#       And: EC2 network ACL entry resource allows traffic from a PortRange that includes 22
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 network ACL entry resource
+#       And: EC2 network ACL entry resource allows inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#       And: EC2 network ACL entry resource allows TCP (protocol 6) or UDP (protocol 17) traffic
+#       And: EC2 network ACL entry resource allows traffic from a PortRange that includes 3389
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 network ACL entry resource
+#       And: EC2 network ACL entry resource allows inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#       And: EC2 network ACL entry resource allows TCP (protocol 6) traffic
+#       And: EC2 network ACL entry resource allows traffic from a PortRange that excludes 22
+#      Then: PASS
+# Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 network ACL entry resource
+#       And: EC2 network ACL entry resource allows inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#       And: EC2 network ACL entry resource allows TCP (protocol 6) or UDP (protocol 17) traffic
+#       And: EC2 network ACL entry resource allows traffic from a PortRange that excludes 3389
+#      Then: PASS
+
+#
+# Constants
+#
+let NETWORK_ACL_TYPE = "AWS::EC2::NetworkAclEntry"
+let INPUT_DOCUMENT = this
+let ALL_TRAFFIC_PROTOCOL = [-1, "-1"]
+let TCP_PROTOCOL = [6, "6"]
+let UDP_PROTOCOL = [17, "17"]
+let UNRESTRICTED_IPV4_RANGES = ["0.0.0.0/0"]
+let UNRESTRICTED_IPV6_RANGES = ["::/0"]
+let SSH_PORT = 22
+let RDP_PORT = 3389
+
+#
+# Assignments
+#
+let nacl_entries = Resources.*[ Type == %NETWORK_ACL_TYPE ]
+
+#
+# Primary Rules
+#
+rule nacl_no_unrestricted_ssh_rdp_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %nacl_entries not empty {
+    check(%nacl_entries.Properties)
+        <<
+        [CT.EC2.PR.5]: Require any Amazon EC2 network ACL to prevent ingress from 0.0.0.0/0 to port 22 or port 3389
+            [FIX]: For Amazon EC2 network ACL entries that allow inbound connectivity on port 22 or port 3389, provide a CIDR range in 'CidrBlock' or 'Ipv6CidrBlock' that does not allow traffic from all sources.
+        >>
+}
+
+rule nacl_no_unrestricted_ssh_rdp_check when is_cfn_hook(%INPUT_DOCUMENT, %NETWORK_ACL_TYPE) {
+    check(%INPUT_DOCUMENT.%NETWORK_ACL_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.5]: Require any Amazon EC2 network ACL to prevent ingress from 0.0.0.0/0 to port 22 or port 3389
+            [FIX]: For Amazon EC2 network ACL entries that allow inbound connectivity on port 22 or port 3389, provide a CIDR range in 'CidrBlock' or 'Ipv6CidrBlock' that does not allow traffic from all sources.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(nacl_entry) {
+    %nacl_entry [
+        # Scenario 2
+        filter_allow_unrestricted_ingress(this)
+    ] {
+        # Scenario 3
+        Protocol exists
+        Protocol not in %ALL_TRAFFIC_PROTOCOL
+
+        # Scenario 4, 6
+        check_for_open_ssh(this)
+
+        # Scenario 5, 7
+        check_for_open_rdp(this)
+    }
+}
+
+rule filter_allow_unrestricted_ingress(nacl_entry) {
+    Egress not exists or
+    Egress != true
+
+    CidrBlock in %UNRESTRICTED_IPV4_RANGES or
+    Ipv6CidrBlock in %UNRESTRICTED_IPV6_RANGES
+
+    RuleAction == "allow"
+}
+
+rule check_for_open_ssh(nacl_entry) {
+    %nacl_entry [
+        Protocol in %TCP_PROTOCOL
+    ] {
+        check_port_range_exists(this)
+        check_ports(%SSH_PORT, PortRange.From, PortRange.To)
+   }
+}
+
+rule check_for_open_rdp(nacl_entry) {
+    %nacl_entry [
+           Protocol in %TCP_PROTOCOL or
+           Protocol in %UDP_PROTOCOL
+    ] {
+        check_port_range_exists(this)
+        check_ports(%RDP_PORT, PortRange.From, PortRange.To)
+   }
+}
+
+rule check_port_range_exists(nacl_entry) {
+    PortRange exists
+    PortRange is_struct
+    PortRange {
+        From exists
+        To exists
+    }
+}
+
+rule check_ports(port, nacl_from_port, nacl_to_port) {
+    %nacl_from_port > %port or
+    %nacl_to_port < %port
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, NETWORK_ACL_TYPE) {
+    %doc.%NETWORK_ACL_TYPE.resourceProperties exists
+}

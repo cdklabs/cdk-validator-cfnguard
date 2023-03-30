@@ -1,0 +1,128 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   s3_bucket_default_encryption_enabled_check
+# 
+# Description:
+#   This control checks whether default server-side encryption is enabled on your Amazon S3 bucket.
+# 
+# Reports on:
+#   AWS::S3::Bucket
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon S3 bucket resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'BucketEncryption.ServerSideEncryptionConfiguration' has not been provided or provided as an empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'BucketEncryption.ServerSideEncryptionConfiguration' has been provided as a non empty list
+#       And: 'BucketEncryption.ServerSideEncryptionConfiguration' does not contain an encryption rule with
+#            a 'ServerSideEncryptionByDefault' configuration
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'BucketEncryption.ServerSideEncryptionConfiguration' has been provided as a non empty list
+#       And: 'BucketEncryption.ServerSideEncryptionConfiguration' contains an encryption rule with
+#            a 'ServerSideEncryptionByDefault' configuration
+#       And: For an encryption rule, 'SSEAlgorithm' in 'ServerSideEncryptionByDefault' is not not provided or has been
+#            provided and set to an invalid SSE Algorithm
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'BucketEncryption.ServerSideEncryptionConfiguration' has been provided as a non empty list
+#       And: 'BucketEncryption.ServerSideEncryptionConfiguration' contains an encryption rule with
+#            a 'ServerSideEncryptionByDefault' configuration
+#       And: For all encryption rules, 'SSEAlgorithm' in 'ServerSideEncryptionByDefault' is provided and set to a valid
+#            SSE Algorithm
+#      Then: PASS
+
+#
+# Constants
+#
+let S3_BUCKET_TYPE = "AWS::S3::Bucket"
+let SUPPORTED_SSE_ALGORITHMS = [ "AES256", "aws:kms" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let s3_buckets = Resources.*[ Type == %S3_BUCKET_TYPE ]
+
+#
+# Primary Rules
+#
+rule s3_bucket_default_encryption_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                     %s3_buckets not empty {
+    check(%s3_buckets.Properties)
+        <<
+        [CT.S3.PR.7]: Require an Amazon S3 bucket to have server-side encryption configured
+            [FIX]: Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'AES256' or 'aws:kms'.
+        >>
+}
+
+rule s3_bucket_default_encryption_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE) {
+    check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
+        <<
+        [CT.S3.PR.7]: Require an Amazon S3 bucket to have server-side encryption configured
+            [FIX]: Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'AES256' or 'aws:kms'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(s3_bucket) {
+    %s3_bucket {
+        # Scenario 2
+        BucketEncryption exists
+        BucketEncryption is_struct
+
+        BucketEncryption {
+            ServerSideEncryptionConfiguration exists
+            ServerSideEncryptionConfiguration is_list
+            ServerSideEncryptionConfiguration not empty
+
+            # Scenario 3, 4 and 5
+            some ServerSideEncryptionConfiguration[*] {
+                ServerSideEncryptionByDefault exists
+                ServerSideEncryptionByDefault is_struct
+
+                ServerSideEncryptionByDefault {
+                    SSEAlgorithm exists
+                    SSEAlgorithm in %SUPPORTED_SSE_ALGORITHMS
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
