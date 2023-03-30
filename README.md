@@ -146,4 +146,11 @@ If you do not yet have a Control Tower environment, see [What is AWS Control Tow
 
 ### Bundled Rules
 
+- [CT.EC2.PR.5](https://docs.aws.amazon.com/controltower/latest/userguide/ec2-rules.html#ct-ec2-pr-5-description)
+- [CT.EC2.PR.7](https://docs.aws.amazon.com/controltower/latest/userguide/ec2-rules.html#ct-ec2-pr-7-description)
+- [CT.IAM.PR.7](https://docs.aws.amazon.com/controltower/latest/userguide/iam-rules.html#ct-iam-pr-2-description)
+- [CT.S3.PR.1](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-1-description)
+- [CT.S3.PR.2](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-2-description)
+- [CT.S3.PR.7](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-7-description)
+- [CT.S3.PR.8](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-8-description)
 
