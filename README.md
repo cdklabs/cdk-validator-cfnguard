@@ -44,7 +44,7 @@ pip install cdklabs.cdk-validator-cfnguard
 ### .NET
 
 ```bash
-dotnet add package CdklabsCdkValidatorCfnguard --version X.X.X
+dotnet add package Cdklabs.CdkValidatorCfnGuard --version X.X.X
 ```
 
 ## Usage
