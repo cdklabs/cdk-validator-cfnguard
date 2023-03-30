@@ -2,6 +2,7 @@ import * as path from 'path';
 import { CdklabsJsiiProject } from 'cdklabs-projen-project-types';
 import { JsonPatch, TextFile } from 'projen';
 import { BundleGuard } from './projenrc';
+import { NpmAccess } from 'projen/lib/javascript';
 const project = new CdklabsJsiiProject({
   private: false,
   author: 'AWS',
@@ -27,6 +28,7 @@ const project = new CdklabsJsiiProject({
   githubOptions: {
     mergify: false,
   },
+  npmAccess: NpmAccess.PUBLIC,
   enablePRAutoMerge: true,
   projenrcTs: true,
   release: true,
