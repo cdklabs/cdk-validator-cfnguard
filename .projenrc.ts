@@ -90,6 +90,7 @@ project.postCompileTask.spawn(rosettaTask);
 project.addGitIgnore('.jsii.tabl.json');
 
 project.tryFindObjectFile(path.join(__dirname, './.github/workflows/build.yml'))?.patch(JsonPatch.add('/jobs/build/env/GITHUB_TOKEN', '${{ secrets.GITHUB_TOKEN }}' ));
+project.tryFindObjectFile(path.join(__dirname, './.github/workflows/release.yml'))?.patch(JsonPatch.add('/jobs/release/env/GITHUB_TOKEN', '${{ secrets.GITHUB_TOKEN }}' ));
 project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
 project.gitignore.exclude('cdk.out');
