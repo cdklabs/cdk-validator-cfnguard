@@ -1,0 +1,153 @@
+{
+    "name": "",
+    "metadata": {},
+    "status": "FAIL",
+    "not_compliant": [
+        {
+            "Rule": {
+                "name": "cloud_trail_encryption_enabled_check",
+                "metadata": {},
+                "messages": {
+                    "custom_message": null,
+                    "error_message": null
+                },
+                "checks": [
+                    {
+                        "Rule": {
+                            "name": "check_cloudtrail_kms_key_configuration",
+                            "metadata": {},
+                            "messages": {
+                                "custom_message": "\n        [CT.CLOUDTRAIL.PR.1]: Require an AWS CloudTrail trail to have encryption at rest activated\n            [FIX]: Set the 'KMSKeyId' property to a valid KMS key.\n        ",
+                                "error_message": null
+                            },
+                            "checks": [
+                                {
+                                    "Clause": {
+                                        "Unary": {
+                                            "context": " KMSKeyId EXISTS  ",
+                                            "messages": {
+                                                "custom_message": "",
+                                                "error_message": "Check was not compliant as property [KMSKeyId] is missing. Value traversed to [Path=/Resources/CloudTrailA62D711D/Properties[L:65,C:17] Value={\"IsLogging\":true,\"S3BucketName\":{\"Ref\":\"Bucket83908E77\"},\"EnableLogFileValidation\":true,\"EventSelectors\":[],\"IncludeGlobalServiceEvents\":true,\"IsMultiRegionTrail\":true}]."
+                                            },
+                                            "check": {
+                                                "UnResolved": {
+                                                    "value": {
+                                                        "traversed_to": {
+                                                            "path": "/Resources/CloudTrailA62D711D/Properties",
+                                                            "value": {
+                                                                "IsLogging": true,
+                                                                "S3BucketName": {
+                                                                    "Ref": "Bucket83908E77"
+                                                                },
+                                                                "EnableLogFileValidation": true,
+                                                                "EventSelectors": [],
+                                                                "IncludeGlobalServiceEvents": true,
+                                                                "IsMultiRegionTrail": true
+                                                            }
+                                                        },
+                                                        "remaining_query": "KMSKeyId",
+                                                        "reason": "Could not find key KMSKeyId inside struct at path /Resources/CloudTrailA62D711D/Properties[L:65,C:17]"
+                                                    },
+                                                    "comparison": [
+                                                        "Exists",
+                                                        false
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "Disjunctions": {
+                                        "checks": [
+                                            {
+                                                "Rule": {
+                                                    "name": "check_is_string_and_not_empty",
+                                                    "metadata": {},
+                                                    "messages": {
+                                                        "custom_message": null,
+                                                        "error_message": null
+                                                    },
+                                                    "checks": [
+                                                        {
+                                                            "Block": {
+                                                                "context": "GuardBlockAccessClause#Location[file:ct-cloudtrail-pr-1.guard, line:97, column:5]",
+                                                                "messages": {
+                                                                    "custom_message": "",
+                                                                    "error_message": "Check was not compliant as property [KMSKeyId] is missing. Value traversed to [Path=/Resources/CloudTrailA62D711D/Properties[L:65,C:17] Value={\"IsLogging\":true,\"S3BucketName\":{\"Ref\":\"Bucket83908E77\"},\"EnableLogFileValidation\":true,\"EventSelectors\":[],\"IncludeGlobalServiceEvents\":true,\"IsMultiRegionTrail\":true}]"
+                                                                },
+                                                                "unresolved": {
+                                                                    "traversed_to": {
+                                                                        "path": "/Resources/CloudTrailA62D711D/Properties",
+                                                                        "value": {
+                                                                            "IsLogging": true,
+                                                                            "S3BucketName": {
+                                                                                "Ref": "Bucket83908E77"
+                                                                            },
+                                                                            "EnableLogFileValidation": true,
+                                                                            "EventSelectors": [],
+                                                                            "IncludeGlobalServiceEvents": true,
+                                                                            "IsMultiRegionTrail": true
+                                                                        }
+                                                                    },
+                                                                    "remaining_query": "KMSKeyId",
+                                                                    "reason": "Could not find key KMSKeyId inside struct at path /Resources/CloudTrailA62D711D/Properties[L:65,C:17]"
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "Rule": {
+                                                    "name": "check_kms_key_id_local_ref",
+                                                    "metadata": {},
+                                                    "messages": {
+                                                        "custom_message": null,
+                                                        "error_message": null
+                                                    },
+                                                    "checks": [
+                                                        {
+                                                            "Block": {
+                                                                "context": "GuardBlockAccessClause#Location[file:ct-cloudtrail-pr-1.guard, line:87, column:5]",
+                                                                "messages": {
+                                                                    "custom_message": "",
+                                                                    "error_message": "Check was not compliant as property [KMSKeyId] is missing. Value traversed to [Path=/Resources/CloudTrailA62D711D/Properties[L:65,C:17] Value={\"IsLogging\":true,\"S3BucketName\":{\"Ref\":\"Bucket83908E77\"},\"EnableLogFileValidation\":true,\"EventSelectors\":[],\"IncludeGlobalServiceEvents\":true,\"IsMultiRegionTrail\":true}]"
+                                                                },
+                                                                "unresolved": {
+                                                                    "traversed_to": {
+                                                                        "path": "/Resources/CloudTrailA62D711D/Properties",
+                                                                        "value": {
+                                                                            "IsLogging": true,
+                                                                            "S3BucketName": {
+                                                                                "Ref": "Bucket83908E77"
+                                                                            },
+                                                                            "EnableLogFileValidation": true,
+                                                                            "EventSelectors": [],
+                                                                            "IncludeGlobalServiceEvents": true,
+                                                                            "IsMultiRegionTrail": true
+                                                                        }
+                                                                    },
+                                                                    "remaining_query": "KMSKeyId",
+                                                                    "reason": "Could not find key KMSKeyId inside struct at path /Resources/CloudTrailA62D711D/Properties[L:65,C:17]"
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "not_applicable": [
+        "cloud_trail_encryption_enabled_check"
+    ],
+    "compliant": []
+}

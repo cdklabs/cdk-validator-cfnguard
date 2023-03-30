@@ -27,7 +27,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  execMock.mockRestore();
+  execMock.mockReset();
   mock.restore();
 });
 
@@ -357,6 +357,53 @@ describe('CfnGuardPlugin', () => {
         ],
       }],
     });
+  });
+
+  test('guard-mix-checks-and-nested-checks', () => {
+    // GIVEN
+    execMock.mockReturnValue(getData('guard-mix-checks-and-nested-checks.json'));
+    const validator = new plugin.CfnGuardValidator();
+
+    // WHEN
+    const result = validator.validate({
+      templatePaths: ['./tmp'],
+    });
+
+    // THEN
+    expect(result).toEqual({
+      success: false,
+      violations: [{
+        description: '[CT.CLOUDTRAIL.PR.1]: Require an AWS CloudTrail trail to have encryption at rest activated',
+        fix: "[FIX]: Set the 'KMSKeyId' property to a valid KMS key.",
+        ruleName: 'cloud_trail_encryption_enabled_check',
+        violatingResources: [
+          {
+            resourceLogicalId: 'CloudTrailA62D711D',
+            templatePath: './tmp',
+            locations: [
+              '/Resources/CloudTrailA62D711D/Properties',
+              '/Resources/CloudTrailA62D711D/Properties',
+              '/Resources/CloudTrailA62D711D/Properties',
+            ],
+          },
+        ],
+      }],
+    });
+  });
+
+  test('guard fails', () => {
+    // GIVEN
+    const validator = new plugin.CfnGuardValidator();
+
+    // WHEN
+    execMock.mockImplementationOnce(() => { throw new Error('error'); });
+
+    // THEN
+    expect(() => {
+      validator.validate({
+        templatePaths: ['./tmp'],
+      });
+    }).toThrow(/CfnGuardValidator plugin failed processing/);
   });
 });
 

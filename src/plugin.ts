@@ -149,6 +149,11 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
       });
     } catch (e) {
       success = false;
+      throw new Error(`
+        CfnGuardValidator plugin failed processing cfn-guard results.
+        Please create an issue https://github.com/cdklabs/cdk-validator-cfnguard/issues/new
+        Rule: ${path.basename(config.rulePath)}
+        Error: ${e}`);
     }
     return {
       success,
@@ -242,7 +247,7 @@ function reviver(key: string, value: any): any {
   } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
     return extractNestedObject(value);
   } else if (key === 'checks' && Array.isArray(value)) {
-    return extractNestedChecks(value);
+    return extractNestedChecks(value.flatMap(v => v));
   }
   return value;
 }
@@ -258,8 +263,11 @@ function extractNestedChecks(checks: any[]): any[] {
   }));
   if (containsNestedChecks) {
     return checks.flatMap(check => {
+      if (Object.keys(check).includes('traversed')) {
+        return check;
+      }
       return Object.values(check).flatMap((checkValue: any) => {
-        return Object.values(checkValue.checks).flatMap((nestedCheckValue: any) => {
+        return Object.values(checkValue.checks ?? checkValue).flatMap((nestedCheckValue: any) => {
           return {
             ...nestedCheckValue,
             name: checkValue.name,
