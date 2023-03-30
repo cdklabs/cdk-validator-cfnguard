@@ -1,8 +1,8 @@
 import * as path from 'path';
 import { CdklabsJsiiProject } from 'cdklabs-projen-project-types';
 import { JsonPatch, TextFile } from 'projen';
-import { BundleGuard } from './projenrc';
 import { NpmAccess } from 'projen/lib/javascript';
+import { BundleGuard } from './projenrc';
 const project = new CdklabsJsiiProject({
   private: false,
   author: 'AWS',
