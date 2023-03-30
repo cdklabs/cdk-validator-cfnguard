@@ -21,13 +21,13 @@
 ### TypeScript/JavaScript
 
 ```bash
-npm install cdk-validator-cfnguard
+npm install @cdklabs/cdk-validator-cfnguard
 ```
 
 ### Python
 
 ```bash
-pip install cdk-validator-cfnguard
+pip install cdklabs.cdk-validator-cfnguard
 ```
 
 ### Java
