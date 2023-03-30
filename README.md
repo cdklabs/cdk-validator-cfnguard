@@ -47,12 +47,6 @@ pip install cdklabs.cdk-validator-cfnguard
 dotnet add package CdklabsCdkValidatorCfnguard --version X.X.X
 ```
 
-### Go
-
-```bash
-go get cdk-validator-cfnguard-go
-```
-
 ## Usage
 
 To use this plugin in your CDK application add it to the CDK App.
