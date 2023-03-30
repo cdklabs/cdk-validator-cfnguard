@@ -146,11 +146,12 @@ If you do not yet have a Control Tower environment, see [What is AWS Control Tow
 
 ### Bundled Rules
 
-- [CT.EC2.PR.5](https://docs.aws.amazon.com/controltower/latest/userguide/ec2-rules.html#ct-ec2-pr-5-description)
-- [CT.EC2.PR.7](https://docs.aws.amazon.com/controltower/latest/userguide/ec2-rules.html#ct-ec2-pr-7-description)
-- [CT.IAM.PR.7](https://docs.aws.amazon.com/controltower/latest/userguide/iam-rules.html#ct-iam-pr-2-description)
-- [CT.S3.PR.1](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-1-description)
-- [CT.S3.PR.2](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-2-description)
-- [CT.S3.PR.7](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-7-description)
-- [CT.S3.PR.8](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-8-description)
-
+| Control Tower rule ID | Control Tower docs link | Description |
+| --------------------- | ----------------------- | ---------------- |
+| CT.IAM.PR.7 | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/iam-rules.html#ct-iam-pr-2-description) | This control checks whether AWS Identity and Access Management (IAM) customer managed policies do not include \"Effect\": \"Allow\" with \"Action\": \"\*\" over \"Resource\": \"\*\"." |
+| CT.EC2.PR.5 | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/ec2-rules.html#ct-ec2-pr-5-description) | This control checks whether the Amazon EC2 network ACL inbound entry allows unrestricted incoming traffic (0.0.0.0/0 or ::/0) for SSH or RDP. |
+| CT.EC2.PR.7 | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/ec2-rules.html#ct-ec2-pr-7-description) | This control checks whether your standalone Amazon EC2 EBS volumes and new Amazon EBS volumes created through EC2 instance Block Device Mappings are encrypted at rest. |
+| CT.S3.PR.1  | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-1-description) | This control checks whether your Amazon Simple Storage Service (Amazon S3) bucket has a bucket-level Block Public Access (BPA) configuration. |
+| CT.S3.PR.2  | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-2-description) | This control checks whether server access logging is enabled for your Amazon S3 bucket. |
+| CT.S3.PR.7  | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-7-description) | This control checks whether default server-side encryption is enabled on your Amazon S3 bucket. |
+| CT.S3.PR.8  | [docs](https://docs.aws.amazon.com/controltower/latest/userguide/s3-rules.html#ct-s3-pr-8-description) | This control checks whether Amazon S3 bucket policies require requests to use Secure Socket Layer (SSL). |
