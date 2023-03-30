@@ -3,6 +3,7 @@ import { CdklabsJsiiProject } from 'cdklabs-projen-project-types';
 import { JsonPatch, TextFile } from 'projen';
 import { BundleGuard } from './projenrc';
 const project = new CdklabsJsiiProject({
+  private: false,
   author: 'AWS',
   authorAddress: 'aws-cdk-dev@amazon.com',
   defaultReleaseBranch: 'main',
@@ -23,6 +24,10 @@ const project = new CdklabsJsiiProject({
     'validator',
     'policy as code',
   ],
+  githubOptions: {
+    mergify: false,
+  },
+  enablePRAutoMerge: true,
   projenrcTs: true,
   release: true,
   repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
