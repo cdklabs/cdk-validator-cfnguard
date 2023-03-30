@@ -135,8 +135,7 @@ understand the following things about these bundled controls when run locally us
    For instance, a rule may require that an access logging bucket is specified for each S3 bucket.
    In this case, the rule can check whether you have passed a reference to a bucket in the same
    template, but it cannot verify that a hardcoded bucket name like "examplebucket" actually refers
-   to a real bucket or a bucket you own. Your CDK stack may pass the rule in this case but still
-   present a security threat to you.
+   to a real bucket or a bucket you own.
 
 You can add a layer of security protection by enabling the same proactive controls in your Control Tower
 cloud environment. There are different considerations for using these controls since they operate in a
