@@ -1,4 +1,51 @@
-# {{ RULE_HEADER }}
+# ###################################
+##       Rule Specification        ##
+#####################################
+#
+# Rule Identifier:
+#   s3_bucket_logging_enabled_check
+#
+# Description:
+#   This control checks whether server access logging is enabled for Amazon S3 buckets.
+#
+# Reports on:
+#   AWS::S3::Bucket
+#
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+#
+# Rule Parameters:
+#   None
+#
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon S3 bucket resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'LoggingConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'LoggingConfiguration' has been provided
+#       And: 'LoggingConfiguration.DestinationBucketName' has been provided with an empty string or non-valid local
+#            reference
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'LoggingConfiguration' has been provided
+#      Then: PASS
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'LoggingConfiguration' has been provided
+#       And: 'LoggingConfiguration.DestinationBucketName' has been provided with a non-empty string or valid local
+#            reference
+#      Then: PASS
 
 #
 # Constants
@@ -18,14 +65,16 @@ rule s3_bucket_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
                                           %s3_buckets not empty {
     check(%s3_buckets.Properties)
         <<
-        {{ RULE_MESSAGE }}
+        [CT.S3.PR.2]: Require an Amazon S3 bucket to have server access logging configured
+        [FIX]: Set a 'LoggingConfiguration' on the S3 Bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
         >>
 }
 
 rule s3_bucket_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE) {
     check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
         <<
-        {{ RULE_MESSAGE }}
+        [CT.S3.PR.2]: Require an Amazon S3 bucket to have server access logging configured
+        [FIX]: Set a 'LoggingConfiguration' on the S3 bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
         >>
 }
 
