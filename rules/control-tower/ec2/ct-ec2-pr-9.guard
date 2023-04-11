@@ -1,0 +1,182 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_launch_template_public_ip_disabled_check
+# 
+# Description:
+#   This control checks whether your Amazon EC2 launch templates are configured to assign public IP addresses to network interfaces.
+# 
+# Reports on:
+#   AWS::EC2::LaunchTemplate
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon EC2 launch template resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 launch template resource
+#       And: 'NetworkInterfaces' is not provided in 'LaunchTemplateData'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 launch template resource
+#       And: 'LaunchTemplateData.NetworkInterfaces' is present on the Amazon EC2 launch template resource as a non empty list
+#       And: 'NetworkInterfaceId' is present for a configuration in 'NetworkInterfaces' and is a non-empty string or
+#             valid local reference
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 launch template resource
+#       And: 'LaunchTemplateData.NetworkInterfaces' is present on the Amazon EC2 launch template resource
+#       And: 'NetworkInterfaceId' is not present or is present and is an empty string or invalid local reference for
+#            a configuration in 'NetworkInterfaces'
+#       And: 'AssociatePublicIpAddress' is not present for a configuration in 'NetworkInterfaces'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 launch template resource
+#       And: 'LaunchTemplateData.NetworkInterfaces' is present on the Amazon EC2 launch template resource
+#       And: 'NetworkInterfaceId' is not present or is present and is an empty string or invalid local reference for
+#            a configuration in 'NetworkInterfaces'
+#       And: 'AssociatePublicIpAddress' is present for a configuration in 'NetworkInterfaces'
+#       And: 'AssociatePublicIpAddress' is set to bool(true)
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 launch template resource
+#       And: 'LaunchTemplateData.NetworkInterfaces' is present on the Amazon EC2 launch template resource
+#       And: 'NetworkInterfaceId' is not present or is present and is an empty string or invalid local reference for
+#            a configuration in 'NetworkInterfaces'
+#       And: 'AssociatePublicIpAddress' is present for a configuration in 'NetworkInterfaces'
+#       And: 'AssociatePublicIpAddress' is set to bool(false)
+#      Then: PASS
+
+#
+# Constants
+#
+let EC2_LAUNCH_TEMPLATE_TYPE = "AWS::EC2::LaunchTemplate"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ec2_launch_templates = Resources.*[ Type == %EC2_LAUNCH_TEMPLATE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_launch_template_public_ip_disabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                       %ec2_launch_templates not empty {
+    check(%ec2_launch_templates.Properties)
+        <<
+        [CT.EC2.PR.9]: Require any Amazon EC2 launch template not to auto-assign public IP addresses to network interfaces
+            [FIX]: Set 'AssociatePublicIpAddress' to 'false' within each 'NetworkInterfaces' configuration in 'LaunchTemplateData'.
+        >>
+}
+
+rule ec2_launch_template_public_ip_disabled_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_LAUNCH_TEMPLATE_TYPE) {
+    check(%INPUT_DOCUMENT.%EC2_LAUNCH_TEMPLATE_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.9]: Require any Amazon EC2 launch template not to auto-assign public IP addresses to network interfaces
+            [FIX]: Set 'AssociatePublicIpAddress' to 'false' within each 'NetworkInterfaces' configuration in 'LaunchTemplateData'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ec2_launch_templates) {
+    %ec2_launch_templates[
+        # Scenario 2
+        filter_launch_template(this)
+    ] {
+        LaunchTemplateData {
+            NetworkInterfaces[
+                # Scenario 3 and 4
+                filter_network_interfaces(this)
+            ] {
+                # Scenario 5 and 6
+                AssociatePublicIpAddress exists
+                AssociatePublicIpAddress == false
+            }
+        }
+    }
+}
+
+rule filter_launch_template(ec2_launch_template) {
+    %ec2_launch_template {
+        LaunchTemplateData exists
+        LaunchTemplateData is_struct
+        LaunchTemplateData {
+            NetworkInterfaces exists
+            NetworkInterfaces is_list
+            NetworkInterfaces not empty
+        }
+    }
+}
+
+rule filter_network_interfaces(network_interface) {
+    %network_interface {
+        NetworkInterfaceId not exists or
+        filter_property_is_empty_string(NetworkInterfaceId) or
+        filter_exclude_valid_local_reference(%INPUT_DOCUMENT, NetworkInterfaceId, "AWS::EC2::NetworkInterface")
+    }
+}
+
+rule filter_property_is_empty_string(value) {
+    %value {
+        this is_string
+        this == /\A\s*\z/
+    }
+}
+
+rule filter_exclude_valid_local_reference(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        this not is_string
+        this is_struct
+
+        when this.'Fn::GetAtt' exists {
+            'Fn::GetAtt' {
+                when query_for_resource(%doc, this[0], %referenced_resource_type) {
+                    this not exists
+                }
+                this exists
+            }
+        }
+        when this.'Fn::GetAtt' not exists {
+            this exists
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

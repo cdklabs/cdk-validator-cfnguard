@@ -1,22 +1,22 @@
 # ###################################
 ##       Rule Specification        ##
 #####################################
-#
+# 
 # Rule Identifier:
 #   s3_bucket_logging_enabled_check
-#
+# 
 # Description:
-#   This control checks whether server access logging is enabled for Amazon S3 buckets.
-#
+#   This control checks whether server access logging is enabled for your Amazon S3 bucket.
+# 
 # Reports on:
 #   AWS::S3::Bucket
-#
+# 
 # Evaluates:
 #   AWS CloudFormation, AWS CloudFormation hook
-#
+# 
 # Rule Parameters:
 #   None
-#
+# 
 # Scenarios:
 #   Scenario: 1
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
@@ -31,7 +31,7 @@
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
 #       And: The input document contains an Amazon S3 bucket resource
 #       And: 'LoggingConfiguration' has been provided
-#       And: 'LoggingConfiguration.DestinationBucketName' has been provided with an empty string or non-valid local
+#       And: 'LoggingConfiguration.DestinationbucketName' has been provided with an empty string or non-valid local
 #            reference
 #      Then: FAIL
 #   Scenario: 4
@@ -66,7 +66,7 @@ rule s3_bucket_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%s3_buckets.Properties)
         <<
         [CT.S3.PR.2]: Require an Amazon S3 bucket to have server access logging configured
-        [FIX]: Set a 'LoggingConfiguration' on the S3 Bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
+            [FIX]: Set a 'LoggingConfiguration' on the S3 Bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
         >>
 }
 
@@ -74,7 +74,7 @@ rule s3_bucket_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKE
     check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
         <<
         [CT.S3.PR.2]: Require an Amazon S3 bucket to have server access logging configured
-        [FIX]: Set a 'LoggingConfiguration' on the S3 bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
+            [FIX]: Set a 'LoggingConfiguration' on the S3 Bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
         >>
 }
 

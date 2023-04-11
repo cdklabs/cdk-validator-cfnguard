@@ -1,0 +1,167 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_instance_no_default_ports_check
+# 
+# Description:
+#   This control checks whether Amazon Relational Database Service (RDS) database instances are configured for default database port for their specific engine types.
+# 
+# Reports on:
+#   AWS::RDS::DBInstance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any RDS DB instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is not one of  'mariadb', 'mysql',
+#            'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#            'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of  'mariadb', 'mysql',
+#            'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#            'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'Port' has not been specified
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of  'mariadb', 'mysql',
+#            'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#            'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'Port' has been specified
+#       And: 'Port' value is default port (includes mysql/mariadb port '3306', sqlserver
+#            port '1433', postgres port '5432', and oracle port '1521')
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine'  is one of 'mariadb', 'mysql'
+#       And: 'Port' has been specified
+#       And: 'Port' value is not equal to '3306'
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is 'postgres'
+#       And: 'Port' has been specified
+#       And: 'Port' value is not equal to '5432'
+#      Then: PASS
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'Port' has been specified
+#       And: 'Port' value is not equal to '1433'
+#      Then: PASS
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#       And: 'Port' has been specified
+#       And: 'Port' value is not equal to '1521'
+#      Then: PASS
+
+#
+# Constants
+#
+let RDS_DB_INSTANCE_TYPE = "AWS::RDS::DBInstance"
+let INPUT_DOCUMENT = this
+let ORACLE_ENGINES = [ "oracle-ee", "oracle-se2", "oracle-se1", "oracle-se" ]
+let SQLSERVER_ENGINES = [ "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web" ]
+let MYSQL_OR_MARIA_ENGINES = [ "mariadb", "mysql" ]
+let POSTGRES_ENGINES = [ "postgres" ]
+let MYSQL_MARIA_DEFAULT_PORTS = [3306, "3306"]
+let POSTGRES_DEFAULT_PORTS = [5432, "5432"]
+let SQL_DEFAULT_PORTS = [1433, "1433"]
+let ORACLE_DEFAULT_PORTS = [1521, "1521"]
+
+#
+# Assignments
+#
+let rds_db_instances = Resources.*[ Type == %RDS_DB_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_instance_no_default_ports_check when is_cfn_template(%INPUT_DOCUMENT)
+                                              %rds_db_instances not empty {
+    check(%rds_db_instances.Properties)
+        <<
+        [CT.RDS.PR.20]: Require an Amazon RDS database instance not to use a database engine default port
+            [FIX]: Set a value for 'Port' that is different than the default value for the Amazon RDS DB instance engine type.
+        >>
+}
+
+rule rds_instance_no_default_ports_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.20]: Require an Amazon RDS database instance not to use a database engine default port
+            [FIX]: Set a value for 'Port' that is different than the default value for the Amazon RDS DB instance engine type.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(rds_db_instance) {
+    # Scenario: 4 and 5
+    %rds_db_instance[ filter_engine(this, %MYSQL_OR_MARIA_ENGINES) ] {
+        check_port(Port, %MYSQL_MARIA_DEFAULT_PORTS)
+    }
+    # Scenario: 4 and 6
+    %rds_db_instance[ filter_engine(this, %POSTGRES_ENGINES) ] {
+        check_port(Port, %POSTGRES_DEFAULT_PORTS)
+    }
+    # Scenario: 4 and 7
+    %rds_db_instance[ filter_engine(this, %SQLSERVER_ENGINES) ] {
+        check_port(Port, %SQL_DEFAULT_PORTS)
+    }
+    # Scenario: 4 and 8
+    %rds_db_instance[ filter_engine(this, %ORACLE_ENGINES) ] {
+        check_port(Port, %ORACLE_DEFAULT_PORTS)
+    }
+}
+
+rule filter_engine(db_properties, engine) {
+    %db_properties {
+        # Scenario: 2
+        Engine exists
+        Engine is_string
+        Engine in %engine
+    }
+}
+
+rule check_port(port, default_ports) {
+    # Scenario: 3
+    %port exists
+    %port not in %default_ports
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

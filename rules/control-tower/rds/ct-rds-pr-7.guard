@@ -1,0 +1,116 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_instance_iam_authentication_enabled_check
+# 
+# Description:
+#   This control checks whether an Amazon RDS database (DB) instance has AWS IAM database authentication activated.
+# 
+# Reports on:
+#   AWS::RDS::DBInstance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any RDS DB instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is not in-scope database engines - 'mariadb', 'mysql', 'postgres'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is in-scope database engines - 'mariadb', 'mysql', 'postgres'
+#       And: 'EnableIAMDatabaseAuthentication' has not been specified
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is in-scope database engines - 'mariadb', 'mysql', 'postgres'
+#       And: 'EnableIAMDatabaseAuthentication' has been specified
+#       And: 'EnableIAMDatabaseAuthentication' has been set to bool(false)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is in-scope database engines - 'mariadb', 'mysql', 'postgres'
+#       And: 'EnableIAMDatabaseAuthentication' has been specified
+#       And: 'EnableIAMDatabaseAuthentication' has been set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let RDS_DB_INSTANCE_TYPE = "AWS::RDS::DBInstance"
+let INPUT_DOCUMENT = this
+let SUPPORTED_RDS_INSTANCE_ENGINES = ["mariadb", "mysql", "postgres"]
+
+#
+# Assignments
+#
+let rds_db_instances = Resources.*[ Type == %RDS_DB_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_instance_iam_authentication_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                        %rds_db_instances not empty {
+    check(%rds_db_instances.Properties)
+        <<
+        [CT.RDS.PR.7]: Require Amazon RDS database instances to have AWS IAM authentication configured
+            [FIX]: Set 'EnableIAMDatabaseAuthentication' to 'true'.
+        >>
+}
+
+rule rds_instance_iam_authentication_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.7]: Require Amazon RDS database instances to have AWS IAM authentication configured
+            [FIX]: Set 'EnableIAMDatabaseAuthentication' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(rds_db_instance) {
+    %rds_db_instance [filter_engine(this)] {
+        #Scenario: 3
+        EnableIAMDatabaseAuthentication exists
+        #Scenario: 4 and 5
+        EnableIAMDatabaseAuthentication == true
+    }
+}
+
+rule filter_engine(db_properties) {
+    %db_properties {
+        #Scenario: 2
+        Engine exists
+        Engine is_string
+        Engine in %SUPPORTED_RDS_INSTANCE_ENGINES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

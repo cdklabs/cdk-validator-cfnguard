@@ -1,0 +1,98 @@
+{
+    "Artifacts": [
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.10/artifacts/deployment/CT.RDS.PR.10.guard",
+            "Purpose": "DEPLOYMENT",
+            "Type": "CLOUDFORMATION_GUARD_RULE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.10/artifacts/tests/bug-bash/templates/scenario-4a-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.10/artifacts/tests/bug-bash/templates/scenario-5a-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.10/artifacts/tests/CT.RDS.PR.10_cfn_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.10/artifacts/tests/CT.RDS.PR.10_hook_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.10/artifacts/tests/CT.RDS.PR.10_common_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        }
+    ],
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2",
+                "CM-2(2)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2",
+                "2.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon RDS DB instances are configured to copy all tags to snapshots created.",
+    "DisplayName": "Require an Amazon RDS database instance to copy tags to snapshots",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Copying tags to DB instance snapshots",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html#USER_Tagging.CopyTags"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBInstance"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.10",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.10",
+            "Name": "Protect configurations"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.RDS.17",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'CopyTagsToSnapshot' to 'true'.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

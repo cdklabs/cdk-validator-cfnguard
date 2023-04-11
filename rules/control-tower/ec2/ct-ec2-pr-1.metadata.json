@@ -1,0 +1,85 @@
+{
+    "Artifacts": [
+        {
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.1/artifacts/deployment/CT.EC2.PR.1.guard",
+            "Purpose": "DEPLOYMENT",
+            "Type": "CLOUDFORMATION_GUARD_RULE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.1/artifacts/tests/bug-bash/templates/scenario-4a-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.1/artifacts/tests/bug-bash/templates/scenario-5a-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.1/artifacts/tests/CT.EC2.PR.1_common_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.1/artifacts/tests/CT.EC2.PR.1_hook_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.1/artifacts/tests/CT.EC2.PR.1_cfn_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        }
+    ],
+    "Behavior": "PROACTIVE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon EC2 launch templates are configured with Instance Metadata Service Version 2 (IMDSv2).",
+    "DisplayName": "Require an Amazon EC2 launch template to have IMDSv2 configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Use IMDSv2",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::LaunchTemplate"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        },
+        {
+            "Id": "CO.10",
+            "Name": "Protect configurations"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.EC2.8",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration and set the value of 'HttpTokens' to 'required'.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

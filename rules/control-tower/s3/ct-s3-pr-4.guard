@@ -1,0 +1,126 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   s3_event_notifications_enabled_check
+# 
+# Description:
+#   This control checks whether Amazon S3 events notifications are enabled on your Amazon S3 bucket.
+# 
+# Reports on:
+#   AWS::S3::Bucket
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon S3 bucket resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'NotificationConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'NotificationConfiguration' has been provided
+#       And:  At least one of 'EventBridgeConfiguration.EventBridgeEnabled', 'LambdaConfigurations',
+#             'QueueConfigurations', or 'TopicConfigurations' have not been provided or provided as empty lists.
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'NotificationConfiguration' has been provided
+#       And: 'EventBridgeConfiguration.EventBridgeEnabled' is set to bool(true) or 'LambdaConfigurations',
+#            'QueueConfigurations', or 'TopicConfigurations' have been provided with at least one configuration
+#      Then: PASS
+
+#
+# Constants
+#
+let S3_BUCKET_TYPE = "AWS::S3::Bucket"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let s3_buckets = Resources.*[ Type == %S3_BUCKET_TYPE ]
+
+#
+# Primary Rules
+#
+rule s3_event_notifications_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %s3_buckets not empty {
+    check(%s3_buckets.Properties)
+        <<
+        [CT.S3.PR.4]: Require an Amazon S3 bucket to have event notifications configured
+            [FIX]: Set a 'NotificationConfiguration' parameter on your bucket with one of 'EventBridgeConfiguration', 'LambdaConfigurations', 'QueueConfigurations' or 'TopicConfigurations.'
+        >>
+}
+
+rule s3_event_notifications_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE) {
+    check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
+        <<
+        [CT.S3.PR.4]: Require an Amazon S3 bucket to have event notifications configured
+            [FIX]: Set a 'NotificationConfiguration' parameter on your bucket with one of 'EventBridgeConfiguration', 'LambdaConfigurations', 'QueueConfigurations' or 'TopicConfigurations.'
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(s3_bucket) {
+    %s3_bucket {
+       # Scenario 2
+       NotificationConfiguration exists
+       NotificationConfiguration is_struct
+       NotificationConfiguration {
+            # Scenario 3 and 4
+            EventBridgeConfiguration exists or
+            LambdaConfigurations exists or
+            QueueConfigurations exists or
+            TopicConfigurations exists
+
+            check_event_bridge_notifications(EventBridgeConfiguration) or
+            check_other_notifications(LambdaConfigurations) or
+            check_other_notifications(QueueConfigurations) or
+            check_other_notifications(TopicConfigurations)
+       }
+    }
+}
+
+rule check_event_bridge_notifications(configuration) {
+    %configuration {
+        this is_struct
+        EventBridgeEnabled exists
+        EventBridgeEnabled == true
+    }
+}
+
+rule check_other_notifications(configuration) {
+    %configuration {
+        this is_list
+        this not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,97 @@
+{
+    "Artifacts": [
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.18/artifacts/deployment/CT.RDS.PR.18.guard",
+            "Purpose": "DEPLOYMENT",
+            "Type": "CLOUDFORMATION_GUARD_RULE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.18/artifacts/tests/CT.RDS.PR.18_hook_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.18/artifacts/tests/CT.RDS.PR.18_common_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.18/artifacts/tests/CT.RDS.PR.18_cfn_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.18/artifacts/tests/bug-bash/templates/scenario-3a-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.18/artifacts/tests/bug-bash/templates/scenario-5a-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the control",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.18/artifacts/tests/bug-bash/templates/scenario-6-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 2",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        }
+    ],
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-7",
+                "SI-2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon RDS event subscriptions for RDS parameter groups are configured to notify on event categories of 'configuration change.'",
+    "DisplayName": "Require an Amazon RDS event notification subscription to have critical database parameter group events configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Configuring Amazon RDS event notification",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Events.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::EventSubscription"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.18",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.11",
+            "Name": "Prepare for incident response"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.RDS.21",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "When 'SourceType' is set to 'db-parameter-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'configuration change' as a value.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

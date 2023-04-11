@@ -1,0 +1,112 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   s3_lifecycle_policy_check
+# 
+# Description:
+#   This control checks whether a lifecycle rule is configured for Amazon S3 buckets.
+# 
+# Reports on:
+#   AWS::S3::Bucket
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation Hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any S3 bucket resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: 'LifecycleConfiguration.Rules' has not been been provided or has been provided where 'Rules' is an
+#             empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: The S3 bucket has versioning enabled (VersioningConfiguration.Status is set to 'Enabled')
+#       And: 'LifecycleConfiguration.Rules' has been been provided as a non-empty list
+#       And: There are no 'Rules' with 'Status' set to 'Enabled' present in the 'LifecycleConfiguration'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: The S3 bucket has versioning enabled (VersioningConfiguration.Status is set to 'Enabled')
+#       And: 'LifecycleConfiguration.Rules' has been been provided as a non-empty list
+#       And: There is at least one entry in 'LifecycleConfiguration.Rules' with 'Status' set to 'Enabled'
+#      Then: PASS
+
+#
+# Constants
+#
+let S3_BUCKET_TYPE = "AWS::S3::Bucket"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let s3_buckets = Resources.*[ Type == %S3_BUCKET_TYPE ]
+
+#
+# Primary Rules
+#
+rule s3_lifecycle_policy_check when is_cfn_template(%INPUT_DOCUMENT)
+                                    %s3_buckets not empty {
+    check(%s3_buckets.Properties)
+        <<
+        [CT.S3.PR.6]: Require an Amazon S3 bucket to have lifecycle policies configured
+            [FIX]: Configure at least one active lifecycle rule in 'LifecycleConfiguration.Rules' by setting 'Status' on a rule to 'Enabled'.
+        >>
+}
+
+rule s3_lifecycle_policy_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE) {
+    check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
+        <<
+        [CT.S3.PR.6]: Require an Amazon S3 bucket to have lifecycle policies configured
+            [FIX]: Configure at least one active lifecycle rule in 'LifecycleConfiguration.Rules' by setting 'Status' on a rule to 'Enabled'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(s3_bucket) {
+    %s3_bucket {
+        # Scenario 2
+        LifecycleConfiguration exists
+        LifecycleConfiguration is_struct
+
+        LifecycleConfiguration {
+            # Scenario 3 and 4
+            Rules exists
+            Rules is_list
+            Rules not empty
+
+            some Rules[*] {
+                Status exists
+                Status == "Enabled"
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

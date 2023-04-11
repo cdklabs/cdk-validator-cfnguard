@@ -1,24 +1,22 @@
-
 # ###################################
 ##       Rule Specification        ##
 #####################################
-#
+# 
 # Rule Identifier:
 #   s3_bucket_level_public_access_prohibited_check
-#
+# 
 # Description:
-#   Checks whether Amazon Simple Storage Service (Amazon S3) buckets have a bucket-level Block Public Access (BPA)
-#   configuration.
-#
+#   This control checks whether your Amazon Simple Storage Service (Amazon S3) bucket has a bucket-level Block Public Access (BPA) configuration.
+# 
 # Reports on:
 #   AWS::S3::Bucket
-#
+# 
 # Evaluates:
 #   AWS CloudFormation, AWS CloudFormation hook
-#
+# 
 # Rule Parameters:
 #   None
-#
+# 
 # Scenarios:
 #   Scenario: 1
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
@@ -70,7 +68,7 @@ rule s3_bucket_level_public_access_prohibited_check when is_cfn_template(%INPUT_
     check(%s3_buckets.Properties)
         <<
         [CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured
-        [FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.
+            [FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.
         >>
 }
 
@@ -78,7 +76,7 @@ rule s3_bucket_level_public_access_prohibited_check when is_cfn_hook(%INPUT_DOCU
     check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
         <<
         [CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured
-        [FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.
+            [FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.
         >>
 }
 

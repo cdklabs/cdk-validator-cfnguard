@@ -1,0 +1,89 @@
+{
+    "Artifacts": [
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.3/artifacts/deployment/CT.RDS.PR.3.guard",
+            "Purpose": "DEPLOYMENT",
+            "Type": "CLOUDFORMATION_GUARD_RULE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.3/artifacts/tests/CT.RDS.PR.3_hook_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.3/artifacts/tests/CT.RDS.PR.3_cfn_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.3/artifacts/tests/CT.RDS.PR.3_common_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.3/artifacts/tests/bug-bash/templates/scenario-3-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.3/artifacts/tests/bug-bash/templates/scenario-4-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        }
+    ],
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CM-3",
+                "SC-5(2)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon Relational Database Service (Amazon RDS) cluster has deletion protection activated.",
+    "DisplayName": "Require an Amazon RDS cluster to have deletion protection configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Deletion protection for Aurora clusters",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_DeleteCluster.html#USER_DeletionProtection"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBCluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set the value of the 'DeletionProtection' parameter to true.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

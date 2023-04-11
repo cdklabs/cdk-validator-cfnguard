@@ -1,0 +1,128 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_db_security_group_not_allowed_check
+# 
+# Description:
+#   This control checks whether any Amazon Relational Database Services (RDS) database (DB) security groups are created by, or associated to, an RDS DB instance, because DB security groups are intended for the EC2-Classic platform only.
+# 
+# Reports on:
+#   AWS::RDS::DBSecurityGroup, AWS::RDS::DBInstance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any DB security group resources
+#        And: The input document does not contain any RDS DB instance resources
+#       Then: SKIP
+#   Scenario: 2
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains a DB security group resource
+#       Then: FAIL
+#   Scenario: 3
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any DBsecurity group resources
+#        And: The input document contains an RDS DB instance resource
+#        And: 'DBSecurityGroups' has been specified on the RDS DB instance as a non empty list
+#       Then: FAIL
+#   Scenario: 4
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any DB security group resources
+#        And: The input document contains an RDS DB instance resource
+#        And: 'DBSecurityGroups' has not been specified on the RDS DB instance or specified as an empty list
+#       Then: PASS
+
+#
+# Constants
+#
+let DB_INSTANCE_TYPE = "AWS::RDS::DBInstance"
+let DB_SECURITY_GROUP_TYPE = "AWS::RDS::DBSecurityGroup"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let db_instances = Resources.*[ Type == %DB_INSTANCE_TYPE ]
+let db_security_groups = Resources.*[ Type == %DB_SECURITY_GROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_db_security_group_not_allowed_check when is_cfn_template(this)
+                                                  %db_security_groups not empty {
+    check_db_security_group(%db_security_groups)
+        <<
+        [CT.RDS.PR.15]: Require that an Amazon RDS instance does not create DB security groups
+            [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
+        >>
+}
+
+rule rds_db_security_group_not_allowed_check when is_cfn_template(this)
+                                                  %db_instances not empty {
+    check_db_instance(%db_instances.Properties)
+        <<
+        [CT.RDS.PR.15]: Require that an Amazon RDS instance does not create DB security groups
+            [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
+        >>
+}
+
+rule rds_db_security_group_not_allowed_check when is_cfn_hook(%INPUT_DOCUMENT, %DB_SECURITY_GROUP_TYPE) {
+    check_db_security_group(%INPUT_DOCUMENT.%DB_SECURITY_GROUP_TYPE)
+        <<
+        [CT.RDS.PR.15]: Require that an Amazon RDS instance does not create DB security groups
+            [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
+        >>
+}
+
+rule rds_db_security_group_not_allowed_check when is_cfn_hook(%INPUT_DOCUMENT, %DB_INSTANCE_TYPE) {
+    check_db_instance(%INPUT_DOCUMENT.%DB_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.15]: Require that an Amazon RDS instance does not create DB security groups
+            [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_db_security_group(db_security_group) {
+    # Scenario 2
+    %db_security_group empty
+}
+
+rule check_db_instance(db_instance) {
+    %db_instance {
+        # Scenario 3 and 4
+        DBSecurityGroups not exists or
+        check_is_empty_list(this)
+    }
+}
+
+rule check_is_empty_list(db_instance_configuration) {
+    %db_instance_configuration {
+        DBSecurityGroups is_list
+        DBSecurityGroups empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

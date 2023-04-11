@@ -1,0 +1,169 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   vpc_sg_open_only_to_authorized_ports_check
+# 
+# Description:
+#   This control checks whether security groups that allow unrestricted incoming traffic ('0.0.0.0/0' or '::/0'), only allow inbound TCP or UDP connections on authorized ports.
+# 
+# Reports on:
+#   AWS::EC2::SecurityGroup, AWS::EC2::SecurityGroupIngress
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon EC2 security group or EC2 security group ingress resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 security group resource or EC2 security group ingress resource
+#       And: The EC2 security group or EC2 security group ingress resource has no rules allowing inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 security group resource or EC2 security group ingress resource
+#       And: The EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#       And: The EC2 security group or EC2 security group ingress resource has a rule that allows all traffic
+#            ('IpProtocol' is set to '-1' or another protocol number)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 security group resource or EC2 security group ingress resource
+#       And: The EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#       And: The EC2 security group or EC2 security group ingress resource has no rules that allow all traffic
+#            ('IpProtocol' is not set to '-1' or another protocol number)
+#       And: Ports allowed are not in the list of allowed ports
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 security group resource or EC2 security group ingress resource
+#       And: The EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
+#            from source '0.0.0.0/0' or '::/0'
+#       And: The EC2 security group or EC2 security group ingress resource has no rules that allow all traffic
+#            ('IpProtocol' is not set to '-1' or another protocol number)
+#       And: Ports allowed are in the list of allowed ports
+#      Then: PASS
+
+#
+# Constants
+#
+let SECURITY_GROUP_TYPE = "AWS::EC2::SecurityGroup"
+let SECURITY_GROUP_INGRESS_TYPE = "AWS::EC2::SecurityGroupIngress"
+let ALLOWED_PORTS = [80, 443]
+let AUTHORIZED_PROTOCOLS = ["tcp", "udp", "icmp", "icmpv6"]
+let UNRESTRICTED_IPV4_RANGES = ["0.0.0.0/0"]
+let UNRESTRICTED_IPV6_RANGES = ["::/0"]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ec2_security_groups = Resources[
+    Type == %SECURITY_GROUP_TYPE
+]
+let ec2_security_group_ingress_rules = Resources[
+    Type == %SECURITY_GROUP_INGRESS_TYPE
+]
+
+#
+# Primary Rules
+#
+rule vpc_sg_open_only_to_authorized_ports_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                     %ec2_security_groups not empty {
+
+    check_security_group(%ec2_security_groups.Properties)
+        <<
+        [CT.EC2.PR.3]: Require an Amazon EC2 security group to allow incoming traffic on authorized ports only
+            [FIX]: Ensure that security groups with ingress rules that allow TCP or UDP traffic from '0.0.0.0/0' or ' only allow traffic from ports 80 or 443.
+        >>
+}
+
+rule vpc_sg_open_only_to_authorized_ports_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                     %ec2_security_group_ingress_rules not empty {
+
+    check_ingress_rule(%ec2_security_group_ingress_rules.Properties)
+        <<
+        [CT.EC2.PR.3]: Require an Amazon EC2 security group to allow incoming traffic on authorized ports only
+            [FIX]: Ensure that security groups with ingress rules that allow TCP or UDP traffic from '0.0.0.0/0' or ' only allow traffic from ports 80 or 443.
+        >>
+}
+
+rule vpc_sg_open_only_to_authorized_ports_check when is_cfn_hook(%INPUT_DOCUMENT, %SECURITY_GROUP_TYPE) {
+
+    check_security_group(%INPUT_DOCUMENT.%SECURITY_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.3]: Require an Amazon EC2 security group to allow incoming traffic on authorized ports only
+            [FIX]: Ensure that security groups with ingress rules that allow TCP or UDP traffic from '0.0.0.0/0' or ' only allow traffic from ports 80 or 443.
+        >>
+}
+
+rule vpc_sg_open_only_to_authorized_ports_check when is_cfn_hook(%INPUT_DOCUMENT, %SECURITY_GROUP_INGRESS_TYPE) {
+
+    check_ingress_rule(%INPUT_DOCUMENT.%SECURITY_GROUP_INGRESS_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.3]: Require an Amazon EC2 security group to allow incoming traffic on authorized ports only
+            [FIX]: Ensure that security groups with ingress rules that allow TCP or UDP traffic from '0.0.0.0/0' or ' only allow traffic from ports 80 or 443.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_security_group(security_group) {
+    %security_group [
+        SecurityGroupIngress exists
+        SecurityGroupIngress is_list
+        SecurityGroupIngress not empty
+    ] {
+        SecurityGroupIngress[*] {
+            check_ingress_rule(this)
+        }
+    }
+}
+
+rule check_ingress_rule(ingress_rule) {
+    %ingress_rule[ CidrIp in %UNRESTRICTED_IPV4_RANGES or
+                   CidrIpv6 in %UNRESTRICTED_IPV6_RANGES ] {
+        # Scenario 3
+        IpProtocol exists
+        IpProtocol in %AUTHORIZED_PROTOCOLS
+
+        when IpProtocol in ["tcp", "udp"] {
+            FromPort exists
+            ToPort exists
+            # Scenarios 4 and 5
+            check_ports(FromPort, ToPort)
+        }
+    }
+}
+
+rule check_ports(from_port, to_port) {
+    %from_port in %ALLOWED_PORTS
+    %to_port in %ALLOWED_PORTS
+    %from_port in %to_port
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

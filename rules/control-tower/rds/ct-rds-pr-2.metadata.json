@@ -1,0 +1,90 @@
+{
+    "Artifacts": [
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.2/artifacts/deployment/CT.RDS.PR.2.guard",
+            "Purpose": "DEPLOYMENT",
+            "Type": "CLOUDFORMATION_GUARD_RULE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.2/artifacts/tests/bug-bash/templates/scenario-4-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.2/artifacts/tests/bug-bash/templates/scenario-7b-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.2/artifacts/tests/CT.RDS.PR.2_cfn_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.2/artifacts/tests/CT.RDS.PR.2_hook_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.2/artifacts/tests/CT.RDS.PR.2_common_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        }
+    ],
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-7",
+                "SI-2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether enhanced monitoring is activated for Amazon RDS instances.",
+    "DisplayName": "Require an Amazon RDS database instance or cluster to have enhanced monitoring configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Monitoring OS metrics with Enhanced Monitoring",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Monitoring.OS.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBInstance"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.RDS.6",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'MonitoringInterval' to a supported value (1, 5, 10, 15, 30, 60), and set 'MonitoringRoleArn' to the ARN of an AWS IAM role.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -1,0 +1,127 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_pg_event_notifications_configured_check
+# 
+# Description:
+#   This control checks whether your Amazon RDS event subscriptions for RDS parameter groups are configured to notify on event categories of 'configuration change.'
+# 
+# Reports on:
+#   AWS::RDS::EventSubscription
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon RDS event subscription resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon RDS event subscription resource
+#       And: 'SourceType' is provided and is not 'db-parameter-group'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon RDS event subscription resource
+#       And: 'SourceType' is 'db-parameter-group'
+#       And: 'Enabled' is not provided or set to bool(false)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon RDS event subscription resource
+#       And: 'SourceType' is provided and is 'db-parameter-group'
+#       And: 'Enabled' is provided and set to bool(true)
+#       And: 'EventCategories' does not contain 'configuration change'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon RDS event subscription resource
+#       And: 'SourceType' is provided and is 'db-parameter-group'
+#       And: 'Enabled' is provided and set to bool(true)
+#       And: 'EventCategories' does not exist or is an empty list
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon RDS event subscription resource
+#       And: 'SourceType' is provided and is 'db-parameter-group'
+#       And: 'Enabled' is provided and set to bool(true)
+#       And: 'EventCategories' contains 'configuration change'
+#      Then: PASS
+
+#
+# Constants
+#
+let RDS_EVENTSUBSCRIPTION_TYPE = "AWS::RDS::EventSubscription"
+let INPUT_DOCUMENT = this
+let EVENT_CATEGORIES = ["configuration change"]
+let EVENT_SOURCE_TYPE = "db-parameter-group"
+
+#
+# Assignments
+#
+let rds_event_subscriptions = Resources.*[ Type == %RDS_EVENTSUBSCRIPTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_pg_event_notifications_configured_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                      %rds_event_subscriptions not empty  {
+    check(%rds_event_subscriptions.Properties)
+        <<
+        [CT.RDS.PR.18]: Require an Amazon RDS event notification subscription to have critical database parameter group events configured
+            [FIX]: When 'SourceType' is set to 'db-parameter-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'configuration change' as a value.
+        >>
+}
+
+rule rds_pg_event_notifications_configured_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_EVENTSUBSCRIPTION_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_EVENTSUBSCRIPTION_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.18]: Require an Amazon RDS event notification subscription to have critical database parameter group events configured
+            [FIX]: When 'SourceType' is set to 'db-parameter-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'configuration change' as a value.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(resource) {
+    %resource [ SourceType == %EVENT_SOURCE_TYPE ] {
+        Enabled exists
+        # Scenario 4
+        Enabled == true
+        # Scenario 5
+        EventCategories not exists or
+        # Scenario 6
+        check_event_categories_for_required_events(EventCategories)
+    }
+}
+
+rule check_event_categories_for_required_events(event_categories) {
+    %event_categories {
+        this exists
+        this is_list
+        this empty or
+        %EVENT_CATEGORIES.* in this
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

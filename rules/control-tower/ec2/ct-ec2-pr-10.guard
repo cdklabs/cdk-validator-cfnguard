@@ -1,0 +1,109 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_launch_template_monitoring_enabled_check
+# 
+# Description:
+#   This control checks whether the Amazon EC2 launch template has detailed monitoring enabled.
+# 
+# Reports on:
+#   AWS::EC2::LaunchTemplate
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any EC2 launch template resources
+#       Then: SKIP
+#   Scenario: 2
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an EC2 launch template resource
+#        And: 'LaunchTemplateData.Monitoring.Enabled' has not been provided or has been provided and is empty.
+#       Then: FAIL
+#   Scenario: 3
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an EC2 launch template resource
+#        And: 'LaunchTemplateData.Monitoring.Enabled' has been provided
+#        And: 'LaunchTemplateData.Monitoring.Enabled' is equal to a value other than bool(true)
+#       Then: FAIL
+#   Scenario: 4
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an EC2 launch template resource
+#        And: 'LaunchTemplateData.Monitoring.Enabled' has been provided
+#        And: 'LaunchTemplateData.Monitoring.Enabled' is equal to bool(true)
+#       Then: PASS
+
+#
+# Constants
+#
+let EC2_LAUNCH_TEMPLATE_TYPE = "AWS::EC2::LaunchTemplate"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ec2_launch_templates = Resources.*[ Type == %EC2_LAUNCH_TEMPLATE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_launch_template_monitoring_enabled_check when is_cfn_template(this)
+                                                       %ec2_launch_templates not empty {
+    check(%ec2_launch_templates.Properties)
+        <<
+        [CT.EC2.PR.10]: Require Amazon EC2 launch templates to have Amazon CloudWatch detailed monitoring activated
+            [FIX]: In 'LaunchTemplateData', provide a 'Monitoring' configuration with 'Enabled' set to 'true'.
+        >>
+}
+
+rule ec2_launch_template_monitoring_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_LAUNCH_TEMPLATE_TYPE) {
+    check(%INPUT_DOCUMENT.%EC2_LAUNCH_TEMPLATE_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.10]: Require Amazon EC2 launch templates to have Amazon CloudWatch detailed monitoring activated
+            [FIX]: In 'LaunchTemplateData', provide a 'Monitoring' configuration with 'Enabled' set to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ec2_launch_template) {
+    %ec2_launch_template {
+        # Scenario 2
+        LaunchTemplateData exists
+        LaunchTemplateData is_struct
+
+        LaunchTemplateData {
+            Monitoring exists
+            Monitoring is_struct
+
+            # Scenario 3 and 4
+            Monitoring {
+                Enabled exists
+                Enabled == true
+            }
+
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

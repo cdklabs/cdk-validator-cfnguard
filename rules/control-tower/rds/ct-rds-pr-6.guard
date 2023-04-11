@@ -1,0 +1,142 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   aurora_cluster_backtracking_enabled_check
+# 
+# Description:
+#   This control checks whether an Amazon Relational Database Service (RDS) database (DB) cluster has backtracking enabled.
+# 
+# Reports on:
+#   AWS::RDS::DBCluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#    Scenario: 1
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any RDS DB cluster resources
+#       Then: SKIP
+#    Scenario: 2
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'Engine' provided is not one of 'aurora' or 'aurora-mysql'
+#       Then: SKIP
+#    Scenario: 3
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'Engine' provided is one of 'aurora' or 'aurora-mysql'
+#        And: 'EngineMode' provided is not one of 'provisioned' or 'parallelquery'
+#       Then: SKIP
+#    Scenario: 4
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'ServerlessV2ScalingConfiguration' is provided
+#        And: 'Engine' provided is 'aurora-mysql'
+#        And: 'EngineVersion' provided is '8.0.mysql_aurora.3.02.0' or higher
+#       Then: SKIP
+#    Scenario: 5
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'Engine' provided is one of 'aurora' or 'aurora-mysql'
+#        And: 'EngineMode' is not provided or 'EngineMode' provided is one of 'provisioned' or 'parallelquery'
+#        And: 'BacktrackWindow' has not been provided
+#       Then: FAIL
+#    Scenario: 6
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'Engine' provided is one of 'aurora' or 'aurora-mysql'
+#        And: 'EngineMode' is not provided or 'EngineMode' provided is one of 'provisioned' or 'parallelquery'
+#        And: 'BacktrackWindow' has been provided and is set to 0
+#       Then: FAIL
+#    Scenario: 7
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB cluster resource
+#        And: 'Engine' provided is one of 'aurora' or 'aurora-mysql'
+#        And: 'EngineMode' is not provided or 'EngineMode' provided is one of 'provisioned' or 'parallelquery'
+#        And: 'BacktrackWindow' has been provided and is set to a value > 0
+#       Then: PASS
+
+#
+# Constants
+#
+let RDS_DB_CLUSTER_TYPE = "AWS::RDS::DBCluster"
+let SUPPORTED_DB_CLUSTER_ENGINES = ["aurora", "aurora-mysql"]
+let SUPPORTED_DB_CLUSTER_ENGINE_MODES = ["provisioned", "parallelquery"]
+let AURORA_SERVERLESS_V2_SUPPORTED_ENGINE = ["aurora-mysql"]
+let AURORA_V3_SERVERLESS_V2_NOT_SUPPORTED_PATTERN = /^8\.0\.mysql_aurora\.3\.01\./
+let AURORA_V3_SERVERLESS_V2_SUPPORTED_PATTERN = /^8\.0\.mysql_aurora\.3/
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let db_clusters = Resources.*[ Type == %RDS_DB_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule aurora_cluster_backtracking_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                    %db_clusters not empty {
+    check(%db_clusters.Properties)
+        <<
+        [CT.RDS.PR.6]: Require an Amazon RDS database cluster to have backtracking configured
+            [FIX]: Set 'BacktrackWindow' to a number between '1' and '259200'.
+        >>
+}
+
+rule aurora_cluster_backtracking_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_DB_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.6]: Require an Amazon RDS database cluster to have backtracking configured
+            [FIX]: Set 'BacktrackWindow' to a number between '1' and '259200'.
+        >>
+}
+
+rule check(db_cluster) {
+    %db_cluster [
+        filter_engine_enginemode_and_serverless_v2(this)
+    ] {
+        # Scenario 5
+        BacktrackWindow exists
+        # Scenario 6 and 7
+        BacktrackWindow > 0
+    }
+}
+
+rule filter_engine_enginemode_and_serverless_v2(db_cluster) {
+    # Scenario 2 and 3
+    %db_cluster {
+        Engine exists
+        Engine in %SUPPORTED_DB_CLUSTER_ENGINES
+        EngineMode not exists or
+        EngineMode in %SUPPORTED_DB_CLUSTER_ENGINE_MODES
+    }
+    #Scenario 4
+    %db_cluster [
+        ServerlessV2ScalingConfiguration exists
+        Engine in %AURORA_SERVERLESS_V2_SUPPORTED_ENGINE
+    ] {
+        EngineVersion in %AURORA_V3_SERVERLESS_V2_NOT_SUPPORTED_PATTERN or
+        EngineVersion not in %AURORA_V3_SERVERLESS_V2_SUPPORTED_PATTERN
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,201 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_instance_logging_enabled_check
+# 
+# Description:
+#   This rules checks whether Amazon Relational Database Service (RDS) instances have all available log types configured for export to Amazon CloudWatch Logs.
+# 
+# Reports on:
+#   AWS::RDS::DBInstance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any RDS DB instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is not one of 'mariadb', 'mysql',
+#            'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#            'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'mariadb', 'mysql',
+#            'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#            'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'EnableCloudwatchLogsExports' has not been specified or has been specified
+#             and is an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'mariadb', 'mysql',
+#            'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#            'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'EnableCloudwatchLogsExports' has been specified and is a non-empty list
+#       And: One or more log types in 'EnableCloudwatchLogsExports' are not supported by the specified 'Engine'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'mariadb', 'mysql',
+#            'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#            'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'EnableCloudwatchLogsExports' has been specified and is a non-empty list
+#       And: 'EnableCloudwatchLogsExports' does not contain all log types supported by the specified 'Engine'
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine'  is one of 'mariadb', 'mysql'
+#       And: 'EnableCloudwatchLogsExports' has been specified
+#       And: 'EnableCloudwatchLogsExports' value is a non-empty and all supported log types
+#             are enabled - 'audit', 'error', 'general', 'slowquery'
+#      Then: PASS
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is 'postgres'
+#       And: 'EnableCloudwatchLogsExports' has been specified
+#       And: 'EnableCloudwatchLogsExports' value is a non-empty and all supported log types
+#             are enabled - 'postgresql', 'upgrade'
+#      Then: PASS
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex',
+#            'sqlserver-web'
+#       And: 'EnableCloudwatchLogsExports' has been specified
+#       And: 'EnableCloudwatchLogsExports' value is a non-empty and all supported log types
+#             are enabled - 'agent', 'error'
+#      Then: PASS
+#   Scenario: 9
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'oracle-ee', 'oracle-se2', 'oracle-ee-cdb', 'oracle-se2-cdb',
+#       And: 'EnableCloudwatchLogsExports' has been specified
+#       And: 'EnableCloudwatchLogsExports' value is a non-empty and all supported log types
+#             are enabled - 'alert', 'audit', 'listener', 'oemagent', 'trace'
+#      Then: PASS
+
+#
+# Constants
+#
+let RDS_DB_INSTANCE_TYPE = "AWS::RDS::DBInstance"
+let INPUT_DOCUMENT = this
+let SUPPORTED_RDS_INSTANCE_ENGINES = [
+    "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2",
+    "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se",
+    "sqlserver-ex", "sqlserver-web"
+]
+
+let MYSQL_OR_MARIA_ENGINES_SUBTYPES = [ "mariadb", "mysql" ]
+let POSTGRES_ENGINES_SUBTYPES = [ "postgres" ]
+let SQLSERVER_ENGINES_SUBTYPES = [ "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web" ]
+let ORACLE_ENGINES_SUBTYPES = [ "oracle-ee", "oracle-se2", "oracle-se1", "oracle-se" ]
+
+let MYSQL_OR_MARIA_SUPPORTED_LOG_TYPES = [ "audit", "error", "general", "slowquery" ]
+let POSTGRES_SUPPORTED_LOG_TYPES = [ "postgresql", "upgrade" ]
+let SQLSERVER_SUPPORTED_LOG_TYPES = [ "agent", "error" ]
+let ORACLE_SUPPORTED_LOG_TYPES = [ "alert", "audit", "listener", "oemagent", "trace" ]
+
+#
+# Assignments
+#
+let rds_db_instances = Resources.*[ Type == %RDS_DB_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_instance_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %rds_db_instances not empty {
+    check(%rds_db_instances.Properties)
+        <<
+        [CT.RDS.PR.14]: Require an Amazon RDS database instance to have logging configured
+            [FIX]: Specify 'EnableCloudwatchLogsExports' with a list of all supported log types for the Amazon RDS database instance engine.
+        >>
+}
+
+rule rds_instance_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.14]: Require an Amazon RDS database instance to have logging configured
+            [FIX]: Specify 'EnableCloudwatchLogsExports' with a list of all supported log types for the Amazon RDS database instance engine.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(rds_db_instance) {
+    %rds_db_instance [filter_engine(this)] {
+        # Scenario: 3
+        EnableCloudwatchLogsExports exists
+        check_is_list_and_not_empty(EnableCloudwatchLogsExports)
+
+        # Scenario: 4 and 5
+        when Engine IN %MYSQL_OR_MARIA_ENGINES_SUBTYPES {
+            %MYSQL_OR_MARIA_SUPPORTED_LOG_TYPES.* IN EnableCloudwatchLogsExports[*]
+            EnableCloudwatchLogsExports.* IN %MYSQL_OR_MARIA_SUPPORTED_LOG_TYPES[*]
+        }
+
+        # Scenario: 4 and 6
+        when Engine IN %POSTGRES_ENGINES_SUBTYPES {
+            %POSTGRES_SUPPORTED_LOG_TYPES.* IN EnableCloudwatchLogsExports[*]
+            EnableCloudwatchLogsExports.* IN %POSTGRES_SUPPORTED_LOG_TYPES[*]
+        }
+
+        # Scenario: 4 and 7
+        when Engine IN %SQLSERVER_ENGINES_SUBTYPES {
+            %SQLSERVER_SUPPORTED_LOG_TYPES.* in EnableCloudwatchLogsExports[*]
+            EnableCloudwatchLogsExports.* IN %SQLSERVER_SUPPORTED_LOG_TYPES[*]
+        }
+
+        # Scenario: 4 and 8
+        when Engine IN %ORACLE_ENGINES_SUBTYPES {
+            %ORACLE_SUPPORTED_LOG_TYPES.* in EnableCloudwatchLogsExports[*]
+            EnableCloudwatchLogsExports.* IN %ORACLE_SUPPORTED_LOG_TYPES[*]
+        }
+    }
+}
+
+rule filter_engine(db_properties) {
+    %db_properties {
+        # Scenario: 2
+        Engine exists
+        Engine in %SUPPORTED_RDS_INSTANCE_ENGINES
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_list_and_not_empty(value) {
+    %value {
+        this is_list
+        this not empty
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

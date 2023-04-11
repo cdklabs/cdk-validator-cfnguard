@@ -1,0 +1,75 @@
+{
+    "Artifacts": [
+        {
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.10/artifacts/deployment/CT.EC2.PR.10.guard",
+            "Purpose": "DEPLOYMENT",
+            "Type": "CLOUDFORMATION_GUARD_RULE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.10/artifacts/tests/bug-bash/templates/scenario-3a-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.10/artifacts/tests/bug-bash/templates/scenario-4-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.10/artifacts/tests/CT.EC2.PR.10_hook_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.10/artifacts/tests/CT.EC2.PR.10_cfn_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AmazonEC2/cfn-guard-rules/CT.EC2.PR.10/artifacts/tests/CT.EC2.PR.10_common_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        }
+    ],
+    "Behavior": "PROACTIVE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether the Amazon EC2 launch template has detailed monitoring enabled.",
+    "DisplayName": "Require Amazon EC2 launch templates to have Amazon CloudWatch detailed monitoring activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Configure monitoring for Auto Scaling instances",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/enable-as-instance-metrics.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::LaunchTemplate"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.10",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "In 'LaunchTemplateData', provide a 'Monitoring' configuration with 'Enabled' set to 'true'.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}
