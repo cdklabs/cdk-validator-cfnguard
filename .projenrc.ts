@@ -8,6 +8,7 @@ const project = new CdklabsJsiiProject({
   author: 'AWS',
   authorAddress: 'aws-cdk-dev@amazon.com',
   defaultReleaseBranch: 'main',
+  minNodeVersion: '16.13.0',
   cdklabsPublishingDefaults: false,
   devDeps: [
     'cdklabs-projen-project-types',
@@ -87,6 +88,25 @@ new TextFile(project, 'rosetta/default.ts-fixture', {
     '    /// here',
     '  }',
     '}',
+  ],
+  marker: false,
+});
+
+new TextFile(project, '.github/CODEOWNERS', {
+  lines: [
+    '# global owners',
+    '# These owners will be the default owners for everything in',
+    '# the repo. Unless a later match takes precedence',
+    '# @cdklabs/aws-cdk-team will be requested for',
+    '# review when someone opens a pull request.',
+    '* @cdklabs/aws-cdk-team',
+    '',
+    '# CT team owns the policies',
+    '/rules/ @cdklabs/cdk-validator-cfnguard',
+    '',
+    '# allow bot to approve dependency updates',
+    'package.json @cdklabs/aws-cdk-team cdklabs-automation',
+    'yarn.lock @cdklabs/aws-cdk-team cdklabs-automation',
   ],
   marker: false,
 });
