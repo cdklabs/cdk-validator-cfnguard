@@ -105,8 +105,8 @@ new TextFile(project, '.github/CODEOWNERS', {
     '/rules/ @cdklabs/cdk-validator-cfnguard',
     '',
     '# allow bot to approve dependency updates',
-    'package.json @cdklabs/aws-cdk-team cdklabs-automation',
-    'yarn.lock @cdklabs/aws-cdk-team cdklabs-automation',
+    'package.json @cdklabs/aws-cdk-team @cdklabs-automation',
+    'yarn.lock @cdklabs/aws-cdk-team @cdklabs-automation',
   ],
   marker: false,
 });
