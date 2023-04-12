@@ -1,0 +1,96 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   wafv2_webacl_not_empty_check
+# 
+# Description:
+#   This control checks whether an AWS WAFv2 web ACL contains any WAF rules or WAF rule groups.
+# 
+# Reports on:
+#   AWS::WAFv2::WebACL
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any WAFv2 web ACL resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an WAFv2 web ACL resource
+#       And: 'Rules' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an WAFv2 web ACL resource
+#       And: 'Rules' has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an WAFv2 web ACL resource
+#       And: 'Rules' has been provided as a non-empty list
+#      Then: PASS
+
+#
+# Constants
+#
+let WAFV2_WEB_ACL_TYPE = "AWS::WAFv2::WebACL"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let wafv2_web_acls = Resources.*[ Type == %WAFV2_WEB_ACL_TYPE ]
+
+#
+# Primary Rules
+#
+rule wafv2_webacl_not_empty_check when is_cfn_template(%INPUT_DOCUMENT)
+                                       %wafv2_web_acls not empty {
+    check(%wafv2_web_acls.Properties)
+        <<
+        [CT.WAFV2.PR.1]: Require an AWS WAFV2 web ACL to be non-empty
+            [FIX]: Provide one or more AWS WAFv2 rules within the 'Rules' property.
+        >>
+}
+
+rule wafv2_webacl_not_empty_check when is_cfn_hook(%INPUT_DOCUMENT, %WAFV2_WEB_ACL_TYPE) {
+    check(%INPUT_DOCUMENT.%WAFV2_WEB_ACL_TYPE.resourceProperties)
+        <<
+        [CT.WAFV2.PR.1]: Require an AWS WAFV2 web ACL to be non-empty
+            [FIX]: Provide one or more AWS WAFv2 rules within the 'Rules' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(wafv2_web_acl) {
+    %wafv2_web_acl {
+        # Scenario 2, 3 and 4
+        Rules exists
+        Rules is_list
+        Rules not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

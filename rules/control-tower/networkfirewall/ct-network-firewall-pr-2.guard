@@ -1,0 +1,116 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   netfw_policy_default_action_full_packets_check
+# 
+# Description:
+#   This control checks whether an AWS Network Firewall firewall policy is configured with a user-defined stateless default action for full packets.
+# 
+# Reports on:
+#   AWS::NetworkFirewall::FirewallPolicy
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any NetworkFirewall firewall policy resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: 'StatelessDefaultActions' has not been provided in 'FirewallPolicy'
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: 'StatelessDefaultActions' has been provided in 'FirewallPolicy' as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: 'StatelessDefaultActions' has been provided in 'FirewallPolicy' as a list that does not contain
+#             one of 'aws:drop' or 'aws:forward_to_sfe'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: 'StatelessDefaultActions' has been provided in 'FirewallPolicy' as a list that contains either
+#            'aws:drop' or 'aws:forward_to_sfe'
+#      Then: PASS
+
+
+#
+# Constants
+#
+let NETFW_FIREWALL_POLICY_TYPE = "AWS::NetworkFirewall::FirewallPolicy"
+let INPUT_DOCUMENT = this
+let ALLOWED_STATELESS_ACTIONS_LIST = [ "aws:drop", "aws:forward_to_sfe" ]
+
+#
+# Assignments
+#
+let netfw_firewall_policies = Resources.*[ Type == %NETFW_FIREWALL_POLICY_TYPE ]
+
+#
+# Primary Rules
+#
+rule netfw_policy_default_action_full_packets_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                             %netfw_firewall_policies not empty {
+    check(%netfw_firewall_policies.Properties)
+        <<
+        [CT.NETWORK-FIREWALL.PR.2]: Require any AWS Network Firewall firewall policy to drop or forward stateless full packets by default when they do not match a rule
+            [FIX]: Within 'FirewallPolicy', include one of 'aws:drop' or 'aws:forward_to_sfe' in 'StatelessDefaultActions'.
+        >>
+}
+
+rule netfw_policy_default_action_full_packets_check when is_cfn_hook(%INPUT_DOCUMENT, %NETFW_FIREWALL_POLICY_TYPE) {
+    check(%INPUT_DOCUMENT.%NETFW_FIREWALL_POLICY_TYPE.resourceProperties)
+        <<
+        [CT.NETWORK-FIREWALL.PR.2]: Require any AWS Network Firewall firewall policy to drop or forward stateless full packets by default when they do not match a rule
+            [FIX]: Within 'FirewallPolicy', include one of 'aws:drop' or 'aws:forward_to_sfe' in 'StatelessDefaultActions'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(netfw_firewall_policy) {
+    %netfw_firewall_policy {
+        # Scenario 2
+        FirewallPolicy exists
+        FirewallPolicy is_struct
+
+        FirewallPolicy {
+            StatelessDefaultActions exists
+            # Scenario 3
+            StatelessDefaultActions is_list
+            StatelessDefaultActions not empty
+
+            # Scenario 4 and 5
+            some StatelessDefaultActions[*] {
+                this in %ALLOWED_STATELESS_ACTIONS_LIST
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

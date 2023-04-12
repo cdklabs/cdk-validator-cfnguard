@@ -1,0 +1,115 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elbv2_deletion_protection_enabled_check
+# 
+# Description:
+#   Checks whether an Elastic Load Balancer (ELB) has deletion protection activated.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancingV2::LoadBalancer
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ELBv2 LoadBalancer resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 LoadBalancer resource
+#       And: 'LoadBalancerAttributes' have not been specified or is an empty list on the ELBv2 resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 LoadBalancer resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 LoadBalancer resource
+#       And: 'deletion_protection.enabled' has not been provided as a 'LoadBalancerAttribute'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 LoadBalancer resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 LoadBalancer resource
+#       And: The 'LoadBalancerAttribute' 'deletion_protection.enabled' has been provided and is set to bool(false) or
+#            string(false)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 LoadBalancer Resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 LoadBalancer resource
+#       And: The 'LoadBalancerAttribute' 'deletion_protection.enabled' has been provided and is set to bool(true) or
+#            string(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_V2_TYPE = "AWS::ElasticLoadBalancingV2::LoadBalancer"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elastic_load_balancers = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_V2_TYPE ]
+
+#
+# Primary Rules
+#
+rule elbv2_deletion_protection_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                  %elastic_load_balancers not empty {
+    check(%elastic_load_balancers.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.5]: Require that application load balancer deletion protection is activated
+            [FIX]: Set the load balancer attribute 'deletion_protection.enabled' to 'true'.
+        >>
+}
+
+rule elbv2_deletion_protection_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_V2_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.5]: Require that application load balancer deletion protection is activated
+            [FIX]: Set the load balancer attribute 'deletion_protection.enabled' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elastic_load_balancer) {
+    %elastic_load_balancer {
+        # Scenario 2
+        LoadBalancerAttributes exists
+        LoadBalancerAttributes is_list
+        LoadBalancerAttributes not empty
+
+        # Scenario 3, 4 and 5
+        some LoadBalancerAttributes[*] {
+            Key exists
+            Value exists
+
+            Key == "deletion_protection.enabled"
+            Value in [ true, "true" ]
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

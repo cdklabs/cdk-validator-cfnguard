@@ -1,0 +1,131 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   redshift_cluster_audit_logging_enabled_check
+# 
+# Description:
+#   This control checks whether an Amazon Redshift cluster has audit logging activated.
+# 
+# Reports on:
+#   AWS::Redshift::Cluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Redshift cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Redshift cluster resource
+#       And: 'LoggingProperties' has not been specified
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Redshift cluster resource
+#       And: 'LoggingProperties' has been specified
+#       And: 'BucketName' on 'LoggingProperties' has been specified and is an empty string or invalid local reference
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Redshift cluster resource
+#       And: 'LoggingProperties' has been specified
+#       And: 'BucketName' on 'LoggingProperties' has been specified and is a non-empty string or valid local reference
+#      Then: PASS
+
+#
+# Constants
+#
+let REDSHIFT_CLUSTER_TYPE = "AWS::Redshift::Cluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let redshift_clusters = Resources.*[ Type == %REDSHIFT_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule redshift_cluster_audit_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                       %redshift_clusters not empty  {
+    check(%redshift_clusters.Properties)
+        <<
+        [CT.REDSHIFT.PR.3]: Require an Amazon Redshift cluster to have audit logging configured
+            [FIX]: Provide a 'LoggingProperties' configuration and set 'BucketName' to the name of an Amazon S3 bucket configured to receive Amazon Redshift audit logs.
+        >>
+}
+
+rule redshift_cluster_audit_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %REDSHIFT_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%REDSHIFT_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.REDSHIFT.PR.3]: Require an Amazon Redshift cluster to have audit logging configured
+            [FIX]: Provide a 'LoggingProperties' configuration and set 'BucketName' to the name of an Amazon S3 bucket configured to receive Amazon Redshift audit logs.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(redshift_cluster) {
+    %redshift_cluster {
+        # Scenario 2
+        LoggingProperties exists
+        LoggingProperties is_struct
+
+        LoggingProperties {
+            # Scenario 3 and 4
+            BucketName exists
+            check_is_string_and_not_empty(BucketName) or
+            check_local_references(%INPUT_DOCUMENT, BucketName, "AWS::S3::Bucket")
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

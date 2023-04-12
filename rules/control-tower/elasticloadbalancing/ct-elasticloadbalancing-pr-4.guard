@@ -1,0 +1,126 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   alb_http_drop_invalid_header_enabled_check
+# 
+# Description:
+#   This control checks whether application load balancers are configured to drop non-valid HTTP headers.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancingV2::LoadBalancer
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ELBv2 load balancer resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to a value other than 'application'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to 'application' for the ELBv2 load balancer resource
+#       And: 'LoadBalancerAttributes' have not been specified on the ELBv2 load balancer resource
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to 'application' for the ELBv2 load balancer resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 load balancer resource
+#       And: 'routing.http.drop_invalid_header_fields.enabled' has not been provided as a 'LoadBalancerAttribute'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to 'application' for the ELBv2 load balancer resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 load balancer resource
+#       And: The 'LoadBalancerAttribute' 'routing.http.drop_invalid_header_fields.enabled' has been provided
+#            and is set to bool(false) or string(false)
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to 'application' for the ELBv2 load balancer resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 load balancer resource
+#       And: The 'LoadBalancerAttribute' 'routing.http.drop_invalid_header_fields.enabled' has been provided and
+#            is set to bool(true) or string(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_V2_TYPE = "AWS::ElasticLoadBalancingV2::LoadBalancer"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elastic_load_balancers = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_V2_TYPE ]
+
+#
+# Primary Rules
+#
+rule alb_http_drop_invalid_header_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                     %elastic_load_balancers not empty {
+
+    check(%elastic_load_balancers.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.4]: Require that any application load balancer must be configured to drop HTTP headers
+            [FIX]: Set the load balancer attribute 'routing.http.drop_invalid_header_fields.enabled' to 'true'.
+        >>
+}
+
+rule alb_http_drop_invalid_header_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_V2_TYPE) {
+
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.4]: Require that any application load balancer must be configured to drop HTTP headers
+            [FIX]: Set the load balancer attribute 'routing.http.drop_invalid_header_fields.enabled' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elastic_load_balancer) {
+    %elastic_load_balancer[ Type == "application" ] {
+        # Scenario 2
+        LoadBalancerAttributes exists
+        LoadBalancerAttributes is_list
+        LoadBalancerAttributes not empty
+
+        # Scenario 3, 4 and 5
+        some LoadBalancerAttributes[*] {
+            Key exists
+            Value exists
+
+            Key == "routing.http.drop_invalid_header_fields.enabled"
+            Value in [ true, "true" ]
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

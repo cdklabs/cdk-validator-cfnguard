@@ -1,0 +1,249 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elastic_beanstalk_enhanced_health_reporting_enabled_check
+# 
+# Description:
+#   This control checks whether AWS Elastic Beanstalk environments and configuration templates are configured for 'enhanced' health reporting.
+# 
+# Reports on:
+#   AWS::ElasticBeanstalk::Environment, AWS::ElasticBeanstalk::ConfigurationTemplate
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElasticBeanstalk environment resources or
+#            ElasticBeanstalk configuration template resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticBeanstalk environment resource
+#       And: 'OptionSettings' is not present in the resource properties or is an empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticBeanstalk environment resource
+#       And: 'OptionSettings' is present in the resource properties as a non-empty list
+#       And: No entry in the 'OptionSettings' list has both a 'Namespace' property with a value of
+#            'aws:elasticbeanstalk:healthreporting:system'
+#            and an 'OptionName' property with value of 'SystemType'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticBeanstalk environment resource or an ElasticBeanstalk
+#            configuration template resource
+#       And: 'OptionSettings' is present in the resource properties as a non-empty list
+#       And: An entry in the 'OptionSettings' list has a 'Namespace' property with a value of
+#            'aws:elasticbeanstalk:healthreporting:system'
+#       And: That same entry has an 'OptionName' property with a value of 'SystemType'
+#       And: That same entry has a 'Value' property with a value of anything other than 'enhanced', or the 'Value'
+#            property is not provided.
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticBeanstalk configuration template resource
+#       And: 'OptionSettings' is not present in the resource properties or is an empty list
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticBeanstalk configuration template resource
+#       And: 'OptionSettings' is present in the resource properties as a non-empty list
+#       And: No entry in the 'OptionSettings' list has both a 'Namespace' property with a value of
+#            'aws:elasticbeanstalk:healthreporting:system'
+#            and an 'OptionName' property with value of 'SystemType'
+#      Then: PASS
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticBeanstalk environment resource or an ElasticBeanstalk
+#            configuration template resource
+#       And: 'OptionSettings' is present in the resource properties as a non-empty list
+#       And: Every entry in the 'OptionSettings' list that has both a 'Namespace' property with a value of
+#            'aws:elasticbeanstalk:healthreporting:system'
+#            and an 'OptionName' property with a value of 'SystemType' also has a 'Value' property with a value of
+#            'enhanced'
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_BEANSTALK_ENVIRONMENT_TYPE = "AWS::ElasticBeanstalk::Environment"
+let ELASTIC_BEANSTALK_CONFIGURATION_TEMPLATE_TYPE = "AWS::ElasticBeanstalk::ConfigurationTemplate"
+let ELASTIC_BEANSTALK_ENHANCED_HEALTH_REPORTING_NAMESPACE = "aws:elasticbeanstalk:healthreporting:system"
+let ELASTIC_BEANSTALK_SYSTEM_TYPE_OPTION_NAME = "SystemType"
+let ELASTIC_BEANSTALK_ENHANCED_VALUE = "enhanced"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elastic_beanstalk_environments = Resources.*[ Type == %ELASTIC_BEANSTALK_ENVIRONMENT_TYPE ]
+let elastic_beanstalk_configuration_templates = Resources.*[ Type == %ELASTIC_BEANSTALK_CONFIGURATION_TEMPLATE_TYPE ]
+
+#
+# Primary Rules
+#
+rule elastic_beanstalk_enhanced_health_reporting_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                                    %elastic_beanstalk_environments not empty {
+    check_elastic_beanstalk_environments(%elastic_beanstalk_environments.Properties)
+        <<
+        [CT.ELASTICBEANSTALK.PR.1]: Require AWS Elastic Beanstalk environments to have enhanced health reporting enabled
+            [FIX]: For AWS Elastic Beanstalk environments, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. For AWS Elastic Beanstalk configuration templates, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. Omit this setting to adopt the default value of 'enhanced'.
+        >>
+}
+
+rule elastic_beanstalk_enhanced_health_reporting_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                                    %elastic_beanstalk_configuration_templates not empty {
+    check_elastic_beanstalk_configuration_templates(%elastic_beanstalk_configuration_templates.Properties)
+        <<
+        [CT.ELASTICBEANSTALK.PR.1]: Require AWS Elastic Beanstalk environments to have enhanced health reporting enabled
+            [FIX]: For AWS Elastic Beanstalk environments, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. For AWS Elastic Beanstalk configuration templates, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. Omit this setting to adopt the default value of 'enhanced'.
+        >>
+}
+
+rule elastic_beanstalk_enhanced_health_reporting_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_BEANSTALK_ENVIRONMENT_TYPE) {
+    check_elastic_beanstalk_environments(%INPUT_DOCUMENT.%ELASTIC_BEANSTALK_ENVIRONMENT_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICBEANSTALK.PR.1]: Require AWS Elastic Beanstalk environments to have enhanced health reporting enabled
+            [FIX]: For AWS Elastic Beanstalk environments, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. For AWS Elastic Beanstalk configuration templates, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. Omit this setting to adopt the default value of 'enhanced'.
+        >>
+}
+
+rule elastic_beanstalk_enhanced_health_reporting_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_BEANSTALK_CONFIGURATION_TEMPLATE_TYPE) {
+    check_elastic_beanstalk_configuration_templates(%INPUT_DOCUMENT.%ELASTIC_BEANSTALK_CONFIGURATION_TEMPLATE_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICBEANSTALK.PR.1]: Require AWS Elastic Beanstalk environments to have enhanced health reporting enabled
+            [FIX]: For AWS Elastic Beanstalk environments, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. For AWS Elastic Beanstalk configuration templates, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. Omit this setting to adopt the default value of 'enhanced'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_elastic_beanstalk_environments(elastic_beanstalk_environments) {
+    %elastic_beanstalk_environments {
+        # Scenario 2
+        check_option_settings_exists_or_is_non_empty_list(this)
+
+        # Scenario 3, 4, 7
+        check_option_settings_enhanced(OptionSettings[*])
+    }
+}
+
+rule check_elastic_beanstalk_configuration_templates(elastic_beanstalk_configuration_templates) {
+    %elastic_beanstalk_configuration_templates {
+        # Scenario 7
+        check_option_settings_with_enhanced_health_reporting(this) or
+        # Scenario 6
+        check_option_settings_without_health_reporting(this) or
+        # Scenario 5
+        check_option_settings_not_exists_or_is_empty_list(this)
+    }
+}
+
+rule check_option_settings_with_enhanced_health_reporting(elastic_beanstalk_configuration_templates) {
+    %elastic_beanstalk_configuration_templates [
+        filter_option_settings_with_health_reporting(this)
+    ] {
+        check_option_settings_enhanced(OptionSettings[*])
+    }
+}
+
+rule filter_option_settings_with_health_reporting(elastic_beanstalk_configuration_templates) {
+    some %elastic_beanstalk_configuration_templates {
+        check_option_settings_exists_or_is_non_empty_list(this)
+
+        some OptionSettings[*] {
+            Namespace exists
+            OptionName exists
+
+            Namespace == %ELASTIC_BEANSTALK_ENHANCED_HEALTH_REPORTING_NAMESPACE
+            OptionName == %ELASTIC_BEANSTALK_SYSTEM_TYPE_OPTION_NAME
+        }
+    }
+}
+
+rule check_option_settings_enhanced(option_settings) {
+    # Scenario 3, 4
+    some %option_settings[*] {
+        Namespace exists
+        OptionName exists
+        Value exists
+
+        Namespace == %ELASTIC_BEANSTALK_ENHANCED_HEALTH_REPORTING_NAMESPACE
+        OptionName == %ELASTIC_BEANSTALK_SYSTEM_TYPE_OPTION_NAME
+        Value == %ELASTIC_BEANSTALK_ENHANCED_VALUE
+    }
+
+    # Scenario 7
+    let option_setting_duplicates = OptionSettings [
+        Namespace exists
+        OptionName exists
+        Value exists
+
+        Namespace == %ELASTIC_BEANSTALK_ENHANCED_HEALTH_REPORTING_NAMESPACE
+        OptionName == %ELASTIC_BEANSTALK_SYSTEM_TYPE_OPTION_NAME
+        Value != %ELASTIC_BEANSTALK_ENHANCED_VALUE
+    ]
+    %option_setting_duplicates empty
+}
+
+
+rule check_option_settings_without_health_reporting(elastic_beanstalk_configuration_templates) {
+    some %elastic_beanstalk_configuration_templates {
+        check_option_settings_exists_or_is_non_empty_list(this)
+
+        let option_settings_with_health_reporting = OptionSettings [
+            Namespace exists
+            OptionName exists
+
+            Namespace == %ELASTIC_BEANSTALK_ENHANCED_HEALTH_REPORTING_NAMESPACE
+            OptionName == %ELASTIC_BEANSTALK_SYSTEM_TYPE_OPTION_NAME
+        ]
+        %option_settings_with_health_reporting empty
+    }
+}
+
+rule check_option_settings_exists_or_is_non_empty_list(elastic_beanstalk_resource) {
+    %elastic_beanstalk_resource {
+        OptionSettings exists
+        OptionSettings is_list
+        OptionSettings not empty
+    }
+}
+
+rule check_option_settings_not_exists_or_is_empty_list(configuration_template) {
+    %configuration_template {
+        OptionSettings not exists or
+        check_is_empty_list(OptionSettings)
+    }
+}
+
+rule check_is_empty_list(option_settings) {
+    %option_settings {
+        this is_list
+        this empty
+    }
+}
+
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,240 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Name:
+#   iam_inline_policy_no_statements_with_admin_access_check
+# 
+# Description:
+#   This control checks that AWS Identity and Access Management (IAM) inline policies do not include "Effect": "Allow" with "Action": "*" over "Resource": "*".
+# 
+# Reports on:
+#   AWS::IAM::Policy, AWS::IAM::Role, AWS::IAM::User, AWS::IAM::Group
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any IAM policy, IAM role, IAM user or IAM group resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM policy resource
+#       And: The policy has no statements with 'Effect' set to 'Allow'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM policy resource
+#       And: The policy has a statement with 'Effect' set to 'Allow'
+#       And: The policy does not have both Action and resource statements
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM role, IAM user or IAM group resources
+#       And: 'Policies' is not provided or is an empty list
+#      Then: SKIP
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM role, IAM user or IAM group resources
+#       And: 'Policies' is provided as a non-empty list
+#       And: All IAM policy documents in 'Policies' have no statements with 'Effect' set to 'Allow'
+#      Then: SKIP
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM policy resource
+#       And: The policy has a statement with 'Effect' set to 'Allow'
+#       And: The policy statement has one or more Action statements and one or more Resource statements
+#       And: At least one Action statement allows all actions (Action value of '*')
+#       And: At least one Resource statement is a wildcard representing all resources (Resource value of '*')
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM role, IAM user or IAM group resources
+#       And: 'Policies' is provided as a non-empty list
+#       And: IAM policy document in 'Policies' has a statement with 'Effect' set to 'Allow'
+#       And: The policy has one or more 'Action' statements
+#       And: At least one Action statement allows all actions (Action value of '*')
+#       And: At least one Resource statement is a wildcard representing all resources (Resource value of '*')
+#      Then: FAIL
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM policy resource
+#       And: The policy has a statement with 'Effect' set to 'Allow'
+#       And: The policy has one or more Action statements and one or more Resource statements
+#       And: No Action statements allow administrator access (Action value of '*')
+#       And: No Resources are wildcards representing all resources (Resource value of '*')
+#      Then: PASS
+#   Scenario: 9
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM role, IAM user or IAM group resources
+#       And: 'Policies' is provided as a non-empty list
+#       And: IAM policy document in 'Policies' has a statement with 'Effect' set to 'Allow'
+#       And: The policy has one or more 'Action' statements
+#       And: No Action statements allow administrator access (Action value of '*')
+#       And: No Resources are wildcards representing all resources (Resource value of '*')
+#      Then: PASS
+
+#
+# Constants
+#
+let AWS_IAM_POLICY_TYPE = "AWS::IAM::Policy"
+let AWS_IAM_ROLE_TYPE = "AWS::IAM::Role"
+let AWS_IAM_USER_TYPE = "AWS::IAM::User"
+let AWS_IAM_GROUP_TYPE = "AWS::IAM::Group"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let iam_policies = Resources.*[ Type == %AWS_IAM_POLICY_TYPE ]
+let iam_principals = Resources.*[
+    Type == %AWS_IAM_ROLE_TYPE or
+    Type == %AWS_IAM_USER_TYPE or
+    Type == %AWS_IAM_GROUP_TYPE
+]
+
+#
+# Primary Rules
+#
+rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                                  %iam_policies not empty {
+    check_policy(%iam_policies.Properties)
+        <<
+        [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
+            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        >>
+}
+
+rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_hook(%INPUT_DOCUMENT, %AWS_IAM_POLICY_TYPE) {
+    check_policy(%INPUT_DOCUMENT.%AWS_IAM_POLICY_TYPE.resourceProperties)
+        <<
+        [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
+            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        >>
+}
+
+rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                                  %iam_principals not empty {
+    check_principal(%iam_principals.Properties)
+        <<
+        [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
+            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        >>
+}
+
+rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_hook(%INPUT_DOCUMENT, %AWS_IAM_ROLE_TYPE) {
+    check_principal(%INPUT_DOCUMENT.%AWS_IAM_ROLE_TYPE.resourceProperties)
+        <<
+        [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
+            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        >>
+}
+
+rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_hook(%INPUT_DOCUMENT, %AWS_IAM_USER_TYPE) {
+    check_principal(%INPUT_DOCUMENT.%AWS_IAM_USER_TYPE.resourceProperties)
+        <<
+        [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
+            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        >>
+}
+
+rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_hook(%INPUT_DOCUMENT, %AWS_IAM_GROUP_TYPE) {
+    check_principal(%INPUT_DOCUMENT.%AWS_IAM_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
+            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_policy(policy) {
+    %policy [
+        filter_policy_document_with_statement_provided(this)
+    ] {
+        PolicyDocument {
+           check_statement(Statement)
+       }
+    }
+}
+
+rule check_principal(iam_principal) {
+    %iam_principal [
+        filter_iam_principal_with_inline_policy_provided(this)
+    ] {
+        Policies[*] {
+            check_policy(this)
+       }
+    }
+}
+
+rule check_statement(statement) {
+    %statement [
+        filter_allow_on_action_and_resource(this)
+    ] {
+        Action exists
+        Resource exists
+        check_admin_access(Action, Resource)
+    }
+}
+
+rule filter_allow_on_action_and_resource(statement) {
+    %statement {
+        Effect == "Allow"
+        Action exists
+        Resource exists
+    }
+}
+
+rule filter_policy_document_with_statement_provided(policy) {
+    %policy {
+        PolicyDocument exists
+        PolicyDocument is_struct
+        PolicyDocument {
+            Statement exists
+            filter_statement_non_empty_list(Statement) or
+            Statement is_struct
+        }
+    }
+}
+
+rule filter_iam_principal_with_inline_policy_provided(iam_principal) {
+    %iam_principal {
+        Policies exists
+        Policies is_list
+        Policies not empty
+    }
+}
+
+rule filter_statement_non_empty_list(statement) {
+    %statement {
+        this is_list
+        this not empty
+    }
+}
+
+rule check_admin_access(actions, resources) {
+    when some %actions[*] == "*" {
+        %resources[*] != "*"
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

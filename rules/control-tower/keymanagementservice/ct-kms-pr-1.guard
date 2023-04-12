@@ -1,0 +1,113 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   kms_key_rotation_enabled_check
+# 
+# Description:
+#   This control checks whether key rotation is enabled for AWS KMS customer-managed keys.
+# 
+# Reports on:
+#   AWS::KMS::Key
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any KMS key resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS key resource
+#       And: 'KeySpec' is provided and is a value other than 'SYMMETRIC_DEFAULT'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS key resource
+#       And: 'KeySpec' is not provided or is provided and is set to 'SYMMETRIC_DEFAULT'
+#       And: 'EnableKeyRotation' is not provided
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS key resource
+#       And: 'KeySpec' is not provided or is provided and is set to 'SYMMETRIC_DEFAULT'
+#       And: 'EnableKeyRotation' is provided and is set to bool(false)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS key resource
+#       And: 'KeySpec' is not provided or is provided and is set to 'SYMMETRIC_DEFAULT'
+#       And: 'EnableKeyRotation' is provided and is set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let KMS_KEY_TYPE = "AWS::KMS::Key"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let kms_keys = Resources.*[ Type == %KMS_KEY_TYPE ]
+
+#
+# Primary Rules
+#
+rule kms_key_rotation_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                         %kms_keys not empty {
+    check(%kms_keys.Properties)
+        <<
+        [CT.KMS.PR.1]: Require any AWS KMS key to have rotation configured
+            [FIX]: Set 'EnableKeyRotation' to 'true' for AWS KMS symmetric-encryption keys.
+        >>
+}
+
+rule kms_key_rotation_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %KMS_KEY_TYPE) {
+    check(%INPUT_DOCUMENT.%KMS_KEY_TYPE.resourceProperties)
+        <<
+        [CT.KMS.PR.1]: Require any AWS KMS key to have rotation configured
+            [FIX]: Set 'EnableKeyRotation' to 'true' for AWS KMS symmetric-encryption keys.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(kms_keys) {
+    %kms_keys[
+        # Scenario 2
+        filter_is_kms_cmk_symmetric_key(this)
+    ] {
+        # Scenario 3, 4 and 5
+        EnableKeyRotation exists
+        EnableKeyRotation == true
+    }
+}
+
+rule filter_is_kms_cmk_symmetric_key(kms_key) {
+    %kms_key {
+        KeySpec not exists or
+        KeySpec == "SYMMETRIC_DEFAULT"
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

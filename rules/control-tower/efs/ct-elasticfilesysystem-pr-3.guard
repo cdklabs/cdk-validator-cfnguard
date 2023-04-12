@@ -1,0 +1,115 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   efs_access_point_enforce_root_directory_check
+# 
+# Description:
+#   This control checks whether your Amazon EFS access points are configured to enforce a root directory.
+# 
+# Reports on:
+#   AWS::EFS::AccessPoint
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EFS access point resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS access point resource
+#       And: 'RootDirectory' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS access point resource
+#       And: 'RootDirectory' has been provided
+#       And: 'Path' within 'RootDirectory' has not been provided or has been provided with an empty string value
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS access point resource
+#       And: 'RootDirectory' has been provided
+#       And: 'Path' within 'RootDirectory' been provided with a value of '/'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS access point resource
+#       And: 'RootDirectory' has been provided
+#       And: 'Path' within 'RootDirectory' been provided with a non-empty string value not equal to '/'
+#      Then: PASS
+
+#
+# Constants
+#
+let EFS_ACCESS_POINT_TYPE = "AWS::EFS::AccessPoint"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let efs_access_points = Resources.*[ Type == %EFS_ACCESS_POINT_TYPE ]
+
+#
+# Primary Rules
+#
+rule efs_access_point_enforce_root_directory_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                        %efs_access_points not empty {
+    check(%efs_access_points.Properties)
+        <<
+        [CT.ELASTICFILESYSYSTEM.PR.3]: Require Amazon EFS access points to have a root directory
+            [FIX]: Provide a 'RootDirectory.Path' configuration with a value for 'Path' that does not equal '/'.
+        >>
+}
+
+rule efs_access_point_enforce_root_directory_check when is_cfn_hook(%INPUT_DOCUMENT, %EFS_ACCESS_POINT_TYPE) {
+    check(%INPUT_DOCUMENT.%EFS_ACCESS_POINT_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICFILESYSYSTEM.PR.3]: Require Amazon EFS access points to have a root directory
+            [FIX]: Provide a 'RootDirectory.Path' configuration with a value for 'Path' that does not equal '/'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(efs_access_points) {
+    %efs_access_points {
+        # Scenario 2
+        RootDirectory exists
+        RootDirectory {
+            # Scenario 3,4 and 5
+            Path exists
+            check_is_string_and_not_empty(Path)
+            Path != "/"
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}

@@ -1,0 +1,143 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elb_acm_certificate_required_check
+# 
+# Description:
+#   This control checks whether classic load balancers use HTTPS/SSL certificates provided by AWS Certificate Manager.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancing::LoadBalancer
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElasticLoadBalancing load balancer resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: There are no HTTPS or SSL 'Listeners' configured on the load balancer resource
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: There are one or more HTTPS or SSL 'Listeners' configured on the load balancer resource
+#       And: 'SSLCertificateId' on load balancer HTTPS or SSL 'Listeners' is missing or not a valid ACM certificate ARN
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: There are one or more HTTPS or SSL 'Listeners' configured on the load balancer resource
+#       And: 'SSLCertificateId' matches an ACM certificate ARN for all 'HTTPS' and 'SSL' 'Listeners'
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_TYPE = "AWS::ElasticLoadBalancing::LoadBalancer"
+let ACM_CERTIFICATE_ARN_PATTERN = /arn:aws[a-z0-9\-]*:acm:[a-z0-9\-]+:\d{12}:certificate\/[\w\-]{1,64}/
+let SECURE_LISTENER_PROTOCOLS = ["HTTPS", "SSL"]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let classic_load_balancers = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_TYPE ]
+
+#
+# Primary Rules
+#
+rule elb_acm_certificate_required_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %classic_load_balancers not empty {
+
+    check(%classic_load_balancers.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.8]: Require any classic load balancer SSL/HTTPS listener to have a certificate provided by AWS Certificate Manager
+            [FIX]: Configure classic load balancers to use certificates provided by AWS Certificate Manager (ACM).
+        >>
+}
+
+rule elb_acm_certificate_required_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_TYPE) {
+
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.8]: Require any classic load balancer SSL/HTTPS listener to have a certificate provided by AWS Certificate Manager
+            [FIX]: Configure classic load balancers to use certificates provided by AWS Certificate Manager (ACM).
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(classic_load_balancer) {
+    %classic_load_balancer [
+        filter_load_balancer_with_listeners(this)
+    ] {
+        Listeners [
+            filter_secure_listeners(this)
+        ] {
+            # Scenarios 3 and 4
+            SSLCertificateId exists
+            SSLCertificateId == %ACM_CERTIFICATE_ARN_PATTERN or
+            check_local_references(%INPUT_DOCUMENT, SSLCertificateId, "AWS::CertificateManager::Certificate")
+        }
+    }
+}
+
+rule filter_load_balancer_with_listeners(classic_load_balancer) {
+    %classic_load_balancer {
+        Listeners exists
+        Listeners is_list
+        Listeners not empty
+    }
+}
+
+rule filter_secure_listeners(listener) {
+    %listener {
+        Protocol exists
+        Protocol in %SECURE_LISTENER_PROTOCOLS
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

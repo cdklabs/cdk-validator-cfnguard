@@ -1,0 +1,96 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   waf_regional_rule_not_empty_check
+# 
+# Description:
+#   This control checks whether an AWS WAF Classic regional rule contains any conditions.
+# 
+# Reports on:
+#   AWS::WAFRegional::Rule
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any WAF Classic regional rule resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a WAF Classic regional rule resource
+#       And: 'Predicates' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a WAF Classic regional rule resource
+#       And: 'Predicates' has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a WAF Classic regional rule resource
+#       And: 'Predicates' has been provided as a non-empty list
+#      Then: PASS
+
+#
+# Constants
+#
+let WAF_REGIONAL_RULE_TYPE = "AWS::WAFRegional::Rule"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let waf_regional_rules = Resources.*[ Type == %WAF_REGIONAL_RULE_TYPE ]
+
+#
+# Primary Rules
+#
+rule waf_regional_rule_not_empty_check when is_cfn_template(%INPUT_DOCUMENT)
+                                            %waf_regional_rules not empty {
+    check(%waf_regional_rules.Properties)
+        <<
+        [CT.WAF-REGIONAL.PR.1]: Require any AWS WAF regional rule to have a condition
+            [FIX]: Provide one or more AWS WAF rule conditions within the 'Predicates' property.
+        >>
+}
+
+rule waf_regional_rule_not_empty_check when is_cfn_hook(%INPUT_DOCUMENT, %WAF_REGIONAL_RULE_TYPE) {
+    check(%INPUT_DOCUMENT.%WAF_REGIONAL_RULE_TYPE.resourceProperties)
+        <<
+        [CT.WAF-REGIONAL.PR.1]: Require any AWS WAF regional rule to have a condition
+            [FIX]: Provide one or more AWS WAF rule conditions within the 'Predicates' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(waf_regional_rule) {
+    %waf_regional_rule {
+        # Scenario 2, 3 and 4
+        Predicates exists
+        Predicates is_list
+        Predicates not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,104 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elb_tls_https_listeners_only_check
+# 
+# Description:
+#   This control checks whether your AWS Elastic Load Balancing (ELB) classic load balancer front-end listeners are configured with HTTPS or SSL protocols.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancing::LoadBalancer
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Elastic Load Balancing LoadBalancer resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing LoadBalancer resource
+#       And: 'Listeners' has not been provided or is provided with a value of an empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing LoadBalancer resource
+#       And: 'Protocol' on LoadBalancer 'Listeners' is not set to 'HTTPS' or 'SSL'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing LoadBalancer resource
+#       And: 'Protocol' is set to 'HTTPS' or 'SSL' for all 'Listeners'
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_TYPE = "AWS::ElasticLoadBalancing::LoadBalancer"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let classic_load_balancers = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_TYPE ]
+
+#
+# Primary Rules
+#
+rule elb_tls_https_listeners_only_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %classic_load_balancers not empty {
+
+    check(%classic_load_balancers.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.9]: Require that an AWS ELB application or classic load balancer listener is configured with HTTPS or TLS termination
+            [FIX]: Configure Classic Load Balancer front-end listeners with HTTPS or SSL protocols.
+        >>
+}
+
+rule elb_tls_https_listeners_only_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_TYPE) {
+
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.9]: Require that an AWS ELB application or classic load balancer listener is configured with HTTPS or TLS termination
+            [FIX]: Configure Classic Load Balancer front-end listeners with HTTPS or SSL protocols.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(classic_load_balancer) {
+    %classic_load_balancer {
+        # Scenario 2
+        Listeners exists
+        Listeners is_list
+        Listeners not empty
+
+        # Scenarios 3 and 4
+        Listeners[*] {
+           Protocol exists
+           Protocol in ["HTTPS", "SSL"]
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

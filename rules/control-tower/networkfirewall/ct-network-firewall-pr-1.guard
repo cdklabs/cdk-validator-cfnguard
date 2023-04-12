@@ -1,0 +1,126 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   netfw_policy_rule_group_associated_check
+# 
+# Description:
+#   This control checks whether there is at least one stateful or stateless rule group associated with an AWS Network Firewall firewall policy.
+# 
+# Reports on:
+#   AWS::NetworkFirewall::FirewallPolicy
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any NetworkFirewall firewall policy resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: 'StatefulRuleGroupReferences' has not been provided in 'FirewallPolicy'
+#       And: 'StatelessRuleGroupReferences' has not been provided in 'FirewallPolicy'
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: 'StatefulRuleGroupReferences' has not been provided in 'FirewallPolicy'
+#       And: 'StatelessRuleGroupReferences' has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: 'StatelessRuleGroupReferences' has not been provided in 'FirewallPolicy'
+#       And: 'StatefulRuleGroupReferences' has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: 'StatelessRuleGroupReferences' has been provided as an empty list
+#       And: 'StatefulRuleGroupReferences' has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall firewall policy resource
+#       And: One or both of 'StatelessRuleGroupReferences' and 'StatefulRuleGroupReferences' have been provided as a
+#            non-empty list
+#      Then: PASS
+
+#
+# Constants
+#
+let NETFW_FIREWALL_POLICY_TYPE = "AWS::NetworkFirewall::FirewallPolicy"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let netfw_firewall_policies = Resources.*[ Type == %NETFW_FIREWALL_POLICY_TYPE ]
+
+#
+# Primary Rules
+#
+rule netfw_policy_rule_group_associated_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                   %netfw_firewall_policies not empty {
+    check(%netfw_firewall_policies.Properties)
+        <<
+        [CT.NETWORK-FIREWALL.PR.1]: Require any AWS Network Firewall firewall policy to have an associated rule group
+            [FIX]: Within the 'FirewallPolicy' definition, refer to one or more rule groups in 'StatefulRuleGroupReferences' or 'StatelessRuleGroupReferences'.
+        >>
+}
+
+rule netfw_policy_rule_group_associated_check when is_cfn_hook(%INPUT_DOCUMENT, %NETFW_FIREWALL_POLICY_TYPE) {
+    check(%INPUT_DOCUMENT.%NETFW_FIREWALL_POLICY_TYPE.resourceProperties)
+        <<
+        [CT.NETWORK-FIREWALL.PR.1]: Require any AWS Network Firewall firewall policy to have an associated rule group
+            [FIX]: Within the 'FirewallPolicy' definition, refer to one or more rule groups in 'StatefulRuleGroupReferences' or 'StatelessRuleGroupReferences'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(netfw_firewall_policy) {
+    %netfw_firewall_policy {
+        # Scenario 2
+        FirewallPolicy exists
+        FirewallPolicy is_struct
+
+        FirewallPolicy {
+            # Scenario 3, 4, 5 and 6
+            StatefulRuleGroupReferences exists or
+            StatelessRuleGroupReferences exists
+
+            check_property_is_list_and_not_empty(StatefulRuleGroupReferences) or
+            check_property_is_list_and_not_empty(StatelessRuleGroupReferences)
+        }
+    }
+}
+
+rule check_property_is_list_and_not_empty(property) {
+    %property {
+        this is_list
+        this not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

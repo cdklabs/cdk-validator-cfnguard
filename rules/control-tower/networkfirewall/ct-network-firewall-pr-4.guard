@@ -1,0 +1,124 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   netfw_stateless_rule_group_not_empty_check
+# 
+# Description:
+#   This control checks whether an AWS Network Firewall stateless rule group contains rules.
+# 
+# Reports on:
+#   AWS::NetworkFirewall::RuleGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any NetworkFirewall rule group resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall rule group resource
+#       And: 'Type' is not equal to 'STATELESS'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall rule group resource
+#       And: 'Type' is 'STATELESS'
+#       And: 'RuleGroup.RulesSource.StatelessRulesAndCustomActions' has not been provided
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall rule group resource
+#       And: 'Type' is 'STATELESS'
+#       And: 'RuleGroup.RulesSource.StatelessRulesAndCustomActions' has been provided
+#       And: 'StatelessRules' has not been provided within 'StatelessRulesAndCustomActions' or has been provided with
+#            an empty list value
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a NetworkFirewall rule group resource
+#       And: 'Type' is 'STATELESS'
+#       And: 'RuleGroup.RulesSource.StatelessRulesAndCustomActions' has been provided
+#       And: 'StatelessRules' has been provided within 'StatelessRulesAndCustomActions' as a non-empty list value
+#      Then: PASS
+
+#
+# Constants
+#
+let NETFW_RULE_GROUP_TYPE = "AWS::NetworkFirewall::RuleGroup"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let netfw_rule_group = Resources.*[ Type == %NETFW_RULE_GROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule netfw_stateless_rule_group_not_empty_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %netfw_rule_group not empty {
+    check(%netfw_rule_group.Properties)
+        <<
+        [CT.NETWORK-FIREWALL.PR.4]: Require any AWS Network Firewall rule group to contain at least one rule
+            [FIX]: Provide one or more AWS Network Firewall stateless rules within the 'RuleGroup.RulesSource.StatelessRulesAndCustomActions.StatelessRules' property.
+        >>
+}
+
+rule netfw_stateless_rule_group_not_empty_check when is_cfn_hook(%INPUT_DOCUMENT, %NETFW_RULE_GROUP_TYPE) {
+    check(%INPUT_DOCUMENT.%NETFW_RULE_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.NETWORK-FIREWALL.PR.4]: Require any AWS Network Firewall rule group to contain at least one rule
+            [FIX]: Provide one or more AWS Network Firewall stateless rules within the 'RuleGroup.RulesSource.StatelessRulesAndCustomActions.StatelessRules' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(netfw_rule_group) {
+    %netfw_rule_group[
+        # Scenario 2
+        Type exists
+        Type == "STATELESS"
+    ] {
+        # Scenario 3
+        RuleGroup exists
+        RuleGroup is_struct
+        RuleGroup {
+            RulesSource exists
+            RulesSource is_struct
+            RulesSource {
+                StatelessRulesAndCustomActions exists
+                StatelessRulesAndCustomActions is_struct
+                StatelessRulesAndCustomActions {
+                    # Scenarios 4 and 5
+                    StatelessRules exists
+                    StatelessRules is_list
+                    StatelessRules not empty
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

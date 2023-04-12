@@ -1,0 +1,132 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elb_multiple_az_check
+# 
+# Description:
+#   This control checks whether an ELB classic load balancer has been configured with multiple Availability Zones.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancing::LoadBalancer
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElasticLoadBalancing load balancer resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: Neither 'AvailabilityZones' or 'Subnets' have been specified
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: 'AvailabilityZones' been specified on the ElasticLoadBalancing load balancer resource
+#       And: The number of entries in 'AvailabilityZones' is < 2 or the number of
+#            unique 'AvailabilityZones' provided is less than 2 (< 2)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: 'Subnets' been specified on the ElasticLoadBalancing load balancer resource
+#       And: The number of entries in 'Subnets' is < 2
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: 'AvailabilityZones' been specified on the ElasticLoadBalancing load balancer resource
+#       And: The number of entries in 'AvailabilityZones' is >= 2
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: 'Subnets' been specified on the ElasticLoadBalancing load balancer resource
+#       And: The number of entries in 'Subnets' is >= 2
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_TYPE = "AWS::ElasticLoadBalancing::LoadBalancer"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let classic_load_balancers = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_TYPE ]
+
+#
+# Primary Rules
+#
+rule elb_multiple_az_check when is_cfn_template(%INPUT_DOCUMENT)
+                                %classic_load_balancers not empty {
+
+    check(%classic_load_balancers.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.7]: Require any classic load balancer to have multiple Availability Zones configured
+            [FIX]: Configure classic load balancers with two or more subnets or Availability Zones.
+        >>
+}
+
+rule elb_multiple_az_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_TYPE) {
+
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.7]: Require any classic load balancer to have multiple Availability Zones configured
+            [FIX]: Configure classic load balancers with two or more subnets or Availability Zones.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(classic_load_balancer) {
+    %classic_load_balancer {
+        # Scenario 2
+        AvailabilityZones exists or
+        Subnets exists
+
+        when AvailabilityZones exists {
+            # Scenarios 3 and 5
+            two_or_more_entries(AvailabilityZones)
+            AvailabilityZones[0] not in AvailabilityZones[1]
+        }
+
+        when Subnets exists {
+            # Scenarios 4 and 6
+            two_or_more_entries(Subnets)
+        }
+    }
+}
+
+rule two_or_more_entries(list_property) {
+    %list_property {
+        this is_list
+        this not empty
+        this[0] exists
+        this[1] exists
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

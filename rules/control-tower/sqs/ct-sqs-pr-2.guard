@@ -1,0 +1,156 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#    sqs_queue_encrypted_check
+# 
+# Description:
+#   This control checks whether an Amazon SQS queue is encrypted at rest.
+# 
+# Reports on:
+#    AWS::SQS::Queue
+# 
+# Evaluates:
+#    AWS CloudFormation, AWS CloudFormation Hook
+# 
+# Rule Parameters:
+#     None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any SQS queue resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'KmsMasterKeyId' or 'SqsManagedSseEnabled' have not been provided on the SQS queue resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'KmsMasterKeyId' has not been provided
+#       And: 'SqsManagedSseEnabled' has been provided and set to bool(false)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'KmsMasterKeyId' has been provided as an empty string or invalid local reference to a KMS key or alias
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'SqsManagedSseEnabled' is not provided or set to bool(false)
+#       And: 'KmsMasterKeyId' is provided as a non-empty string or local reference to a KMS key
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'KmsMasterKeyId' is not provided
+#       And: 'SqsManagedSseEnabled' is provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let SQS_QUEUE_TYPE = "AWS::SQS::Queue"
+let INPUT_DOCUMENT = this
+#
+# Assignments
+#
+let sqs_queues = Resources.*[ Type == %SQS_QUEUE_TYPE ]
+
+#
+# Primary Rules
+#
+rule sqs_queue_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                                    %sqs_queues not empty {
+    check(%sqs_queues.Properties)
+        <<
+        [CT.SQS.PR.2]: Require any Amazon SQS queue to have encryption at rest configured
+            [FIX]: Set 'SqsManagedSseEnabled' to 'true' or set an AWS KMS key identifier in the 'KmsMasterKeyId' property.
+        >>
+}
+
+rule sqs_queue_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %SQS_QUEUE_TYPE) {
+    check(%INPUT_DOCUMENT.%SQS_QUEUE_TYPE.resourceProperties)
+        <<
+        [CT.SQS.PR.2]: Require any Amazon SQS queue to have encryption at rest configured
+            [FIX]: Set 'SqsManagedSseEnabled' to 'true' or set an AWS KMS key identifier in the 'KmsMasterKeyId' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(sqs_queue) {
+    %sqs_queue{
+        check_sse_enabled(this) or
+        check_kms_valid(this)
+    }
+}
+
+rule check_sse_enabled(sqs_queue) {
+    # Scenario 2
+    SqsManagedSseEnabled exists
+
+    # Scenario 3, 6
+    KmsMasterKeyId not exists
+    SqsManagedSseEnabled == true
+}
+
+rule check_kms_valid(sqs_queue) {
+    # Scenario 2
+    KmsMasterKeyId exists
+
+    # Scenario 4, 5
+    check_is_string_and_not_empty(KmsMasterKeyId) or
+    check_local_references(%INPUT_DOCUMENT, KmsMasterKeyId, "AWS::KMS::Key") or
+    check_local_references(%INPUT_DOCUMENT, KmsMasterKeyId, "AWS::KMS::Alias")
+
+    # Scenario 5
+    SqsManagedSseEnabled not exists or
+    SqsManagedSseEnabled == false
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        "Fn::GetAtt" {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}
