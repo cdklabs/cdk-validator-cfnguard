@@ -8,7 +8,7 @@ const project = new CdklabsJsiiProject({
   author: 'AWS',
   authorAddress: 'aws-cdk-dev@amazon.com',
   defaultReleaseBranch: 'main',
-  minNodeVersion: '16.13.0',
+  minNodeVersion: '16.14.0',
   cdklabsPublishingDefaults: false,
   devDeps: [
     'cdklabs-projen-project-types',
