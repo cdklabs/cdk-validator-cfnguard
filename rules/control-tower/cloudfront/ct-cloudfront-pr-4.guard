@@ -1,0 +1,129 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_origin_failover_enabled_check
+# 
+# Description:
+#   This control checks whether your Amazon CloudFront distribution is configured with an origin group that contains two origin group members.
+# 
+# Reports on:
+#   AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'OriginGroups' is not present on the CloudFront distribution resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'OriginGroups' is present on the CloudFront distribution resource
+#       And: 'Quantity' within 'OriginGroups' is 0
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'OriginGroups' is present on the CloudFront distribution resource
+#       And: 'Quantity' within 'OriginGroups' is >= 1
+#       And: 'Quantity' within 'Members' is < 2
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'OriginGroups' is present on the CloudFront distribution resource
+#       And: 'Quantity' within 'OriginGroups' is >= 1
+#       And: 'Quantity' within 'Members' is == 2
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_origin_failover_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                   %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.4]: Require an Amazon CloudFront distribution to have origin failover configured
+            [FIX]: Configure an origin group on the Amazon CloudFront Distribution with two origin group members.
+        >>
+}
+
+rule cloudfront_origin_failover_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.4]: Require an Amazon CloudFront distribution to have origin failover configured
+            [FIX]: Configure an origin group on the Amazon CloudFront Distribution with two origin group members.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            # Scenario 2
+            OriginGroups exists
+            OriginGroups is_struct
+
+            OriginGroups {
+                # Scenario 3
+                Quantity exists
+                Quantity >= 1
+
+                Items exists
+                Items is_list
+                Items not empty
+
+                Items[*] {
+                    Members exists
+                    Members is_struct
+                    Members {
+                        # Scenarios 4 and 5
+                        Quantity == 2
+                    }
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

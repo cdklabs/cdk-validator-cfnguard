@@ -1,0 +1,103 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   dax_cluster_encryption_enabled_check
+# 
+# Description:
+#   This control checks whether Amazon DynamoDB Accelerator (DAX) clusters are encrypted at rest.
+# 
+# Reports on:
+#   AWS::DAX::Cluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any DAX Cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains at least one DAX Cluster resource
+#       And: 'SSESpecification' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains at least one DAX Cluster resource
+#       And: 'SSESpecification' has been provided and 'SSESpecification.SSEEnabled' is missing or has been set to a
+#            value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains at least one DAX Cluster resource
+#       And: 'SSESpecification' has been provided and 'SSESpecification.SSEEnabled' is present and has been set to
+#            bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let DAX_CLUSTER_TYPE = "AWS::DAX::Cluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let dax_clusters = Resources.*[ Type == %DAX_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule dax_cluster_encryption_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %dax_clusters not empty {
+    check(%dax_clusters.Properties)
+        <<
+        [CT.DAX.PR.1]: Require encryption at rest for all Amazon DynamoDB Accelerator (DAX) clusters
+            [FIX]: Provide an 'SSESpecification' configuration with 'SSEEnabled' set to 'true'.
+        >>
+}
+
+rule dax_cluster_encryption_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %DAX_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%DAX_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.DAX.PR.1]: Require encryption at rest for all Amazon DynamoDB Accelerator (DAX) clusters
+            [FIX]: Provide an 'SSESpecification' configuration with 'SSEEnabled' set to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(dax_cluster) {
+    %dax_cluster {
+        # Scenario 2
+        SSESpecification exists
+        SSESpecification is_struct
+
+        # Scenario 3 and 4
+        SSESpecification {
+            SSEEnabled exists
+            SSEEnabled == true
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

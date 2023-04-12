@@ -1,0 +1,100 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# Rule Identifier:
+#   dynamodb_table_pitr_enabled_check
+# 
+# Description:
+#   This control checks whether point-in-time recovery (PITR) is enabled for an Amazon DynamoDB table.
+# 
+# Reports on:
+#   AWS::DynamoDB::Table
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Paramaeters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any DynamoDB table resources
+#       Then: SKIP
+#   Scenario: 2
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contains a DynamoDB table resource
+#        And: 'PointInTimeRecoverySpecification' is not present on the DynamoDB table resource
+#       Then: FAIL
+#   Scenario: 3
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contains a DynamoDB table resource
+#        And: 'PointInTimeRecoverySpecification' is present on the DynamoDB table resource
+#        And: 'PointInTimeRecoveryEnabled' in 'PointInTimeRecoverySpecification' is missing or is a value
+#              other than bool(true)
+#       Then: FAIL
+#   Scenario: 4
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contains a DynamoDB table resource
+#        And: 'PointInTimeRecoverySpecification' is present on the DynamoDB table resource
+#        And: 'PointInTimeRecoveryEnabled' in 'PointInTimeRecoverySpecification' is present and set to bool(true)
+#       Then: PASS
+
+#
+# Constants
+#
+let DYNAMODB_TABLE_TYPE = "AWS::DynamoDB::Table"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let dynamodb_tables = Resources.*[ Type == %DYNAMODB_TABLE_TYPE ]
+
+#
+# Primary Rules
+#
+rule dynamodb_table_pitr_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                            %dynamodb_tables not empty {
+    check(%dynamodb_tables.Properties)
+        <<
+        [CT.DYNAMODB.PR.1]: Require that point-in-time recovery for an Amazon DynamoDB table is activated
+            [FIX]: Provide a 'PointInTimeRecoverySpecification' configuration and set 'PointInTimeRecoveryEnabled' to 'true'.
+        >>
+}
+
+rule dynamodb_table_pitr_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %DYNAMODB_TABLE_TYPE) {
+    check(%INPUT_DOCUMENT.%DYNAMODB_TABLE_TYPE.resourceProperties)
+        <<
+        [CT.DYNAMODB.PR.1]: Require that point-in-time recovery for an Amazon DynamoDB table is activated
+            [FIX]: Provide a 'PointInTimeRecoverySpecification' configuration and set 'PointInTimeRecoveryEnabled' to 'true'.
+        >>
+}
+
+rule check(dynamodb_table) {
+    %dynamodb_table {
+        # Scenario 2
+        PointInTimeRecoverySpecification exists
+        PointInTimeRecoverySpecification is_struct
+
+        # Scenario 3 and 4
+        PointInTimeRecoverySpecification {
+            PointInTimeRecoveryEnabled exists
+            PointInTimeRecoveryEnabled == true
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, DYNAMODB_TABLE_TYPE) {
+    %doc.%DYNAMODB_TABLE_TYPE.resourceProperties exists
+}

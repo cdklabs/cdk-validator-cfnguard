@@ -1,0 +1,132 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloud_trail_encryption_enabled_check
+# 
+# Description:
+#   This control checks whether your AWS CloudTrail is configured to use the server-side encryption (SSE) AWS KMS key encryption.
+# 
+# Reports on:
+#   AWS::CloudTrail::Trail
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any AWS CloudTrail trails
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudTrail trail resource
+#       And: 'KMSKeyId' is not present
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudTrail trail resource
+#       And: 'KMSKeyId' has been provided and is set to an empty string or a non-valid local reference to a KMS Key or
+#            Alias
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudTrail trail resource
+#       And: 'KMSKeyId' has been provided and is a non-empty string or a valid reference to a KMS Key or Alias.
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDTRAIL_TRAIL_TYPE = "AWS::CloudTrail::Trail"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudtrail_trails = Resources.*[ Type == %CLOUDTRAIL_TRAIL_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloud_trail_encryption_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %cloudtrail_trails not empty {
+    check_cloudtrail_kms_key_configuration(%cloudtrail_trails.Properties)
+        <<
+        [CT.CLOUDTRAIL.PR.1]: Require an AWS CloudTrail trail to have encryption at rest activated
+            [FIX]: Set the 'KMSKeyId' property to a valid KMS key.
+        >>
+}
+
+rule cloud_trail_encryption_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDTRAIL_TRAIL_TYPE) {
+    check_cloudtrail_kms_key_configuration(%INPUT_DOCUMENT.%CLOUDTRAIL_TRAIL_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDTRAIL.PR.1]: Require an AWS CloudTrail trail to have encryption at rest activated
+            [FIX]: Set the 'KMSKeyId' property to a valid KMS key.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_cloudtrail_kms_key_configuration(cloudtrail_trail){
+    %cloudtrail_trail {
+        # Scenario 2
+        KMSKeyId exists
+        # Scenario 3 and 4
+        check_is_string_and_not_empty(KMSKeyId) or
+        check_kms_key_id_local_ref(KMSKeyId)
+    }
+}
+
+rule check_kms_key_id_local_ref(key_ref) {
+    %key_ref {
+      check_local_references(%INPUT_DOCUMENT, this, "AWS::KMS::Key") or
+      check_local_references(%INPUT_DOCUMENT, this, "AWS::KMS::Alias")
+    }
+ }
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_RESOURCE_TYPE) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_RESOURCE_TYPE)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_RESOURCE_TYPE)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_RESOURCE_TYPE) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_RESOURCE_TYPE
+    }
+}

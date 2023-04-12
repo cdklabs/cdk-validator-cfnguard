@@ -1,0 +1,88 @@
+{
+    "Artifacts": [
+        {
+            "Location": "/controls/AWSCertificateManager/cfn-guard-rules/CT.ACM.PR.1/artifacts/deployment/CT.ACM.PR.1.guard",
+            "Purpose": "DEPLOYMENT",
+            "Type": "CLOUDFORMATION_GUARD_RULE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AWSCertificateManager/cfn-guard-rules/CT.ACM.PR.1/artifacts/tests/bug-bash/templates/scenario-4a-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AWSCertificateManager/cfn-guard-rules/CT.ACM.PR.1/artifacts/tests/bug-bash/templates/scenario-5a-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 2",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AWSCertificateManager/cfn-guard-rules/CT.ACM.PR.1/artifacts/tests/bug-bash/templates/scenario-6a-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AWSCertificateManager/cfn-guard-rules/CT.ACM.PR.1/artifacts/tests/bug-bash/templates/scenario-7a-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 2",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AWSCertificateManager/cfn-guard-rules/CT.ACM.PR.1/artifacts/tests/CT.ACM.PR.1_cfn_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AWSCertificateManager/cfn-guard-rules/CT.ACM.PR.1/artifacts/tests/CT.ACM.PR.1_common_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AWSCertificateManager/cfn-guard-rules/CT.ACM.PR.1/artifacts/tests/CT.ACM.PR.1_hook_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        }
+    ],
+    "Behavior": "PROACTIVE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether any AWS Certificate Manager (ACM) Private CA certificates have wildcard domain names instead of single domain names.",
+    "DisplayName": "Require an AWS Private CA certificate to have a single domain name",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Requesting a public certificate",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CertificateManager::Certificate"
+    ],
+    "EvaluatedServices": [
+        "AWS Certificate Manager"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ACM.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.10",
+            "Name": "Protect configurations"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'DomainName' and each entry within 'SubjectAlternativeNames' to a fully qualified domain name (FQDN) that does not contain a wildcard (*).",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

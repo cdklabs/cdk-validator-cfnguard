@@ -1,0 +1,104 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_default_root_object_configured_check
+# 
+# Description:
+#   This control checks whether an Amazon CloudFront distribution is configured to return a specific object that is the default root object.
+# 
+# Reports on:
+#    AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#    AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DefaultRootObject' is not present on the CloudFront distribution resource or is present and
+#            is an empty string
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DefaultRootObject' is present on the CloudFront distribution resource and is a non-empty string
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_default_root_object_configured_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                          %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.1]: Require an Amazon CloudFront distribution to have a default root object configured
+            [FIX]: Specify a default root object in the 'DefaultRootObject' property.
+        >>
+}
+
+rule cloudfront_default_root_object_configured_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.1]: Require an Amazon CloudFront distribution to have a default root object configured
+            [FIX]: Specify a default root object in the 'DefaultRootObject' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            # Scenario 2
+            DefaultRootObject exists
+            # Scenario 3
+            check_is_string_and_not_empty(DefaultRootObject)
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,133 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_task_definition_log_configuration_check
+# 
+# Description:
+#   This control checks whether Amazon Elastic Container Service (ECS) task definitions have a logging configuration specified.
+# 
+# Reports on:
+#   AWS::ECS::TaskDefinition
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document does not contain an ECS task definition resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is not present or is an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present and is not an empty list
+#       And: One or more containers defined  in 'ContainerDefinitions' do not have 'LogConfiguration' set or it is set
+#            to an empty struct
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present and is not an empty list
+#       And: One or more containers defined  in 'ContainerDefinitions' have 'LogConfiguration' property present
+#       And: 'LogConfiguration.LogDriver' is not present or is set to an empty string
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present
+#       And: All containers defined  in 'ContainerDefinitions' have 'LogConfiguration' property present
+#       And: 'LogConfiguration.LogDriver' is present and set to a non-empty string
+#      Then: PASS
+
+#
+# Constants
+#
+let ECS_TASK_DEFINITION_TYPE = "AWS::ECS::TaskDefinition"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ecs_task_definitions = Resources.*[ Type == %ECS_TASK_DEFINITION_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_task_definition_log_configuration_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                      %ecs_task_definitions not empty {
+    check(%ecs_task_definitions.Properties)
+        <<
+        [CT.ECS.PR.5]: Require an active Amazon ECS task definition to have a logging configuration
+            [FIX]: For each container definition, within 'LogConfiguration' set the 'LogDriver' property to a supported log driver.
+        >>
+}
+
+rule ecs_task_definition_log_configuration_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TASK_DEFINITION_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.5]: Require an active Amazon ECS task definition to have a logging configuration
+            [FIX]: For each container definition, within 'LogConfiguration' set the 'LogDriver' property to a supported log driver.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_task_definition) {
+    %ecs_task_definition [
+        filter_container_definitions_is_present(this)
+    ]{
+        ContainerDefinitions[*] {
+            # Scenario 3
+            LogConfiguration exists
+            LogConfiguration is_struct
+            LogConfiguration not empty
+
+            # Scenario 4 and 5
+            LogConfiguration {
+                LogDriver exists
+                check_is_string_and_not_empty(LogDriver)
+            }
+        }
+    }
+}
+
+rule filter_container_definitions_is_present(ecs_task_definition) {
+    %ecs_task_definition {
+        # Scenario 2
+        ContainerDefinitions exists
+        ContainerDefinitions is_list
+        ContainerDefinitions not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

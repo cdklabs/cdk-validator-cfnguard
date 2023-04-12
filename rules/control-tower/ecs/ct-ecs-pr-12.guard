@@ -1,0 +1,133 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_no_environment_secrets_check
+# 
+# Description:
+#   This control checks whether Amazon Elastic Container Service (ECS) task definition container definitions include environment variables named 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', or 'ECS_ENGINE_AUTH_DATA'.
+# 
+# Reports on:
+#   AWS::ECS::TaskDefinition
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+# Scenario: 1
+#   Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#     And: The input document does not contain an ECS task definition resource
+#    Then: SKIP
+# Scenario: 2
+#   Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#     And: The input document contains an ECS task definition resource
+#     And: 'ContainerDefinitions' property is not present or is empty
+#    Then: SKIP
+# Scenario: 3
+#   Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#     And: The input document contains an ECS task definition resource
+#     And: 'ContainerDefinitions' property is present
+#     And: Containers defined in 'ContainerDefinitions' do not have 'Environment' property present
+#    Then: SKIP
+# Scenario: 4
+#   Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#     And: The input document contains an ECS task definition resource
+#     And: 'ContainerDefinitions' property is present
+#     And: One or more containers defined  in 'ContainerDefinitions' have 'Environment' present
+#     And: 'Environment' property has an entry with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', or
+#           'ECS_ENGINE_AUTH_DATA'
+#     Then: FAIL
+# Scenario: 5
+#   Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#     And: The input document contains an ECS task definition resource
+#     And: 'ContainerDefinitions' property is present
+#     And: One or more containers defined  in 'ContainerDefinitions' have 'Environment' present
+#     And: 'Environment' property does not have an entry with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
+#           or 'ECS_ENGINE_AUTH_DATA'
+#    Then: PASS
+
+#
+# Constants
+#
+let ECS_TASK_DEFINITION_TYPE = "AWS::ECS::TaskDefinition"
+let INPUT_DOCUMENT = this
+let RESTRICTED_ENVIRONMENT_VARIABLES = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "ECS_ENGINE_AUTH_DATA"]
+
+#
+# Assignments
+#
+let ecs_task_definitions = Resources.*[ Type == %ECS_TASK_DEFINITION_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_no_environment_secrets_check when is_cfn_template(%INPUT_DOCUMENT)
+                                           %ecs_task_definitions not empty {
+    check(%ecs_task_definitions.Properties)
+        <<
+        [CT.ECS.PR.12]: Require that Amazon ECS task definitions do not pass secrets as container environment variables
+            [FIX]: Omit environment variables with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY' or 'ECS_ENGINE_AUTH_DATA' from container definitions.
+        >>
+}
+
+rule ecs_no_environment_secrets_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TASK_DEFINITION_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.12]: Require that Amazon ECS task definitions do not pass secrets as container environment variables
+            [FIX]: Omit environment variables with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY' or 'ECS_ENGINE_AUTH_DATA' from container definitions.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_task_definition) {
+    %ecs_task_definition [
+        filter_container_definitions_is_present(this)
+    ]{
+        ContainerDefinitions[
+            filter_environment_is_present(this)
+        ] {
+            # Scenario 4 and 5
+            Environment[*] {
+                Name not in %RESTRICTED_ENVIRONMENT_VARIABLES
+            }
+        }
+    }
+}
+
+rule filter_container_definitions_is_present(ecs_task_definition) {
+    %ecs_task_definition {
+        # Scenario 2
+        ContainerDefinitions exists
+        ContainerDefinitions is_list
+        ContainerDefinitions not empty
+    }
+}
+
+rule filter_environment_is_present(container_definition) {
+    %container_definition {
+        # Scenario 3
+        Environment exists
+        Environment is_list
+        Environment not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

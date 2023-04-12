@@ -1,0 +1,117 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# Rule Identifier:
+#   ecs_containers_readonly_access_check
+# 
+# Description:
+#   This control checks whether Amazon ECS task definitions have been configured to require read-only access to container root filesystems.
+# 
+# Reports on:
+#   AWS::ECS::TaskDefinition
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+# Scenario: 1
+#   Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#     And: The input document does not contain an ECS task definition resource
+#    Then: SKIP
+# Scenario: 2
+#   Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#     And: The input document contains an ECS task definition resource
+#     And: 'ContainerDefinitions' property is not present or is empty
+#    Then: SKIP
+# Scenario: 3
+#   Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#     And: The input document contains an ECS task definition resource
+#     And: 'ContainerDefinitions' property is present
+#     And: One or more containers defined  in 'ContainerDefinitions' do not have 'ReadonlyRootFilesystem' present
+#    Then: FAIL
+# Scenario: 4
+#   Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#     And: The input document contains an ECS task definition resource
+#     And: 'ContainerDefinitions' property is present
+#     And: One or more containers defined  in 'ContainerDefinitions' have the value of 'ReadonlyRootFilesystem' set to
+#          bool(false)
+#     Then: FAIL
+# Scenario: 5
+#   Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#     And: The input document contains an ECS task definition resource
+#     And: 'ContainerDefinitions' property is present
+#     And: All containers defined  in 'ContainerDefinitions' have the value of 'ReadonlyRootFilesystem' set to
+#          bool(true)
+#    Then: PASS
+
+#
+# Constants
+#
+let ECS_TASK_DEFINITION_TYPE = "AWS::ECS::TaskDefinition"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ecs_task_definitions = Resources.*[ Type == %ECS_TASK_DEFINITION_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_containers_readonly_access_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %ecs_task_definitions not empty {
+    check(%ecs_task_definitions.Properties)
+        <<
+        [CT.ECS.PR.6]: Require Amazon ECS containers to allow read-only access to the root filesystem
+            [FIX]: Set the 'ReadonlyRootFilesystem' property to 'true' for all 'ContainerDefinitions'.
+        >>
+}
+
+rule ecs_containers_readonly_access_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TASK_DEFINITION_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.6]: Require Amazon ECS containers to allow read-only access to the root filesystem
+            [FIX]: Set the 'ReadonlyRootFilesystem' property to 'true' for all 'ContainerDefinitions'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_task_definition) {
+    %ecs_task_definition [ filter_container_definitions_is_present(this) ]{
+        ContainerDefinitions[*] {
+            # Scenario 3
+            ReadonlyRootFilesystem exists
+
+            # Scenario 4
+            ReadonlyRootFilesystem == true
+        }
+    }
+}
+
+rule filter_container_definitions_is_present(ecs_task_definition) {
+    %ecs_task_definition {
+        # Scenario 2
+        ContainerDefinitions exists
+        ContainerDefinitions is_list
+        ContainerDefinitions not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

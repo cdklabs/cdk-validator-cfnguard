@@ -1,0 +1,111 @@
+{
+    "Artifacts": [
+        {
+            "Location": "/controls/AWSCloudTrail/cfn-guard-rules/CT.CLOUDTRAIL.PR.1/artifacts/deployment/CT.CLOUDTRAIL.PR.1.guard",
+            "Purpose": "DEPLOYMENT",
+            "Type": "CLOUDFORMATION_GUARD_RULE"
+        },
+        {
+            "Location": "/controls/AWSCloudTrail/cfn-guard-rules/CT.CLOUDTRAIL.PR.1/artifacts/tests/CT.CLOUDTRAIL.PR.1_cfn_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AWSCloudTrail/cfn-guard-rules/CT.CLOUDTRAIL.PR.1/artifacts/tests/CT.CLOUDTRAIL.PR.1_hook_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Location": "/controls/AWSCloudTrail/cfn-guard-rules/CT.CLOUDTRAIL.PR.1/artifacts/tests/CT.CLOUDTRAIL.PR.1_common_tests.yaml",
+            "Purpose": "TESTING",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
+            "Location": "/controls/AWSCloudTrail/cfn-guard-rules/CT.CLOUDTRAIL.PR.1/artifacts/tests/bug-bash/templates/scenario-2-FAIL.yaml",
+            "Name": "Non-compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_NON_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        },
+        {
+            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
+            "Location": "/controls/AWSCloudTrail/cfn-guard-rules/CT.CLOUDTRAIL.PR.1/artifacts/tests/bug-bash/templates/scenario-4b-PASS.yaml",
+            "Name": "Compliant AWS CloudFormation template example 1",
+            "Purpose": "TESTING_COMPLIANCE",
+            "Type": "CLOUDFORMATION_TEMPLATE"
+        }
+    ],
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "CIS AWS Benchmark 1.4",
+            "Ids": [
+                "3.7"
+            ]
+        },
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AU-9",
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SC-7(10)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.5",
+                "10.5.2",
+                "2.2",
+                "3.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your AWS CloudTrail is configured to use the server-side encryption (SSE) AWS KMS key encryption.",
+    "DisplayName": "Require an AWS CloudTrail trail to have encryption at rest activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "CloudTrail should have encryption at rest enabled",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/encrypting-cloudtrail-log-files-with-aws-kms.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudTrail::Trail"
+    ],
+    "EvaluatedServices": [
+        "AWS CloudTrail"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDTRAIL.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.CloudTrail.2",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set the 'KMSKeyId' property to a valid KMS key.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

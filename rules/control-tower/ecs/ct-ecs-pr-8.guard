@@ -1,0 +1,142 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_task_definition_user_for_host_mode_check
+# 
+# Description:
+#   This control checks whether Amazon Elastic Container Service (ECS) task definitions that use 'host' networking mode have a privileged container definition, and whether they specify a non-root user definition.
+# 
+# Reports on:
+#   AWS::ECS::TaskDefinition
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain an ECS task definition resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is not present or is an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present and is not an empty list
+#       And: 'NetworkMode' property is either not present or set to a value other than 'host'
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present and is not an empty list
+#       And: 'NetworkMode' property is present and set to 'host'
+#       And: A container defined in 'ContainerDefinitions' has 'Privileged' property not set or is set as bool(false)
+#       And: This same container either does not have the 'User' property set or has it set to a value that translates
+#            to root user
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present
+#       And: 'NetworkMode' property is present and set to 'host'
+#       And: All Containers defined in 'ContainerDefinitions' either have the 'Privileged' property set to bool(true)
+#            or have their 'User' property set to a value that does not translate to root user
+#      Then: PASS
+
+#
+# Constants
+#
+let ECS_TASK_DEFINITION_TYPE = "AWS::ECS::TaskDefinition"
+let INPUT_DOCUMENT = this
+let ROOT_USER_PATTERNS = [ 0 , "0" , "root" , /^0:.*$/ , /^root:.*$/ ]
+let VALID_NETWORK_MODES = [ "host" ]
+
+#
+# Assignments
+#
+let ecs_task_definitions = Resources.*[ Type == %ECS_TASK_DEFINITION_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_task_definition_user_for_host_mode_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                       %ecs_task_definitions not empty {
+    check(%ecs_task_definitions.Properties)
+        <<
+        [CT.ECS.PR.8]: Require Amazon ECS task definitions to have secure networking modes and user definitions
+            [FIX]: For Amazon ECS task definitions that use 'host' networking mode, your container definitions must set the 'User' property to a non-root user. Also, to opt into elevated privileges, configure containers to run in privileged mode by setting the  'Privileged' property to 'true'.
+        >>
+}
+
+rule ecs_task_definition_user_for_host_mode_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TASK_DEFINITION_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.8]: Require Amazon ECS task definitions to have secure networking modes and user definitions
+            [FIX]: For Amazon ECS task definitions that use 'host' networking mode, your container definitions must set the 'User' property to a non-root user. Also, to opt into elevated privileges, configure containers to run in privileged mode by setting the  'Privileged' property to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_task_definition) {
+    %ecs_task_definition [
+        filter_nw_mode_container_definitions(this)
+    ]{
+        ContainerDefinitions[*] {
+            # Scenario 4 and 5
+            check_elevated_privilege_containers(this) or
+            check_nonroot_user_containers(this)
+        }
+    }
+}
+
+rule check_elevated_privilege_containers(container_definition) {
+    %container_definition {
+        Privileged exists
+        Privileged == true
+    }
+}
+
+rule check_nonroot_user_containers(container_definition) {
+    %container_definition {
+        User exists
+        User not in %ROOT_USER_PATTERNS
+    }
+}
+
+rule filter_nw_mode_container_definitions(ecs_task_definition) {
+    %ecs_task_definition {
+        # Scenario 2
+        ContainerDefinitions exists
+        ContainerDefinitions is_list
+        ContainerDefinitions not empty
+
+        # Scenario 3
+        NetworkMode exists
+        NetworkMode is_string
+        NetworkMode in %VALID_NETWORK_MODES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

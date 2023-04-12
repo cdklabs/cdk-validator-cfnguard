@@ -1,0 +1,97 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# Rule Identifier:
+#   dms_replication_instance_not_public_check
+# 
+# Description:
+#   This control checks whether your AWS DMS replication instance is public.
+# 
+# Reports on:
+#   AWS::DMS::ReplicationInstance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any DMS replication instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DMS replication instance resource
+#       And: 'PubliclyAccessible' is not present on the DMS replication instance
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DMS replication instance resource
+#       And: 'PubliclyAccessible' is present on the DMS replication instance
+#            and is set to bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DMS replication instance resource
+#       And: 'PubliclyAccessible' is present on the DMS replication instance
+#            and is set to bool(false)
+#      Then: PASS
+
+#
+# Constants
+#
+let DMS_REPLICATION_INSTANCE_TYPE = "AWS::DMS::ReplicationInstance"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let dms_replication_instances = Resources.*[ Type == %DMS_REPLICATION_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule dms_replication_instance_not_public_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                    %dms_replication_instances not empty {
+    check(%dms_replication_instances.Properties)
+        <<
+        [CT.DMS.PR.1]: Require that a public AWS DMS replication instance is not public
+            [FIX]: Set 'PubliclyAccessible' to 'false'.
+        >>
+}
+
+rule dms_replication_instance_not_public_check when is_cfn_hook(%INPUT_DOCUMENT, %DMS_REPLICATION_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%DMS_REPLICATION_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.DMS.PR.1]: Require that a public AWS DMS replication instance is not public
+            [FIX]: Set 'PubliclyAccessible' to 'false'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(dms_replication_instances) {
+    %dms_replication_instances {
+        # Scenario 2
+        PubliclyAccessible exists
+        # Scenario 3 and 4
+        PubliclyAccessible == false
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

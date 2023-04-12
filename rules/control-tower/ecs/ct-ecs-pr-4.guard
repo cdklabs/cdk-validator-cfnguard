@@ -1,0 +1,129 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_awsvpc_networking_enabled_check
+# 
+# Description:
+#   This control checks whether the networking mode for Amazon Elastic Container Service (ECS) task definitions is set to 'awsvpc'.
+# 
+# Reports on:
+#   AWS::ECS::TaskDefinition
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document does not contain an ECS task definition resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'RequiresCompatibilities' is present and only has one entry in the list set to 'EXTERNAL'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'RequiresCompatibilities' is either not present or set to a list with entries that include 'EC2',
+#            'FARGATE' or both.
+#       And: 'NetworkMode' is not present
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'RequiresCompatibilities' is either not present or set to a list with entries that include 'EC2',
+#            'FARGATE' or both.
+#       And: 'NetworkMode' is present
+#       And: 'NetworkMode' is not set to 'awsvpc'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'RequiresCompatibilities' is either not present or set to a list with entries that include 'EC2',
+#            'FARGATE' or both.
+#       And: 'NetworkMode' is present
+#       And: 'NetworkMode' is set to 'awsvpc'
+#      Then: PASS
+
+#
+# Constants
+#
+let ECS_TASK_DEFINITION_TYPE = "AWS::ECS::TaskDefinition"
+let ALLOWED_NETWORK_MODES = [ "awsvpc" ]
+let SUPPORTED_LAUNCH_PLATFORMS = [ "EC2" , "FARGATE" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ecs_task_definitions = Resources.*[ Type == %ECS_TASK_DEFINITION_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_awsvpc_networking_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                              %ecs_task_definitions not empty {
+    check(%ecs_task_definitions.Properties)
+        <<
+        [CT.ECS.PR.4]: Require Amazon ECS tasks to use 'awsvpc' networking mode
+            [FIX]: Set 'NetworkMode' to 'awsvpc' for Amazon ECS tasks that deploy to Amazon EC2 or AWS Fargate.
+        >>
+}
+
+rule ecs_awsvpc_networking_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TASK_DEFINITION_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.4]: Require Amazon ECS tasks to use 'awsvpc' networking mode
+            [FIX]: Set 'NetworkMode' to 'awsvpc' for Amazon ECS tasks that deploy to Amazon EC2 or AWS Fargate.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_task_definition) {
+    %ecs_task_definition [ filter_external_task_definitions(this) ] {
+        # Scenario 3
+        NetworkMode exists
+
+        # Scenario 4 and 5
+        NetworkMode is_string
+        NetworkMode in %ALLOWED_NETWORK_MODES
+    }
+}
+
+rule filter_external_task_definitions(ecs_task_definition) {
+    %ecs_task_definition {
+        # Scenario 2
+        RequiresCompatibilities not exists or
+        filter_supported_task_definitions(RequiresCompatibilities)
+    }
+}
+
+rule filter_supported_task_definitions(requires_compatibilities) {
+    %requires_compatibilities {
+        this is_list
+        this not empty
+        some this[*] in %SUPPORTED_LAUNCH_PLATFORMS
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

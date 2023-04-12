@@ -1,0 +1,118 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_container_insights_enabled_check
+# 
+# Description:
+#   This control checks whether your Amazon ECS clusters have container insights enabled.
+# 
+# Reports on:
+#   AWS::ECS::Cluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document does not contain an ECS cluster resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS cluster resource
+#       And: 'ClusterSettings' property is not present or is an empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS cluster resource
+#       And: 'ClusterSettings' property is present
+#       And: An entry with 'Name' set to 'containerInsights' is not present in 'ClusterSettings'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS cluster resource
+#       And: 'ClusterSettings' property is present
+#       And: An entry with 'Name' set to 'containerInsights' is present in 'ClusterSettings' with a 'Value' not set
+#            to 'enabled'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS cluster resource
+#       And: 'ClusterSettings' property is present
+#       And: An entry with 'Name' set to 'containerInsights' is present in 'ClusterSettings' with a 'Value' set to
+#            'enabled'
+#      Then: PASS
+
+#
+# Constants
+#
+let ECS_CLUSTER_TYPE = "AWS::ECS::Cluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ecs_clusters = Resources.*[ Type == %ECS_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_container_insights_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %ecs_clusters not empty {
+    check(%ecs_clusters.Properties)
+        <<
+        [CT.ECS.PR.2]: Require any Amazon ECS cluster to have container insights activated
+            [FIX]: Enable container insights on Amazon ECS clusters with an entry in 'ClusterSettings' that has 'Name' set to 'containerInsights' and 'Value' set to 'enabled'.
+        >>
+}
+
+rule ecs_container_insights_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.2]: Require any Amazon ECS cluster to have container insights activated
+            [FIX]: Enable container insights on Amazon ECS clusters with an entry in 'ClusterSettings' that has 'Name' set to 'containerInsights' and 'Value' set to 'enabled'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_cluster) {
+    %ecs_cluster {
+        # Scenario 2
+        ClusterSettings exists
+        ClusterSettings is_list
+        ClusterSettings not empty
+
+        # Scenario 3, 4 and 5
+        some ClusterSettings[*] {
+            Name exists
+            Value exists
+
+            Name is_string
+            Value is_string
+
+            Name == "containerInsights"
+            Value == "enabled"
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

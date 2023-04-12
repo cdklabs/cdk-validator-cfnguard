@@ -1,0 +1,167 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_custom_ssl_certificate_check
+# 
+# Description:
+#   This control checks whether the certificate associated with an Amazon CloudFront distribution is a custom SSL/TLS certificate.
+# 
+# Reports on:
+#   AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is not present on the CloudFront distribution resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is present on the CloudFront distribution resource
+#       And: 'CloudFrontDefaultCertificate' is set to bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is present on the CloudFront distribution resource
+#       And: One of 'AcmCertificateArn' or 'IamCertificateId' are not provided or provided as empty strings or invalid
+#            local references
+#       And: One of 'MinimumProtocolVersion' and 'SslSupportMethod' is not provided or provided as an empty string
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is present on the CloudFront distribution resource
+#       And: 'AcmCertificateArn' or 'IamCertificateId' are provided in the 'ViewerCertificate' configuration as
+#             non-empty strings or 'AcmCertificateArn' is a valid local reference
+#       And: 'MinimumProtocolVersion' and 'SslSupportMethod' are provided as non-empty strings
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_custom_ssl_certificate_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                  %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.6]: Require an Amazon CloudFront distribution to use custom SSL/TLS certificates
+            [FIX]: Provide a 'ViewerCertificate' configuration with values for 'AcmCertificateArn', 'MinimumProtocolVersion', and 'SslSupportMethod'.
+        >>
+}
+
+rule cloudfront_custom_ssl_certificate_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.6]: Require an Amazon CloudFront distribution to use custom SSL/TLS certificates
+            [FIX]: Provide a 'ViewerCertificate' configuration with values for 'AcmCertificateArn', 'MinimumProtocolVersion', and 'SslSupportMethod'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            ViewerCertificate exists
+            ViewerCertificate is_struct
+
+            ViewerCertificate {
+                CloudFrontDefaultCertificate not exists or
+                CloudFrontDefaultCertificate == false
+
+                check_custom_acm_certificate_provided(AcmCertificateArn, "AWS::CertificateManager::Certificate") or
+                check_custom_iam_certificate_provided(IamCertificateId)
+
+                MinimumProtocolVersion exists
+                check_is_string_and_not_empty(MinimumProtocolVersion)
+
+                SslSupportMethod exists
+                check_is_string_and_not_empty(SslSupportMethod)
+            }
+        }
+    }
+}
+
+rule check_custom_acm_certificate_provided(certificate, cfn_type) {
+    %certificate {
+        this exists
+        check_is_string_and_not_empty(this) or
+        check_local_references(%INPUT_DOCUMENT, this, %cfn_type)
+    }
+}
+
+rule check_custom_iam_certificate_provided(certificate) {
+    %certificate {
+        this exists
+        check_is_string_and_not_empty(this)
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

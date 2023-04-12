@@ -1,0 +1,178 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_sni_enabled_check
+# 
+# Description:
+#   This control checks whether your Amazon CloudFront distributions are configured to use SNI to serve HTTPS requests.
+# 
+# Reports on:
+#   AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is not present on the CloudFront distribution resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is present on the CloudFront distribution resource
+#       And: 'CloudFrontDefaultCertificate' is set to bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is present on the CloudFront distribution resource
+#       And: 'AcmCertificateArn' or 'IamCertificateId' are provided in the 'ViewerCertificate' configuration
+#       And: 'MinimumProtocolVersion' is provided in the 'ViewerCertificate' configuration with a protocol that does not
+#            support SNI (SSLv3)
+#       Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is present on the CloudFront distribution resource
+#       And: 'AcmCertificateArn' or 'IamCertificateId' are provided in the 'ViewerCertificate' configuration
+#       And: 'MinimumProtocolVersion' is provided in the 'ViewerCertificate' configuration with a protocol that supports
+#            SNI (TLSv1 or greater)
+#       And: 'SslSupportMethod' is set to 'vip'
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'ViewerCertificate' is present on the CloudFront distribution resource
+#       And: 'AcmCertificateArn' or 'IamCertificateId' are provided in the 'ViewerCertificate' configuration
+#       And: 'MinimumProtocolVersion' is provided in the 'ViewerCertificate' configuration with a protocol that supports
+#            SNI (TLSv1 or greater)
+#       And: 'SslSupportMethod' is set to 'sni-only'
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let UNSUPPORTED_PROTOCOLS_FOR_SNI = [ "SSLv3" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_sni_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                       %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.7]: Require an Amazon CloudFront distribution to use SNI to serve HTTPS requests
+            [FIX]: Within 'ViewerCertificate', set 'SslSupportMethod' to 'sni-only', 'MinimumProtocolVersion' to a protocol that supports SNI ('TLSv1' or greater), and 'AcmCertificateArn' to the ARN of an AWS ACM certificate.
+        >>
+}
+
+rule cloudfront_sni_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.7]: Require an Amazon CloudFront distribution to use SNI to serve HTTPS requests
+            [FIX]: Within 'ViewerCertificate', set 'SslSupportMethod' to 'sni-only', 'MinimumProtocolVersion' to a protocol that supports SNI ('TLSv1' or greater), and 'AcmCertificateArn' to the ARN of an AWS ACM certificate.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            ViewerCertificate exists
+            ViewerCertificate is_struct
+
+            ViewerCertificate {
+                CloudFrontDefaultCertificate not exists or
+                CloudFrontDefaultCertificate == false
+
+                check_custom_acm_certificate_provided(AcmCertificateArn, "AWS::CertificateManager::Certificate") or
+                check_custom_iam_certificate_provided(IamCertificateId)
+
+                MinimumProtocolVersion exists
+                MinimumProtocolVersion not in %UNSUPPORTED_PROTOCOLS_FOR_SNI
+
+                SslSupportMethod exists
+                SslSupportMethod == "sni-only"
+            }
+        }
+    }
+}
+
+rule check_custom_acm_certificate_provided(certificate, cfn_type) {
+    %certificate {
+        this exists
+        check_is_string_and_not_empty(this) or
+        check_local_references(%INPUT_DOCUMENT, this, %cfn_type)
+    }
+}
+
+rule check_custom_iam_certificate_provided(certificate) {
+    %certificate {
+        this exists
+        check_is_string_and_not_empty(this)
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

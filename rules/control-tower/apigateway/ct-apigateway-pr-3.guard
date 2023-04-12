@@ -1,0 +1,141 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   api_gw_cache_encrypted_check
+# 
+# Description:
+#   This control checks whether an Amazon API Gateway REST API stage that has caching enabled also encrypts the caches.
+# 
+# Reports on:
+#   AWS::ApiGateway::Stage
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon API Gateway stage resources
+#     Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon API Gateway stage resource
+#       And: 'CacheClusterEnabled' is not set, or is set to bool(false) on the API Gateway stage resource
+#     Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon API Gateway stage resource
+#       And: 'CacheClusterEnabled' is set to bool(true) on the API Gateway stage resource
+#       And: In the Stage resource, 'MethodSettings' is not present or is provided and is an empty list.
+#     Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon API Gateway stage resource
+#       And: 'CacheClusterEnabled' is set to bool(true) on the API Gateway stage resource
+#       And: In the stage resource, cache data encryption is not enabled for all HTTP methods and API resources (In
+#           'MethodSettings', 'CacheDataEncrypted' is omitted or set to bool(false) for 'HttpMethod' of '*' and
+#           'ResourcePath' of '/*' )
+#     Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway stage resource
+#       And: 'CacheClusterEnabled' is set to bool(true) on the API Gateway stage resource
+#       And: In the stage resource, cache data encryption is configured for all 'MethodSettings' (CacheDataEncrypted is
+#           bool(true) for 'HttpMethod' of '*' and 'ResourcePath' of '/*')
+#       And: 'CacheDataEncrypted' has been set to bool(false) for any other method settings
+#     Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway stage resource
+#       And: 'CacheClusterEnabled' is set to bool(true) on the API Gateway stage resource
+#       And: In the stage resource cache data encryption is configured for all 'MethodSettings' (CacheDataEncrypted is
+#           bool(true) for 'HttpMethod' of '*' and 'ResourcePath' of '/*')
+#       And: 'CacheDataEncrypted' has not been provided or set to bool(true) for all other method settings
+#     Then: PASS
+
+#
+# Constants
+#
+let API_GW_STAGE_TYPE = "AWS::ApiGateway::Stage"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let api_gateway_stages = Resources.*[ Type == %API_GW_STAGE_TYPE ]
+
+#
+# Primary Rules
+#
+rule api_gw_cache_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                                       %api_gateway_stages not empty {
+    check(%api_gateway_stages.Properties)
+        <<
+        [CT.APIGATEWAY.PR.3]: Require that an Amazon API Gateway REST API stage has encryption at rest configured for cache data
+            [FIX]: Configure encryption on Amazon API Gateway caches with a 'MethodSetting' that sets 'CacheDataEncrypted' to true for all methods ('HttpMethod' of '*' and 'ResourcePath' of '/*'). Ensure that you do not set 'CacheDataEncrypted' to false for any method setting.
+        >>
+}
+
+rule api_gw_cache_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %API_GW_STAGE_TYPE) {
+    check(%INPUT_DOCUMENT.%API_GW_STAGE_TYPE.resourceProperties)
+        <<
+        [CT.APIGATEWAY.PR.3]: Require that an Amazon API Gateway REST API stage has encryption at rest configured for cache data
+            [FIX]: Configure encryption on Amazon API Gateway caches with a 'MethodSetting' that sets 'CacheDataEncrypted' to true for all methods ('HttpMethod' of '*' and 'ResourcePath' of '/*'). Ensure that you do not set 'CacheDataEncrypted' to false for any method setting.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(api_gateway_stage) {
+    %api_gateway_stage [
+        CacheClusterEnabled exists
+        CacheClusterEnabled == true
+    ] {
+        # Scenario 2, 3, 4, 6
+        cache_encrypted(this)
+    }
+}
+
+rule cache_encrypted(api_gateway_stage) {
+    %api_gateway_stage {
+        MethodSettings exists
+        MethodSettings is_list
+        MethodSettings not empty
+
+        some MethodSettings[*] {
+            HttpMethod exists
+            ResourcePath exists
+            CacheDataEncrypted exists
+
+            HttpMethod == "*"
+            ResourcePath == "/*"
+            CacheDataEncrypted == true
+        }
+
+        MethodSettings[*] {
+            when CacheDataEncrypted exists {
+                CacheDataEncrypted == true
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

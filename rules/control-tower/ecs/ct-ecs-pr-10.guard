@@ -1,0 +1,116 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_task_definition_pid_mode_check
+# 
+# Description:
+#   This control checks whether Amazon Elastic Container Service (ECS) task definitions are configured to share a host's process namespace with its containers.
+# 
+# Reports on:
+#   AWS::ECS::TaskDefinition
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation Hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain an ECS task definition resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'PidMode' is provided as an empty string
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'PidMode' is set to 'host'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'PidMode' is not present
+#      Then: PASS
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'PidMode' is provided as a non-empty string that is not 'host'
+#      Then: PASS
+
+#
+# Constants
+#
+let ECS_TASK_DEFINITION_TYPE = "AWS::ECS::TaskDefinition"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ecs_task_definitions = Resources.*[ Type == %ECS_TASK_DEFINITION_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_task_definition_pid_mode_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %ecs_task_definitions not empty {
+    check(%ecs_task_definitions.Properties)
+        <<
+        [CT.ECS.PR.10]: Require that Amazon ECS task definitions do not share the host's process namespace
+            [FIX]: Omit the 'PidMode' property, or set 'PidMode' to 'task'.
+        >>
+}
+
+rule ecs_task_definition_pid_mode_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TASK_DEFINITION_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.10]: Require that Amazon ECS task definitions do not share the host's process namespace
+            [FIX]: Omit the 'PidMode' property, or set 'PidMode' to 'task'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_task_definition) {
+    %ecs_task_definition {
+        # Scenario 2
+        PidMode not exists or
+
+        # Scenario 3 and 4
+        check_pidmode_value(PidMode)
+    }
+}
+
+rule check_pidmode_value(pid_mode) {
+    %pid_mode {
+        check_is_string_and_not_empty(this)
+        this != "host"
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
