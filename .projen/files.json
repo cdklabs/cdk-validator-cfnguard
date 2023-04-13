@@ -2,6 +2,7 @@
   "files": [
     ".eslintrc.json",
     ".gitattributes",
+    ".github/CODEOWNERS",
     ".github/pull_request_template.md",
     ".github/workflows/auto-approve.yml",
     ".github/workflows/auto-merge.yml",
