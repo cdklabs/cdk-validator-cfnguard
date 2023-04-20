@@ -1,47 +1,4 @@
 {
-    "Artifacts": [
-        {
-            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.15/artifacts/deployment/CT.RDS.PR.15.guard",
-            "Purpose": "DEPLOYMENT",
-            "Type": "CLOUDFORMATION_GUARD_RULE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
-            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.15/artifacts/tests/bug-bash/templates/scenario-2-FAIL.yaml",
-            "Name": "Non-compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_NON_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
-            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.15/artifacts/tests/bug-bash/templates/scenario-3e-FAIL.yaml",
-            "Name": "Non-compliant AWS CloudFormation template example 2",
-            "Purpose": "TESTING_NON_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
-            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.15/artifacts/tests/bug-bash/templates/scenario-4b-console-PASS.yaml",
-            "Name": "Compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.15/artifacts/tests/CT.RDS.PR.15_common_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.15/artifacts/tests/CT.RDS.PR.15_cfn_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRDS/cfn-guard-rules/CT.RDS.PR.15/artifacts/tests/CT.RDS.PR.15_hook_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        }
-    ],
     "Behavior": "PROACTIVE",
     "ComplianceFrameworkMappings": [
         {

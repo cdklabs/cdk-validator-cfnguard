@@ -1,40 +1,4 @@
 {
-    "Artifacts": [
-        {
-            "Location": "/controls/AmazonS3/cfn-guard-rules/CT.S3.PR.8/artifacts/deployment/CT.S3.PR.8.guard",
-            "Purpose": "DEPLOYMENT",
-            "Type": "CLOUDFORMATION_GUARD_RULE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
-            "Location": "/controls/AmazonS3/cfn-guard-rules/CT.S3.PR.8/artifacts/tests/bug-bash/templates/scenario-3a-console-FAIL.yaml",
-            "Name": "Non-compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_NON_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
-            "Location": "/controls/AmazonS3/cfn-guard-rules/CT.S3.PR.8/artifacts/tests/bug-bash/templates/scenario-4g-PASS.yaml",
-            "Name": "Compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonS3/cfn-guard-rules/CT.S3.PR.8/artifacts/tests/CT.S3.PR.8_common_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonS3/cfn-guard-rules/CT.S3.PR.8/artifacts/tests/CT.S3.PR.8_cfn_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonS3/cfn-guard-rules/CT.S3.PR.8/artifacts/tests/CT.S3.PR.8_hook_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        }
-    ],
     "Behavior": "PROACTIVE",
     "ComplianceFrameworkMappings": [
         {
