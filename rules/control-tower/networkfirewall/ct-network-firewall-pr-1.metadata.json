@@ -1,40 +1,4 @@
 {
-    "Artifacts": [
-        {
-            "Location": "/controls/AWSNetworkFirewall/cfn-guard-rules/CT.NETWORK-FIREWALL.PR.1/artifacts/deployment/CT.NETWORK-FIREWALL.PR.1.guard",
-            "Purpose": "DEPLOYMENT",
-            "Type": "CLOUDFORMATION_GUARD_RULE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
-            "Location": "/controls/AWSNetworkFirewall/cfn-guard-rules/CT.NETWORK-FIREWALL.PR.1/artifacts/tests/bug-bash/templates/scenario-2b-FAIL.yaml",
-            "Name": "Non-compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_NON_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
-            "Location": "/controls/AWSNetworkFirewall/cfn-guard-rules/CT.NETWORK-FIREWALL.PR.1/artifacts/tests/bug-bash/templates/scenario-6c-PASS.yaml",
-            "Name": "Compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AWSNetworkFirewall/cfn-guard-rules/CT.NETWORK-FIREWALL.PR.1/artifacts/tests/CT.NETWORK-FIREWALL.PR.1_common_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AWSNetworkFirewall/cfn-guard-rules/CT.NETWORK-FIREWALL.PR.1/artifacts/tests/CT.NETWORK-FIREWALL.PR.1_cfn_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AWSNetworkFirewall/cfn-guard-rules/CT.NETWORK-FIREWALL.PR.1/artifacts/tests/CT.NETWORK-FIREWALL.PR.1_hook_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        }
-    ],
     "Behavior": "PROACTIVE",
     "ComplianceFrameworkMappings": [
         {

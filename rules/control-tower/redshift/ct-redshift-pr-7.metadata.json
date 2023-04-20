@@ -1,40 +1,4 @@
 {
-    "Artifacts": [
-        {
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.7/artifacts/deployment/CT.REDSHIFT.PR.7.guard",
-            "Purpose": "DEPLOYMENT",
-            "Type": "CLOUDFORMATION_GUARD_RULE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.7/artifacts/tests/bug-bash/templates/scenario-3b-FAIL.yaml",
-            "Name": "Non-compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_NON_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.7/artifacts/tests/bug-bash/templates/scenario-4-PASS.yaml",
-            "Name": "Compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.7/artifacts/tests/CT.REDSHIFT.PR.7_hook_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.7/artifacts/tests/CT.REDSHIFT.PR.7_common_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.7/artifacts/tests/CT.REDSHIFT.PR.7_cfn_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        }
-    ],
     "Behavior": "PROACTIVE",
     "ControlOwner": "AWS Control Tower",
     "DeploymentMechanism": "AWS CloudFormation Hook",

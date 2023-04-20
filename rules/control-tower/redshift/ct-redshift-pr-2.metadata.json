@@ -1,40 +1,4 @@
 {
-    "Artifacts": [
-        {
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.2/artifacts/deployment/CT.REDSHIFT.PR.2.guard",
-            "Purpose": "DEPLOYMENT",
-            "Type": "CLOUDFORMATION_GUARD_RULE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that fails the check by the proactive control.",
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.2/artifacts/tests/bug-bash/templates/scenario-4-FAIL.yaml",
-            "Name": "Non-compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_NON_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Description": "This template provides an example AWS CloudFormation resource that passes the check by the proactive control.",
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.2/artifacts/tests/bug-bash/templates/scenario-5a-PASS.yaml",
-            "Name": "Compliant AWS CloudFormation template example 1",
-            "Purpose": "TESTING_COMPLIANCE",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.2/artifacts/tests/CT.REDSHIFT.PR.2_cfn_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.2/artifacts/tests/CT.REDSHIFT.PR.2_common_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        },
-        {
-            "Location": "/controls/AmazonRedshift/cfn-guard-rules/CT.REDSHIFT.PR.2/artifacts/tests/CT.REDSHIFT.PR.2_hook_tests.yaml",
-            "Purpose": "TESTING",
-            "Type": "CLOUDFORMATION_TEMPLATE"
-        }
-    ],
     "Behavior": "PROACTIVE",
     "ComplianceFrameworkMappings": [
         {
