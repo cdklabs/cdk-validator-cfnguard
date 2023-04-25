@@ -9,7 +9,17 @@
       "type": "build"
     },
     {
+      "name": "@types/fs-extra",
+      "version": "11.0.1",
+      "type": "build"
+    },
+    {
       "name": "@types/jest",
+      "type": "build"
+    },
+    {
+      "name": "@types/klaw",
+      "version": "3.0.3",
       "type": "build"
     },
     {
@@ -62,6 +72,11 @@
       "type": "build"
     },
     {
+      "name": "fs-extra",
+      "version": "^11.1.1",
+      "type": "build"
+    },
+    {
       "name": "jest",
       "type": "build"
     },
@@ -85,6 +100,11 @@
     {
       "name": "jsii",
       "version": "~5.0.0",
+      "type": "build"
+    },
+    {
+      "name": "klaw",
+      "version": "4.1.0",
       "type": "build"
     },
     {
