@@ -8,6 +8,10 @@ import {
 } from 'aws-cdk-lib';
 import { CfnGuardValidator } from '../src';
 
+beforeEach(() => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+  jest.spyOn(console, 'log').mockImplementation(() => {});
+});
 
 describe('CfnGuardValidator', () => {
   test('synth fails', () => {
