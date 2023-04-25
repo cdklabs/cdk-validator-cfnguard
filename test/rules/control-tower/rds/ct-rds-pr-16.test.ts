@@ -18,7 +18,7 @@ beforeEach(() => {
 });
 
 const GUARD_RULE_CHECK_NAME = 'rds_cluster_storage_encrypted_check';
-const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/rds/ct-rds-pr-16.guard');
+const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/cfn-guard/rds/ct-rds-pr-16.guard');
 const VALIDATOR_CONFIG = { rules: [GUARD_RULE_PATH], controlTowerRulesEnabled: false };
 
 describe('CT.RDS.PR.16', () => {

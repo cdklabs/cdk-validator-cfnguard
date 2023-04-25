@@ -5,7 +5,7 @@ import { CfnGuardValidator } from '../../../../src';
 import { GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN } from '../../../constants';
 
 const GUARD_RULE_CHECK_NAME = 'iam_managed_policy_no_statements_with_admin_access_check';
-const GUARD_RULE_PATH = path.join(__dirname, '../../../../rules/control-tower/iam/ct-iam-pr-2.guard');
+const GUARD_RULE_PATH = path.join(__dirname, '../../../../rules/control-tower/cfn-guard/iam/ct-iam-pr-2.guard');
 const VALIDATOR_CONFIG = { rules: [GUARD_RULE_PATH], controlTowerRulesEnabled: false };
 
 beforeEach(() => {

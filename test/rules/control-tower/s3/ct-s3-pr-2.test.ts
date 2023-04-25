@@ -11,7 +11,7 @@ import { CfnGuardValidator } from '../../../../src';
 import { GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN } from '../../../constants';
 
 const GUARD_RULE_CHECK_NAME = 's3_bucket_logging_enabled_check';
-const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/s3/ct-s3-pr-2.guard');
+const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/cfn-guard/s3/ct-s3-pr-2.guard');
 const VALIDATOR_CONFIG = { rules: [GUARD_RULE_PATH], controlTowerRulesEnabled: false };
 
 beforeEach(() => {

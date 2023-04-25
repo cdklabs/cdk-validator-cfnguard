@@ -9,10 +9,6 @@ import {
 import { CfnGuardValidator } from '../src';
 
 
-beforeEach(() => {
-  jest.spyOn(console, 'error').mockImplementation(() => {});
-  jest.spyOn(console, 'log').mockImplementation(() => {});
-});
 describe('CfnGuardValidator', () => {
   test('synth fails', () => {
     // GIVEN
@@ -46,7 +42,7 @@ describe('CfnGuardValidator', () => {
         new CfnGuardValidator({
           controlTowerRulesEnabled: false,
           rules: [
-            path.join(__dirname, '../rules/control-tower/s3/ct-s3-pr-1.guard'),
+            path.join(__dirname, '../rules/control-tower/cfn-guard/s3/ct-s3-pr-1.guard'),
           ],
         }),
       ],

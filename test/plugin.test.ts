@@ -15,8 +15,10 @@ beforeEach(() => {
     [path.join(__dirname, 'test-data')]: mock.load(path.join(__dirname, 'test-data')),
     [path.join(__dirname, '../rules')]: {
       'control-tower': {
-        amazon_s3: {
-          's3-rule.guard': '',
+        'cfn-guard': {
+          amazon_s3: {
+            's3-rule.guard': '',
+          },
         },
       },
     },
@@ -34,18 +36,21 @@ afterEach(() => {
 describe('CfnGuardPlugin', () => {
   test('cfn-guard called', () => {
     // GIVEN
-    mock({
+    const mymock = mock({
       [path.join(__dirname, '../rules')]: {
         'control-tower': {
-          s3: {
-            'ct-s3-rule.guard': '',
-          },
-          efs: {
-            'ct-efs-rule.guard': '',
+          'cfn-guard': {
+            s3: {
+              'ct-s3-rule.guard': '',
+            },
+            efs: {
+              'ct-efs-rule.guard': '',
+            },
           },
         },
       },
     });
+    console.log(mymock);
     const validator = new plugin.CfnGuardValidator();
 
     // WHEN
@@ -57,20 +62,20 @@ describe('CfnGuardPlugin', () => {
     expect(execMock).toHaveBeenCalledTimes(4);
     expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
       '--rules',
-      path.join(__dirname, '../rules/control-tower/efs/ct-efs-rule.guard'),
+      path.join(__dirname, '../rules/control-tower/cfn-guard/efs/ct-efs-rule.guard'),
       '--data',
       'template-path-1',
     ]), { json: true });
     expect(execMock).toHaveBeenNthCalledWith(2, expect.arrayContaining([
       '--rules',
-      path.join(__dirname, '../rules/control-tower/efs/ct-efs-rule.guard'),
+      path.join(__dirname, '../rules/control-tower/cfn-guard/efs/ct-efs-rule.guard'),
       '--data',
       'template-path-2',
     ]), { json: true });
     expect(execMock).toHaveBeenNthCalledWith(3, expect.arrayContaining([
       expect.stringMatching(/.*bin\/\w+\/cfn-guard$/),
       '--rules',
-      path.join(__dirname, '../rules/control-tower/s3/ct-s3-rule.guard'),
+      path.join(__dirname, '../rules/control-tower/cfn-guard/s3/ct-s3-rule.guard'),
       '--data',
       'template-path-1',
       '--output-format',
@@ -80,7 +85,7 @@ describe('CfnGuardPlugin', () => {
     ]), { json: true });
     expect(execMock).toHaveBeenNthCalledWith(4, expect.arrayContaining([
       '--rules',
-      path.join(__dirname, '../rules/control-tower/s3/ct-s3-rule.guard'),
+      path.join(__dirname, '../rules/control-tower/cfn-guard/s3/ct-s3-rule.guard'),
       '--data',
       'template-path-2',
     ]), { json: true });
@@ -91,11 +96,13 @@ describe('CfnGuardPlugin', () => {
     mock({
       [path.join(__dirname, '../rules')]: {
         'control-tower': {
-          s3: {
-            'ct-s3-rule.guard': '',
-          },
-          efs: {
-            'ct-efs-rule.guard': '',
+          'cfn-guard': {
+            s3: {
+              'ct-s3-rule.guard': '',
+            },
+            efs: {
+              'ct-efs-rule.guard': '',
+            },
           },
         },
       },
@@ -113,7 +120,7 @@ describe('CfnGuardPlugin', () => {
     expect(execMock).toHaveBeenCalledTimes(1);
     expect(execMock).toHaveBeenCalledWith(expect.arrayContaining([
       '--rules',
-      path.join(__dirname, '../rules/control-tower/efs/ct-efs-rule.guard'),
+      path.join(__dirname, '../rules/control-tower/cfn-guard/efs/ct-efs-rule.guard'),
       '--data',
       'template.json',
     ]), { json: true });
