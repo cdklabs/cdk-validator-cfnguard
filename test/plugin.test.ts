@@ -36,7 +36,7 @@ afterEach(() => {
 describe('CfnGuardPlugin', () => {
   test('cfn-guard called', () => {
     // GIVEN
-    const mymock = mock({
+    mock({
       [path.join(__dirname, '../rules')]: {
         'control-tower': {
           'cfn-guard': {
@@ -50,7 +50,6 @@ describe('CfnGuardPlugin', () => {
         },
       },
     });
-    console.log(mymock);
     const validator = new plugin.CfnGuardValidator();
 
     // WHEN

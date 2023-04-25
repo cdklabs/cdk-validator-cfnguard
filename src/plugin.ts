@@ -71,7 +71,6 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
     if (props.controlTowerRulesEnabled ?? true) {
       this.rulesPaths.push(path.join(__dirname, '..', 'rules/control-tower/cfn-guard'));
     }
-    console.log(this.rulesPaths);
     this.rulesPaths.push(...props.rules ?? []);
     const osPlatform = os.platform();
     // guard calls it ubuntu but seems to apply to all linux
