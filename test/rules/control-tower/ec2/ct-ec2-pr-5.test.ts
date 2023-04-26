@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 const GUARD_RULE_CHECK_NAME = 'nacl_no_unrestricted_ssh_rdp_check';
-const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/ec2/ct-ec2-pr-5.guard');
+const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/cfn-guard/ec2/ct-ec2-pr-5.guard');
 const VALIDATOR_CONFIG = { rules: [GUARD_RULE_PATH], controlTowerRulesEnabled: false };
 
 describe('CT.EC2.PR.5', () => {

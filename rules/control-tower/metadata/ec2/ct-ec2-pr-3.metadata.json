@@ -1,0 +1,77 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4",
+                "AC-4(21)",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(21)",
+                "SC-7(4)",
+                "SC-7(5)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "1.3.6",
+                "2.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether security groups that allow unrestricted incoming traffic ('0.0.0.0/0' or '::/0'), only allow inbound TCP or UDP connections on authorized ports.",
+    "DisplayName": "Require an Amazon EC2 security group to allow incoming traffic on authorized ports only",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Instructions for configuring VPC Security Groups",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::SecurityGroup",
+        "AWS::EC2::SecurityGroupIngress"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        },
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.EC2.18",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Ensure that security groups with ingress rules that allow TCP or UDP traffic from '0.0.0.0/0' or ' only allow traffic from ports 80 or 443.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

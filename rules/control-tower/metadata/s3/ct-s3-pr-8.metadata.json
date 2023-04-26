@@ -1,0 +1,78 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "CIS AWS Benchmark 1.4",
+            "Ids": [
+                "2.1.2"
+            ]
+        },
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-17(2)",
+                "AC-4",
+                "IA-5(1)",
+                "SC-12(3)",
+                "SC-13",
+                "SC-23",
+                "SC-23(3)",
+                "SC-7(4)",
+                "SC-8",
+                "SC-8(1)",
+                "SC-8(2)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2",
+                "4.1",
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon S3 bucket policies require requests to use Secure Socket Layer (SSL).",
+    "DisplayName": "Require that Amazon S3 bucket requests use Secure Sockets Layer",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "What S3 bucket policy should I use to comply with the AWS Config rule s3-bucket-ssl-requests-only?",
+            "Type": "AWS Documentation",
+            "Url": "https://aws.amazon.com/premiumsupport/knowledge-center/s3-bucket-policy-for-config-rule/"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::S3::BucketPolicy"
+    ],
+    "EvaluatedServices": [
+        "Amazon S3"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.S3.PR.8",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.3",
+            "Name": "Encrypt data in transit"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.S3.5",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Configure an Amazon S3 bucket policy statement that denies access to all principals and actions for the S3 bucket and bucket objects when a secure transport protocol is not in use.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

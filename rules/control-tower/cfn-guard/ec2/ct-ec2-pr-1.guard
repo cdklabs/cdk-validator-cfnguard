@@ -1,0 +1,143 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_launch_template_imdsv2_check
+# 
+# Description:
+#   This control checks whether your Amazon EC2 launch templates are configured with Instance Metadata Service Version 2 (IMDSv2).
+# 
+# Reports on:
+#   AWS::EC2::LaunchTemplate
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EC2 launch template resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 launch template resource
+#       And: 'LaunchTemplateData' has not been provided or 'LaunchTemplateData.MetadataOptions.HttpEndpoint' has
+#             been provided and is equal to 'disabled'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 launch template resource
+#       And: 'LaunchTemplateData' has been provided
+#       And: 'MetadataOptions.HttpEndpoint' in 'LaunchTemplateData' has not been provided or has been provided and
+#            is equal to 'enabled'
+#       And: 'MetadataOptions.HttpTokens' in 'LaunchTemplateData' has not been provided
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 launch template resource
+#       And: 'LaunchTemplateData' has been provided
+#       And: 'MetadataOptions.HttpEndpoint' in 'LaunchTemplateData' has not been provided or has been provided and
+#            is equal to 'enabled'
+#       And: 'MetadataOptions.HttpTokens' in 'LaunchTemplateData' has been provided and set to a value other than 'required'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 launch template resource
+#       And: 'LaunchTemplateData' has been provided
+#       And: 'MetadataOptions.HttpEndpoint' in 'LaunchTemplateData' has not been provided or has been provided and
+#            is equal to 'enabled'
+#       And: 'MetadataOptions.HttpTokens' in 'LaunchTemplateData' has been provided and set to 'required'
+#      Then: PASS
+
+#
+# Constants
+#
+let EC2_LAUNCH_TEMPLATE_TYPE = "AWS::EC2::LaunchTemplate"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ec2_launch_templates = Resources.*[ Type == %EC2_LAUNCH_TEMPLATE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_launch_template_imdsv2_check when is_cfn_template(%INPUT_DOCUMENT)
+                                           %ec2_launch_templates not empty {
+    check(%ec2_launch_templates.Properties)
+        <<
+        [CT.EC2.PR.1]: Require an Amazon EC2 launch template to have IMDSv2 configured
+            [FIX]: Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration and set the value of 'HttpTokens' to 'required'.
+        >>
+}
+
+rule ec2_launch_template_imdsv2_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_LAUNCH_TEMPLATE_TYPE) {
+    check(%INPUT_DOCUMENT.%EC2_LAUNCH_TEMPLATE_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.1]: Require an Amazon EC2 launch template to have IMDSv2 configured
+            [FIX]: Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration and set the value of 'HttpTokens' to 'required'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(launch_template) {
+    %launch_template [
+        # Scenario 2
+        filter_launch_template_imds_enabled(this)
+    ] {
+        LaunchTemplateData exists
+        LaunchTemplateData is_struct
+
+        LaunchTemplateData {
+            # Scenario 3, 4 and 5
+            MetadataOptions exists
+            MetadataOptions is_struct
+            MetadataOptions {
+                HttpTokens exists
+                HttpTokens == "required"
+            }
+        }
+    }
+}
+
+rule filter_launch_template_imds_enabled(launch_template) {
+    %launch_template {
+        LaunchTemplateData exists
+        LaunchTemplateData is_struct
+        LaunchTemplateData {
+            MetadataOptions not exists or
+            filter_metadata_options_imds_enabled(this)
+        }
+    }
+}
+
+rule filter_metadata_options_imds_enabled(metadata_options) {
+    %metadata_options {
+        MetadataOptions is_struct
+        MetadataOptions {
+            HttpEndpoint not exists or
+            HttpEndpoint == "enabled"
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

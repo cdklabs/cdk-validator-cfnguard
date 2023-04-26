@@ -1,0 +1,76 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "CIS AWS Benchmark 1.4",
+            "Ids": [
+                "2.1.1"
+            ]
+        },
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AU-9",
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SC-7(10)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.5",
+                "10.5.2",
+                "2.2",
+                "3.4",
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether default server-side encryption is enabled on your Amazon S3 bucket.",
+    "DisplayName": "Require an Amazon S3 bucket to have server-side encryption configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Setting default server-side encryption behavior for Amazon S3 buckets",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-encryption.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::S3::Bucket"
+    ],
+    "EvaluatedServices": [
+        "Amazon S3"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.S3.PR.7",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.S3.4",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'AES256' or 'aws:kms'.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

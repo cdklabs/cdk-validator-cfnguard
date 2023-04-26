@@ -1,0 +1,54 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-7",
+                "SI-2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon RDS event subscriptions for RDS security groups are configured to notify on event categories of 'failure' and 'configuration change'",
+    "DisplayName": "Require an Amazon RDS event notifications subscription to have critical database security group events configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Configuring Amazon RDS event notification",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Events.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::EventSubscription"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.19",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.11",
+            "Name": "Prepare for incident response"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.RDS.22",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "When 'SourceType' is set to 'db-security-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains both 'failure' and 'configuration change' values.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

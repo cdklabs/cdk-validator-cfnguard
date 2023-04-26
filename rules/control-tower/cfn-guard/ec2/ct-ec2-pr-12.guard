@@ -1,0 +1,102 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_instance_multiple_eni_check
+# 
+# Description:
+#   This control checks whether your Amazon Elastic Compute Cloud (Amazon EC2) instance uses multiple ENIs (Elastic Network Interfaces).
+# 
+# Reports on:
+#   AWS::EC2::Instance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon EC2 instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 instance resource
+#       And: 'NetworkInterfaces' is not present or is present and contains 0 configurations
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 instance resource
+#       And: 'NetworkInterfaces' is present and contains >1 configurations
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 instance resource
+#       And: 'NetworkInterfaces' is present
+#       And: 'NetworkInterfaces' is present and contains 1 configuration
+#      Then: PASS
+
+#
+# Constants
+#
+let EC2_INSTANCE_TYPE = "AWS::EC2::Instance"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ec2_instances = Resources.*[ Type == %EC2_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_instance_multiple_eni_check when is_cfn_template(%INPUT_DOCUMENT)
+                                          %ec2_instances not empty {
+    check(%ec2_instances.Properties)
+        <<
+        [CT.EC2.PR.12]: Require an Amazon EC2 instance to configure one ENI only
+            [FIX]: Configure Amazon EC2 instances with only one ENI.
+        >>
+
+}
+
+rule ec2_instance_multiple_eni_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_INSTANCE_TYPE) {
+
+    check(%INPUT_DOCUMENT.%EC2_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.12]: Require an Amazon EC2 instance to configure one ENI only
+            [FIX]: Configure Amazon EC2 instances with only one ENI.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ec2_instance) {
+    %ec2_instance [
+        # Scenario 2
+        NetworkInterfaces exists
+        NetworkInterfaces is_list
+        NetworkInterfaces not empty
+    ] {
+        # Scenario 3 and 4
+        NetworkInterfaces[1] not exists
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,57 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "CP-6",
+                "CP-6(1)",
+                "CP-6(2)",
+                "CP-9",
+                "SI-13(5)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "3.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon Relational Database Service (RDS) database (DB) cluster has backtracking enabled.",
+    "DisplayName": "Require an Amazon RDS database cluster to have backtracking configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Backtracking an Aurora DB cluster",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Managing.Backtrack.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBCluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.6",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'BacktrackWindow' to a number between '1' and '259200'.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

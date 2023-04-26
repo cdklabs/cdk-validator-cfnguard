@@ -1,0 +1,72 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-21",
+                "AC-3",
+                "AC-3(7)",
+                "AC-4",
+                "AC-4(21)",
+                "AC-6",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(20)",
+                "SC-7(21)",
+                "SC-7(3)",
+                "SC-7(4)",
+                "SC-7(9)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "1.3.6",
+                "2.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon EC2 launch templates are configured to assign public IP addresses to network interfaces.",
+    "DisplayName": "Require any Amazon EC2 launch template not to auto-assign public IP addresses to network interfaces",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Checks if Amazon EC2 Launch Templates are set to assign public IP addresses to Network Interfaces.",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-networkinterface.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::LaunchTemplate"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.9",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'AssociatePublicIpAddress' to 'false' within each 'NetworkInterfaces' configuration in 'LaunchTemplateData'.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

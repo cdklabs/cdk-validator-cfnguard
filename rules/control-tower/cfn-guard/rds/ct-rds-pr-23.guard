@@ -1,0 +1,97 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_instance_public_access_check
+# 
+# Description:
+#   This rule checks whether Amazon Relational Database Service (RDS) database (DB) instances are publicly accessible, as determined by checking the 'PubliclyAccessible' configuration property.
+# 
+# Reports on:
+#   AWS::RDS::DBInstance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any RDS DB instance resources
+#       Then: SKIP
+#   Scenario: 2
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB instance resource
+#        And: 'PubliclyAccessible' has not been specified
+#       Then: FAIL
+#   Scenario: 3
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB instance resource
+#        And: 'PubliclyAccessible' is present and is a value other than bool(false)
+#       Then: FAIL
+#   Scenario: 4
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an RDS DB instance resource
+#        And: 'PubliclyAccessible' has been specified and set to bool(false)
+#       Then: PASS
+
+#
+# Constants
+#
+let RDS_DB_INSTANCE_TYPE = "AWS::RDS::DBInstance"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let rds_db_instances = Resources.*[ Type == %RDS_DB_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_instance_public_access_check when is_cfn_template(%INPUT_DOCUMENT)
+                                           %rds_db_instances not empty {
+    check(%rds_db_instances.Properties)
+        <<
+        [CT.RDS.PR.23]: Require an Amazon RDS database instance to not be publicly accessible
+            [FIX]: Set the value of 'PubliclyAccessible' to 'false'.
+        >>
+}
+
+rule rds_instance_public_access_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.23]: Require an Amazon RDS database instance to not be publicly accessible
+            [FIX]: Set the value of 'PubliclyAccessible' to 'false'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(rds_db_instance) {
+    %rds_db_instance{
+       #Scenario: 2
+       PubliclyAccessible exists
+       #Scenario: 3 and 4
+       PubliclyAccessible == false
+
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

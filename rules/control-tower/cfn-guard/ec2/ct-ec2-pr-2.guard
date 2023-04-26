@@ -1,0 +1,146 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_launch_template_token_hop_limit_check
+# 
+# Description:
+#   This control checks whether an Amazon EC2 launch template has a metadata token hop limit set to '1'.
+# 
+# Reports on:
+#   AWS::EC2::LaunchTemplate
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any EC2 launch template resources
+#       Then: SKIP
+#   Scenario: 2
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an EC2 launch template resource
+#        And: 'LaunchTemplateData.MetadataOptions' has been provided
+#        And: 'LaunchTemplateData.MetadataOptions.HttpEndpoint' has been provided and is equal to 'disabled'
+#       Then: SKIP
+#   Scenario: 3
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an EC2 launch template resource
+#        And: 'LaunchTemplateData.MetadataOptions' has been provided
+#        And: 'LaunchTemplateData.MetadataOptions.HttpEndpoint' has not been provided or has been provided and is
+#             equal to 'enabled'
+#        And: 'LaunchTemplateData.MetadataOptions.HttpPutResponseHopLimit' has been provided and is not equal to
+#             an integer of 1.
+#       Then: FAIL
+#   Scenario: 4
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an EC2 launch template resource
+#        And: 'LaunchTemplateData.MetadataOptions' has not been provided
+#       Then: PASS
+#   Scenario: 5
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an EC2 launch template resource
+#        And: 'LaunchTemplateData.MetadataOptions' has been provided
+#        And: 'LaunchTemplateData.MetadataOptions.HttpEndpoint' has not been provided or has been provided and is
+#             equal to 'enabled'
+#        And: 'LaunchTemplateData.MetadataOptions.HttpPutResponseHopLimit' has not been provided
+#       Then: PASS
+#   Scenario: 6
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an EC2 launch template resource
+#        And: 'LaunchTemplateData.MetadataOptions' has been provided
+#        And: 'LaunchTemplateData.MetadataOptions.HttpEndpoint' has not been provided or has been provided and is
+#             equal to 'enabled'
+#        And: 'LaunchTemplateData.MetadataOptions.HttpPutResponseHopLimit' has been provided and is equal to an
+#             integer of 1.
+#       Then: PASS
+
+#
+# Constants
+#
+let EC2_LAUNCH_TEMPLATE_TYPE = "AWS::EC2::LaunchTemplate"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ec2_launch_templates = Resources.*[ Type == %EC2_LAUNCH_TEMPLATE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_launch_template_token_hop_limit_check when is_cfn_template(this)
+                                                    %ec2_launch_templates not empty {
+    check(%ec2_launch_templates.Properties)
+        <<
+        [CT.EC2.PR.2]: Require that Amazon EC2 launch templates restrict the token hop limit to a maximum of one
+            [FIX]: Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration with the value of 'HttpPutResponseLimit' set to '1', or omit the 'HttpPutResponseLimit' property to adopt the AWS CloudFormation default value of '1'.
+        >>
+}
+
+rule ec2_launch_template_token_hop_limit_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_LAUNCH_TEMPLATE_TYPE) {
+    check(%INPUT_DOCUMENT.%EC2_LAUNCH_TEMPLATE_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.2]: Require that Amazon EC2 launch templates restrict the token hop limit to a maximum of one
+            [FIX]: Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration with the value of 'HttpPutResponseLimit' set to '1', or omit the 'HttpPutResponseLimit' property to adopt the AWS CloudFormation default value of '1'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ec2_launch_template) {
+  %ec2_launch_template[
+      # Scenario 2, 3 and 4
+      filter_launch_template(this)
+  ] {
+      # Scenario 5 and 6
+      LaunchTemplateData {
+          MetadataOptions not exists or
+          MetadataOptions {
+              HttpPutResponseHopLimit not exists or
+              HttpPutResponseHopLimit == 1
+          }
+      }
+  }
+}
+
+rule filter_launch_template(ec2_launch_template) {
+  %ec2_launch_template {
+      LaunchTemplateData exists
+      LaunchTemplateData is_struct
+      LaunchTemplateData {
+          MetadataOptions not exists or
+          filter_metadata_options_provided(this)
+      }
+  }
+}
+
+rule filter_metadata_options_provided(options) {
+  %options {
+      MetadataOptions is_struct
+      MetadataOptions {
+          HttpEndpoint not exists or
+          HttpEndpoint == "enabled"
+      }
+  }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+  %doc {
+    AWSTemplateFormatVersion exists  or
+    Resources exists
+  }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

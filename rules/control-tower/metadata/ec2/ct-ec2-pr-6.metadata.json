@@ -1,0 +1,56 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4(21)",
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon EC2 transit gateways are configured to accept Amazon VPC attachment requests automatically.",
+    "DisplayName": "Require that Amazon EC2 transit gateways refuse automatic Amazon VPC attachment requests",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Transit gateways - Accept a shared attachment",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-transit-gateways.html#tgw-accept-shared-attachment"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::TransitGateway"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.6",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Omit the 'AutoAcceptSharedAttachments' property or set the property to 'disable'.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

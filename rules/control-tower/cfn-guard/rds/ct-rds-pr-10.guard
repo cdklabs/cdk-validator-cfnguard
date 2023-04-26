@@ -1,0 +1,124 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_instance_copy_tags_to_snapshots_enabled_check
+# 
+# Description:
+#   This control checks whether Amazon RDS DB instances are configured to copy all tags to snapshots created.
+# 
+# Reports on:
+#   AWS::RDS::DBInstance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any RDS DB instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is not one of 'mariadb', 'mysql', 'oracle-ee', 'oracle-ee-cdb', 'oracle-se2',
+#             'oracle-se2-cdb', 'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'mariadb', 'mysql', 'oracle-ee', 'oracle-ee-cdb', 'oracle-se2',
+#             'oracle-se2-cdb', 'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'CopyTagsToSnapshot' has not been specified
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'mariadb', 'mysql', 'oracle-ee', 'oracle-ee-cdb', 'oracle-se2',
+#             'oracle-se2-cdb', 'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'CopyTagsToSnapshot' has been specified
+#       And: 'CopyTagsToSnapshot' has been set to bool(false)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB instance resource
+#       And: 'Engine' is one of 'mariadb', 'mysql', 'oracle-ee', 'oracle-ee-cdb', 'oracle-se2',
+#             'oracle-se2-cdb', 'postgres', 'sqlserver-ee', 'sqlserver-se', 'sqlserver-ex', 'sqlserver-web'
+#       And: 'CopyTagsToSnapshot' has been specified
+#       And: 'CopyTagsToSnapshot' has been set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let RDS_DB_INSTANCE_TYPE = "AWS::RDS::DBInstance"
+let INPUT_DOCUMENT = this
+let SUPPORTED_RDS_INSTANCE_ENGINES = [
+    "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2",
+    "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se",
+    "sqlserver-ex", "sqlserver-web"
+]
+
+#
+# Assignments
+#
+let rds_db_instances = Resources.*[ Type == %RDS_DB_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_instance_copy_tags_to_snapshots_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                      %rds_db_instances not empty {
+    check(%rds_db_instances.Properties)
+        <<
+        [CT.RDS.PR.10]: Require an Amazon RDS database instance to copy tags to snapshots
+            [FIX]: Set 'CopyTagsToSnapshot' to 'true'.
+        >>
+}
+
+rule rds_instance_copy_tags_to_snapshots_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.10]: Require an Amazon RDS database instance to copy tags to snapshots
+            [FIX]: Set 'CopyTagsToSnapshot' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(rds_db_instance) {
+    %rds_db_instance [filter_engine(this)] {
+       # Scenario: 3
+       CopyTagsToSnapshot exists
+       # Scenario: 4 and 5
+       CopyTagsToSnapshot == true
+    }
+}
+
+rule filter_engine(db_properties) {
+    %db_properties {
+        # Scenario: 2
+        Engine exists
+        Engine is_string
+        Engine in %SUPPORTED_RDS_INSTANCE_ENGINES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

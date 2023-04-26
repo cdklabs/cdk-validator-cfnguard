@@ -1,0 +1,61 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CM-3",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon Relational Database Service (Amazon RDS) instance has deletion protection activated.",
+    "DisplayName": "Require any Amazon RDS instance to have deletion protection configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Deleting Aurora DB clusters and DB instances",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_DeleteCluster.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBInstance"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.13",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.RDS.8",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'DeletionProtection' to 'true'.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

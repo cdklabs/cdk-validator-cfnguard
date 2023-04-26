@@ -1,0 +1,68 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SC-7(10)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2",
+                "3.4",
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your standalone Amazon EC2 EBS volumes and new EC2 EBS volumes created through EC2 instance block device mappings are encrypted at rest.",
+    "DisplayName": "Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Amazon EBS encryption",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::Instance",
+        "AWS::EC2::Volume"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.7",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.EC2.3",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'Encryption' to true on EC2 EBS Volumes.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

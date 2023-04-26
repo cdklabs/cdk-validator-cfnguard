@@ -1,0 +1,75 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4",
+                "AC-4(21)",
+                "CM-7",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(21)",
+                "SC-7(4)",
+                "SC-7(5)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "1.3.6",
+                "2.2",
+                "2.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon EC2 security groups allow unrestricted incoming TCP or UDP traffic to ports '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.",
+    "DisplayName": "Require that an Amazon EC2 security group does not allow incoming traffic for high-risk ports",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Instructions for configuring VPC Security Groups",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::SecurityGroup",
+        "AWS::EC2::SecurityGroupIngress"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.4",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.EC2.19",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.",
+    "Severity": "CRITICAL",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

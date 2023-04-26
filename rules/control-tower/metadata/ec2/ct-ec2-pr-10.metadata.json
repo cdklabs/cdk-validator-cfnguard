@@ -1,0 +1,39 @@
+{
+    "Behavior": "PROACTIVE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether the Amazon EC2 launch template has detailed monitoring enabled.",
+    "DisplayName": "Require Amazon EC2 launch templates to have Amazon CloudWatch detailed monitoring activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Configure monitoring for Auto Scaling instances",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/enable-as-instance-metrics.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::LaunchTemplate"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.10",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "In 'LaunchTemplateData', provide a 'Monitoring' configuration with 'Enabled' set to 'true'.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

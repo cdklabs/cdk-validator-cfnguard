@@ -1,0 +1,78 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-21",
+                "AC-3",
+                "AC-3(7)",
+                "AC-4",
+                "AC-4(21)",
+                "AC-6",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(20)",
+                "SC-7(21)",
+                "SC-7(3)",
+                "SC-7(4)",
+                "SC-7(9)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "1.3.6",
+                "2.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon EC2 instance is configured to associate a public IP address.",
+    "DisplayName": "Require any Amazon EC2 instance to have a non-public IP address",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Amazon EC2 instance IP addressing",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#concepts-public-addresses"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::Instance"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.8",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.EC2.9",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Specify network interfaces using the 'NetworkInterfaces' property instead of the root level 'SubnetId' property. Set 'AssociatePublicIpAddress' to false within each 'NetworkInterfaces' configuration.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

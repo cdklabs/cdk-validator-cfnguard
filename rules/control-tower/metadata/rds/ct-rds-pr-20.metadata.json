@@ -1,0 +1,70 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4",
+                "AC-4(21)",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(21)",
+                "SC-7(4)",
+                "SC-7(5)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Relational Database Service (RDS) database instances are configured for default database port for their specific engine types.",
+    "DisplayName": "Require an Amazon RDS database instance not to use a database engine default port",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Connecting to an Amazon RDS DB instance",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_CommonTasks.Connect.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBInstance"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.20",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.RDS.23",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set a value for 'Port' that is different than the default value for the Amazon RDS DB instance engine type.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

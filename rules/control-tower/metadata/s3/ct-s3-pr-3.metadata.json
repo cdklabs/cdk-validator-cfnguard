@@ -1,0 +1,70 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AU-9(2)",
+                "CP-10",
+                "CP-6(2)",
+                "CP-9",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.5.3",
+                "10.7",
+                "3.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon Simple Storage Service (Amazon S3) version-enabled bucket has a lifecycle policy configured.",
+    "DisplayName": "Require an Amazon S3 buckets to have versioning configured and a lifecycle policy",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Managing your storage lifecycle",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::S3::Bucket"
+    ],
+    "EvaluatedServices": [
+        "Amazon S3"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.S3.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.7",
+            "Name": "Optimize costs"
+        },
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.S3.10",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Configure versioning-enabled buckets with at least one active lifecycle rule.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -1,0 +1,55 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2",
+                "CM-2(2)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2",
+                "2.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon RDS DB cluster is configured to copy all tags to snapshots created.",
+    "DisplayName": "Require an Amazon RDS database cluster to copy tags to snapshots",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Copying tags to DB cluster snapshots",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_Tagging.html#USER_Tagging.CopyTagsCluster"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBCluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.9",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.10",
+            "Name": "Protect configurations"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'CopyTagsToSnapshot' to 'true'.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

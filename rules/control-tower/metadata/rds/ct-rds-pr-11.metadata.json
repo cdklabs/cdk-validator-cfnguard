@@ -1,0 +1,73 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4",
+                "AC-4(21)",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(20)",
+                "SC-7(21)",
+                "SC-7(4)",
+                "SC-7(9)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "1.3.6",
+                "2.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon RDS database (DB) instance is deployed in a VPC (that is, an EC2 VPC instance).",
+    "DisplayName": "Require an Amazon RDS database instance to have a VPC configuration",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Amazon Virtual Private Cloud VPCs and Amazon RDS",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBInstance"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.11",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.RDS.18",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set a 'DBSubnetGroupName'.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

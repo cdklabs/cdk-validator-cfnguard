@@ -69,7 +69,7 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
     this.name = 'cdk-validator-cfnguard';
     this.disabledRules = props.disabledRules ?? [];
     if (props.controlTowerRulesEnabled ?? true) {
-      this.rulesPaths.push(path.join(__dirname, '..', 'rules', 'control-tower'));
+      this.rulesPaths.push(path.join(__dirname, '..', 'rules/control-tower/cfn-guard'));
     }
     this.rulesPaths.push(...props.rules ?? []);
     const osPlatform = os.platform();

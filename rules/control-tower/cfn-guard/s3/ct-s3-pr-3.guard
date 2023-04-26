@@ -1,0 +1,126 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   s3_version_lifecycle_policy_check
+# 
+# Description:
+#   This control checks whether your Amazon Simple Storage Service (Amazon S3) version-enabled bucket has a lifecycle policy configured.
+# 
+# Reports on:
+#   AWS::S3::Bucket
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon S3 bucket resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket Resource
+#       And: The S3 bucket does not have versioning enabled (VersioningConfiguration is missing or
+#            VersioningConfiguration.Status is set to Suspended)
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket Resource
+#       And: The S3 bucket has versioning enabled (VersioningConfiguration.Status is set to 'Enabled')
+#       And: 'LifecycleConfiguration' has been been provided and there are no 'Rules' with 'Status' set to 'Enabled'
+#            present in the 'LifecycleConfiguration'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket Resource
+#       And: The S3 bucket has versioning enabled (VersioningConfiguration.Status is set to 'Enabled')
+#       And: 'LifecycleConfiguration' has been been provided and there is at least one 'Rule' with 'Status' set to
+#            'Enabled' in the 'LifecycleConfiguration'
+#      Then: PASS
+
+#
+# Constants
+#
+let S3_BUCKET_TYPE = "AWS::S3::Bucket"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let s3_buckets = Resources.*[ Type == %S3_BUCKET_TYPE ]
+
+#
+# Primary Rules
+#
+rule s3_version_lifecycle_policy_check when is_cfn_template(%INPUT_DOCUMENT)
+                                            %s3_buckets not empty {
+    check(%s3_buckets.Properties)
+        <<
+        [CT.S3.PR.3]: Require an Amazon S3 buckets to have versioning configured and a lifecycle policy
+            [FIX]: Configure versioning-enabled buckets with at least one active lifecycle rule.
+        >>
+}
+
+rule s3_version_lifecycle_policy_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE) {
+    check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
+        <<
+        [CT.S3.PR.3]: Require an Amazon S3 buckets to have versioning configured and a lifecycle policy
+            [FIX]: Configure versioning-enabled buckets with at least one active lifecycle rule.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(s3_bucket) {
+    %s3_bucket [
+        filter_s3_buckets_with_versioning_enabled(this)
+    ] {
+        # Scenario 2
+        LifecycleConfiguration exists
+        LifecycleConfiguration is_struct
+
+        LifecycleConfiguration {
+            # Scenario 3 and 4
+            Rules exists
+            Rules is_list
+            Rules not empty
+
+            some Rules[*] {
+                Status exists
+                Status == "Enabled"
+            }
+        }
+    }
+}
+
+rule filter_s3_buckets_with_versioning_enabled(s3_bucket) {
+    %s3_bucket {
+        VersioningConfiguration exists
+        VersioningConfiguration is_struct
+
+        VersioningConfiguration {
+            Status exists
+            Status == "Enabled"
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

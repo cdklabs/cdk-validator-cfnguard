@@ -1,0 +1,89 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   s3_bucket_acl_prohibited_check
+# 
+# Description:
+#   This control checks whether your Amazon Simple Storage Service (Amazon S3) bucket allows user permissions through access control lists.
+# 
+# Reports on:
+#   AWS::S3::Bucket
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon S3 bucket resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'AccessControl' has been provided on the S3 bucket resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon S3 bucket resource
+#       And: 'AccessControl' has not been provided on the S3 bucket resource
+#      Then: PASS
+
+#
+# Constants
+#
+let S3_BUCKET_TYPE = "AWS::S3::Bucket"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let s3_buckets = Resources.*[ Type == %S3_BUCKET_TYPE ]
+
+#
+# Primary Rules
+#
+rule s3_bucket_acl_prohibited_check when is_cfn_template(%INPUT_DOCUMENT)
+                                         %s3_buckets not empty {
+    check(%s3_buckets.Properties)
+        <<
+        [CT.S3.PR.5]: Require that an Amazon S3 bucket does not manage user access with an access control list (ACL)
+            [FIX]: Manage access to Amazon S3 buckets with bucket resource policies and IAM identity policies instead.
+        >>
+}
+
+rule s3_bucket_acl_prohibited_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE) {
+    check(this.%S3_BUCKET_TYPE.resourceProperties)
+        <<
+        [CT.S3.PR.5]: Require that an Amazon S3 bucket does not manage user access with an access control list (ACL)
+            [FIX]: Manage access to Amazon S3 buckets with bucket resource policies and IAM identity policies instead.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(s3_bucket) {
+    %s3_bucket {
+       # Scenario 2 and 3
+       AccessControl not exists
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
