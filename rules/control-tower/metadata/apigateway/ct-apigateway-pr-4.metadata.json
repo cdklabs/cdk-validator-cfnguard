@@ -34,11 +34,6 @@
             "ControlId": "CT.APIGATEWAY.PR.1",
             "ControlOwner": "AWS Control Tower",
             "RelationshipType": "Can be used with (Inclusive)"
-        },
-        {
-            "ControlId": "SH.APIGateway.1",
-            "ControlOwner": "AWS Security Hub",
-            "RelationshipType": "Can be used with (Inclusive)"
         }
     ],
     "ReleaseDate": "2022-11-28",
