@@ -24,8 +24,8 @@
     "MinimumSupportedRuntimeVersion": "2.1",
     "Objectives": [
         {
-            "Id": "CO.15",
-            "Name": "Use strong authentication"
+            "Id": "CO.10",
+            "Name": "Protect configurations"
         }
     ],
     "RegionalPreference": "REGIONAL",
