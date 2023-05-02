@@ -1,0 +1,62 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "CP-6(2)",
+                "SC-36",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an ELB classic load balancer has been configured with multiple Availability Zones.",
+    "DisplayName": "Require any classic load balancer to have multiple Availability Zones configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Add or remove Availability Zones for your load balancer in EC2-Classic.",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-disable-az.html"
+        },
+        {
+            "DisplayName": "Add or remove subnets for your Classic Load Balancer in a VPC",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-manage-subnets.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ElasticLoadBalancing::LoadBalancer"
+    ],
+    "EvaluatedServices": [
+        "Elastic Load Balancing"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICLOADBALANCING.PR.7",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ELB.10",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Configure classic load balancers with two or more subnets or Availability Zones.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

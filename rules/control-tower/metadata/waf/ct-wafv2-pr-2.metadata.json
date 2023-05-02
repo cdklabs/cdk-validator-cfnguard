@@ -1,0 +1,53 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "6.6"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether AWS WAFV2 rule groups contain rules.",
+    "DisplayName": "Require an AWS WAFV2 rule group to be non-empty",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Rule groups",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-groups.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::WAFv2::RuleGroup"
+    ],
+    "EvaluatedServices": [
+        "AWS WAF"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.WAFV2.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide one or more AWS WAFV2 rules within the 'Rules' property.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

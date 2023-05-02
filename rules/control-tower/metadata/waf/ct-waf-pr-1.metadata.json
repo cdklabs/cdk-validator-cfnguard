@@ -1,0 +1,53 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "6.6"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an AWS WAF Classic global rule contains any conditions.",
+    "DisplayName": "Require any AWS WAF global rule to have a condition",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Creating a rule and adding conditions",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/waf/latest/developerguide/classic-web-acl-rules-creating.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::WAF::Rule"
+    ],
+    "EvaluatedServices": [
+        "AWS WAF"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.WAF.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide one or more AWS WAF rule conditions within the 'Predicates' property.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

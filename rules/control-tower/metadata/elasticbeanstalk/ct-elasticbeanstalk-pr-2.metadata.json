@@ -1,0 +1,63 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "SI-2",
+                "SI-2(2)",
+                "SI-2(4)",
+                "SI-2(5)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "6.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether managed platform updates in AWS Elastic Beanstalk environments and configuration templates are activated.",
+    "DisplayName": "Require an AWS Elastic Beanstalk environment to have managed platform updates configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "To configure managed platform updates under Managed platform updates",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environment-platform-update-managed.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ElasticBeanstalk::Environment",
+        "AWS::ElasticBeanstalk::ConfigurationTemplate"
+    ],
+    "EvaluatedServices": [
+        "AWS Elastic Beanstalk"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICBEANSTALK.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.12",
+            "Name": "Manage vulnerabilities"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ElasticBeanstalk.2",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

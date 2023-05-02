@@ -1,0 +1,60 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "6.6"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an AWS WAF Classic regional web ACL contains any WAF rules or rule groups.",
+    "DisplayName": "Require any AWS WAF regional web access control list (ACL) to have a rule or rule group",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Creating and configuring a Web Access Control List (Web ACL)",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/waf/latest/developerguide/classic-web-acl.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::WAFRegional::WebACL"
+    ],
+    "EvaluatedServices": [
+        "AWS WAF"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.WAF-REGIONAL.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.WAF.4",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide one or more AWS WAF rules within the 'Rules' property.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

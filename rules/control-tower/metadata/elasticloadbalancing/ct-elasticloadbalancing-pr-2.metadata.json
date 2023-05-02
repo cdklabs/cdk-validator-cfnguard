@@ -1,0 +1,70 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-17(2)",
+                "AC-4",
+                "IA-5(1)",
+                "SC-12(3)",
+                "SC-13",
+                "SC-23",
+                "SC-23(3)",
+                "SC-23(5)",
+                "SC-7(4)",
+                "SC-8",
+                "SC-8(1)",
+                "SC-8(2)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "4.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon Elastic Load Balancing (ELB) application and network load balancers use certificates provided by AWS Certificate Manager (ACM).",
+    "DisplayName": "Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Update an HTTPS listener for your Application Load Balancer",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-update-certificates.html"
+        },
+        {
+            "DisplayName": "Update a TLS listener for your Network Load Balancer",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/listener-update-certificates.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ElasticLoadBalancingV2::Listener",
+        "AWS::ElasticLoadBalancingV2::ListenerCertificate"
+    ],
+    "EvaluatedServices": [
+        "Elastic Load Balancing"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICLOADBALANCING.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.3",
+            "Name": "Encrypt data in transit"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

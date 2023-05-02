@@ -31,7 +31,7 @@
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
 #       And: The input document contains an Amazon S3 bucket resource
 #       And: 'LoggingConfiguration' has been provided
-#       And: 'LoggingConfiguration.DestinationbucketName' has been provided with an empty string or non-valid local
+#       And: 'LoggingConfiguration.DestinationBucketName' has been provided with an empty string or non-valid local
 #            reference
 #      Then: FAIL
 #   Scenario: 4

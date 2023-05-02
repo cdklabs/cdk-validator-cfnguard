@@ -1,0 +1,169 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elbv2_logging_enabled_check
+# 
+# Description:
+#   This control checks whether your ELB application and network load balancers have logging activated.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancingV2::LoadBalancer
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElasticLoadBalancingV2 LoadBalancer resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 LoadBalancer resource
+#       And: 'Type' is set to a value other than 'application' or 'network'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 LoadBalancer resource
+#       And: The LoadBalancer is of type 'application' or 'network'
+#       And: 'LoadBalancerAttributes' has not been provided or is an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 LoadBalancer resource
+#       And: The LoadBalancer is of type 'application' or 'network'
+#       And: A 'LoadBalancerAttributes' with Key 'access_logs.s3.enabled' and 'access_logs.s3.bucket'
+#            has not been provided
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 LoadBalancer resource
+#       And: The LoadBalancer is of type 'application' or 'network'
+#       And: A 'LoadBalancerAttributes' with Key 'access_logs.s3.enabled' and 'access_logs.s3.bucket' has been provided
+#       And: 'access_logs.s3.enabled' is set to bool(false) or string(false)
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 LoadBalancer resource
+#       And: The LoadBalancer is of type 'application' or 'network'
+#       And: A 'LoadBalancerAttributes' with Key 'access_logs.s3.enabled' and 'access_logs.s3.bucket' has been provided
+#       And: 'access_logs.s3.enabled' is set to bool(true) or string(true)
+#       And: 'access_logs.s3.bucket' is missing or an empty string value
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 LoadBalancer resource
+#       And: The LoadBalancer is of type 'application'
+#       And: A 'LoadBalancerAttributes' with Key 'access_logs.s3.enabled' has been provided
+#       And: 'access_logs.s3.enabled' is set to bool(true) or string(true)
+#       And: 'access_logs.s3.bucket' is provided and a non-empty string value or valid local reference
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_V2_TYPE = "AWS::ElasticLoadBalancingV2::LoadBalancer"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elastic_load_balancers = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_V2_TYPE ]
+
+#
+# Primary Rules
+#
+rule elbv2_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                      %elastic_load_balancers not empty {
+
+    check(%elastic_load_balancers.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.6]: Require that application and network load balancer access logging is activated
+            [FIX]: Set the load balancer attribute 'access_logs.s3.enabled' to 'true', and set 'access_logs.s3.bucket' to reach an Amazon S3 bucket that's configured to receive application load balancer or network load balancer access logs.
+        >>
+}
+
+rule elbv2_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_V2_TYPE) {
+
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.6]: Require that application and network load balancer access logging is activated
+            [FIX]: Set the load balancer attribute 'access_logs.s3.enabled' to 'true', and set 'access_logs.s3.bucket' to reach an Amazon S3 bucket that's configured to receive application load balancer or network load balancer access logs.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elastic_load_balancer) {
+    %elastic_load_balancer[ Type in ["application", "network"] ] {
+        # Scenario 3
+        LoadBalancerAttributes exists
+        LoadBalancerAttributes is_list
+        LoadBalancerAttributes not empty
+
+        # Scenario 4, 5, 6 and 7
+        some LoadBalancerAttributes[*] {
+            Key exists
+            Value exists
+
+            Key == "access_logs.s3.enabled"
+            Value in [ true, "true" ]
+        }
+
+        some LoadBalancerAttributes[*] {
+            Key exists
+            Value exists
+
+            Key == "access_logs.s3.bucket"
+            check_is_string_and_not_empty(Value) or
+            check_local_references(%INPUT_DOCUMENT, Value, "AWS::S3::Bucket")
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

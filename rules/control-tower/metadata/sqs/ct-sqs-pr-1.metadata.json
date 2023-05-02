@@ -1,0 +1,38 @@
+{
+    "Behavior": "PROACTIVE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon SQS queue is configured with a dead-letter queue.",
+    "DisplayName": "Require any Amazon SQS queue to have a dead-letter queue configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Amazon SQS dead-letter queues",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html#sqs-dead-letter-queues-how-they-work"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::SQS::Queue"
+    ],
+    "EvaluatedServices": [
+        "Amazon SQS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.SQS.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Create a 'RedrivePolicy' with a 'deadLetterTargetArn' value that's set to the ARN of an Amazon SQS dead-letter queue. For Amazon SQS dead-letter queues, instead provide a redrive configuration in the 'RedriveAllowPolicy' property.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

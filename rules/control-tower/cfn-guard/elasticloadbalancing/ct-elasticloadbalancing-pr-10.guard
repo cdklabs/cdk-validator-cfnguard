@@ -1,0 +1,138 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elb_logging_enabled_check
+# 
+# Description:
+#   This control checks whether classic load balancers have logging enabled.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancing::LoadBalancer
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElasticLoadBalancing load balancer resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: 'AccessLoggingPolicy' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: 'AccessLoggingPolicy' has been provided
+#       And: 'Enabled' in 'AccessLoggingPolicy' is missing or has been set to bool(false) or 'S3BucketName' is missing
+#             or empty string value
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancing load balancer resource
+#       And: 'AccessLoggingPolicy' has been provided
+#       And: 'Enabled' has been provided in 'AccessLoggingPolicy' and has been set to bool(true)
+#       And: 'S3BucketName' has been provided in 'AccessLoggingPolicy' as a non-empty string value or
+#            valid local reference
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_TYPE = "AWS::ElasticLoadBalancing::LoadBalancer"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let classic_load_balancers = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_TYPE ]
+
+#
+# Primary Rules
+#
+rule elb_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                    %classic_load_balancers not empty {
+    check(%classic_load_balancers.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.10]: Require an ELB application or classic load balancer to have logging activated
+            [FIX]: Set an 'AccessLoggingPolicy' and provide an 'S3BucketName' with an Amazon S3 bucket configured to receive classic load balancer access logs.
+        >>
+
+}
+
+rule elb_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.10]: Require an ELB application or classic load balancer to have logging activated
+            [FIX]: Set an 'AccessLoggingPolicy' and provide an 'S3BucketName' with an Amazon S3 bucket configured to receive classic load balancer access logs.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(classic_load_balancer) {
+    %classic_load_balancer {
+        # Scenario 2
+        AccessLoggingPolicy exists
+        AccessLoggingPolicy is_struct
+
+        AccessLoggingPolicy {
+            # Scenario 3 and 4
+            Enabled exists
+            Enabled == true
+
+            S3BucketName exists
+            check_is_string_and_not_empty(S3BucketName) or
+            check_local_references(%INPUT_DOCUMENT, S3BucketName, "AWS::S3::Bucket")
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

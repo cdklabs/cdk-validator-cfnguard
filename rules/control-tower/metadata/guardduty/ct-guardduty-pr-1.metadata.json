@@ -1,0 +1,59 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-2(12)",
+                "AU-6(1)",
+                "AU-6(5)",
+                "CA-7",
+                "RA-3(4)",
+                "SC-7(10)",
+                "SI-4",
+                "SI-4(13)",
+                "SI-4(2)",
+                "SI-4(4)"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon S3 protection is enabled on an Amazon GuardDuty detector.",
+    "DisplayName": "Require an Amazon GuardDuty detector to have Amazon S3 protection activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Amazon S3 Protection in Amazon GuardDuty",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/guardduty/latest/ug/s3-protection.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::GuardDuty::Detector"
+    ],
+    "EvaluatedServices": [
+        "Amazon GuardDuty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.GUARDDUTY.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.10",
+            "Name": "Protect configurations"
+        },
+        {
+            "Id": "CO.11",
+            "Name": "Prepare for incident response"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'DataSources.S3Logs' to true.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

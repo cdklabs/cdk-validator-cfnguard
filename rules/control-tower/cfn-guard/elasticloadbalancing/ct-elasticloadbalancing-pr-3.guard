@@ -1,0 +1,138 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   alb_desync_mode_check
+# 
+# Description:
+#   This control checks to ensure that an application load balancer is configured with 'defensive' or 'strictest' desync mitigation mode.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancingV2::LoadBalancer
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ELBv2 load balancer resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to a value other than 'application'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to 'application' for the ELBv2 load balancer resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 load balancer resource
+#       And: The 'LoadBalancerAttribute' 'routing.http.desync_mitigation_mode' has been provided
+#            and is not one of 'defensive' or 'strictest'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to 'application' for the ELBv2 load balancer resource
+#       And: 'LoadBalancerAttributes' have not been specified on the ELBv2 load balancer resource or specified
+#            as an empty list
+#      Then: PASS
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to 'application' for the ELBv2 load balancer resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 load balancer resource
+#       And: 'routing.http.desync_mitigation_mode' has not been provided as a 'LoadBalancerAttribute'
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ELBv2 load balancer resource
+#       And: 'Type' is set to 'application' for the ELBv2 load balancer resource
+#       And: 'LoadBalancerAttributes' have been specified on the ELBv2 load balancer resource
+#       And: The 'LoadBalancerAttribute' 'routing.http.desync_mitigation_mode' has been provided
+#            and is one of 'defensive' or 'strictest'
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_V2_TYPE = "AWS::ElasticLoadBalancingV2::LoadBalancer"
+let ALLOWED_DESYNC_MODES = [ "defensive", "strictest" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elastic_load_balancers = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_V2_TYPE ]
+
+#
+# Primary Rules
+#
+rule alb_desync_mode_check when is_cfn_template(%INPUT_DOCUMENT)
+                                %elastic_load_balancers not empty {
+
+    check(%elastic_load_balancers.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.3]: Require any application load balancer to have defensive or strictest desync mitigation mode activated
+            [FIX]: Omit the load balancer attribute 'routing.http.desync_mitigation_mode' or set the attribute to one of 'defensive' or 'strictest'.
+        >>
+
+}
+
+rule alb_desync_mode_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_V2_TYPE) {
+
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.3]: Require any application load balancer to have defensive or strictest desync mitigation mode activated
+            [FIX]: Omit the load balancer attribute 'routing.http.desync_mitigation_mode' or set the attribute to one of 'defensive' or 'strictest'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elastic_load_balancer) {
+    %elastic_load_balancer[
+        # Scenario 2
+        Type == "application"
+    ] {
+        # Scenario 4
+        LoadBalancerAttributes not exists or
+        check_application_load_balancer_attributes(this)
+    }
+}
+
+rule check_application_load_balancer_attributes(application_load_balancer) {
+    %application_load_balancer {
+        LoadBalancerAttributes is_list
+        LoadBalancerAttributes[
+            # Scenario 5
+            Key exists
+            Key == "routing.http.desync_mitigation_mode"
+        ] {
+            # Scenarios 3 and 6
+            Value exists
+            Value in %ALLOWED_DESYNC_MODES
+        }
+
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

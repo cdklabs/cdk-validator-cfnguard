@@ -1,0 +1,161 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#    sqs_dlq_check
+# 
+# Description:
+#   This control checks whether an Amazon SQS queue is configured with a dead-letter queue.
+# 
+# Reports on:
+#    AWS::SQS::Queue
+# 
+# Evaluates:
+#    AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#     None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any SQS queue resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'RedriveAllowPolicy' has been provided on the SQS queue
+#       And: 'RedriveAllowPolicy.redrivePermission' is set to 'allowAll' or 'byQueue'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'RedriveAllowPolicy' has not been provided on the SQS queue or 'RedriveAllowPolicy.redrivePermission'
+#            has been provided and is set to a value other than 'allowAll' or 'byQueue'
+#       And: 'RedrivePolicy' has not been provided
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'RedriveAllowPolicy' has not been provided on the SQS queue or 'RedriveAllowPolicy.redrivePermission'
+#            has been provided and is set to a value other than 'allowAll' or 'byQueue'
+#       And: 'RedrivePolicy' has been provided
+#       And: 'RedrivePolicy.deadLetterTargetArn' has not been provided or has been provided as an empty string or
+#            invalid local reference to an SQS queue
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SQS queue resource
+#       And: 'RedriveAllowPolicy' has not been provided on the SQS queue or 'RedriveAllowPolicy.redrivePermission' has
+#            been provided and is set to a value other than 'allowAll' or 'byQueue'
+#       And: 'RedrivePolicy' has been provided
+#       And: 'RedrivePolicy.deadLetterTargetArn' has been provided as a non-empty string or valid local reference to
+#             an SQS queue
+#      Then: PASS
+
+#
+# Constants
+#
+let SQS_QUEUE_TYPE = "AWS::SQS::Queue"
+let INPUT_DOCUMENT = this
+let DLQ_REDRIVE_PERMISSION = ["allowAll", "byQueue"]
+
+#
+# Assignments
+#
+let sqs_queues = Resources.*[ Type == %SQS_QUEUE_TYPE ]
+
+#
+# Primary Rules
+#
+rule sqs_dlq_check when is_cfn_template(%INPUT_DOCUMENT)
+                        %sqs_queues not empty {
+    check(%sqs_queues.Properties)
+        <<
+        [CT.SQS.PR.1]: Require any Amazon SQS queue to have a dead-letter queue configured
+            [FIX]: Create a 'RedrivePolicy' with a 'deadLetterTargetArn' value that's set to the ARN of an Amazon SQS dead-letter queue. For Amazon SQS dead-letter queues, instead provide a redrive configuration in the 'RedriveAllowPolicy' property.
+        >>
+}
+
+rule sqs_dlq_check when is_cfn_hook(%INPUT_DOCUMENT, %SQS_QUEUE_TYPE) {
+    check(%INPUT_DOCUMENT.%SQS_QUEUE_TYPE.resourceProperties)
+        <<
+        [CT.SQS.PR.1]: Require any Amazon SQS queue to have a dead-letter queue configured
+            [FIX]: Create a 'RedrivePolicy' with a 'deadLetterTargetArn' value that's set to the ARN of an Amazon SQS dead-letter queue. For Amazon SQS dead-letter queues, instead provide a redrive configuration in the 'RedriveAllowPolicy' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(sqs_queues) {
+    %sqs_queues [
+        # Scenario 2
+        RedriveAllowPolicy not exists or
+        filter_is_not_dlq(this)
+    ] {
+        # Scenario 3
+        RedrivePolicy exists
+        RedrivePolicy is_struct
+
+        # Scenario 4
+        RedrivePolicy {
+            deadLetterTargetArn exists
+
+            check_is_string_and_not_empty(deadLetterTargetArn) or
+            check_local_references(%INPUT_DOCUMENT, deadLetterTargetArn, %SQS_QUEUE_TYPE)
+        }
+    }
+}
+
+rule filter_is_not_dlq(sqs_queue) {
+    RedriveAllowPolicy exists
+    RedriveAllowPolicy is_struct
+
+    RedriveAllowPolicy {
+        redrivePermission exists
+        redrivePermission not in %DLQ_REDRIVE_PERMISSION
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        "Fn::GetAtt" {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

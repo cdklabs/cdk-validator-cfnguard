@@ -1,0 +1,78 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-21",
+                "AC-3",
+                "AC-3(7)",
+                "AC-4",
+                "AC-4(21)",
+                "AC-6",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(20)",
+                "SC-7(21)",
+                "SC-7(3)",
+                "SC-7(4)",
+                "SC-7(9)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "1.3.6",
+                "2.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Redshift clusters are configured to not be publicly accessible.",
+    "DisplayName": "Require an Amazon Redshift cluster to prohibit public access",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Managing clusters in a VPC",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/redshift/latest/mgmt/managing-clusters-vpc.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::Redshift::Cluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon Redshift"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.REDSHIFT.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.Redshift.1",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'PubliclyAccessible' to 'false'.",
+    "Severity": "CRITICAL",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -1,0 +1,61 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "CIS AWS Benchmark 1.4",
+            "Ids": [
+                "3.8"
+            ]
+        },
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "SC-12",
+                "SC-12(2)",
+                "SC-28(3)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2",
+                "3.6.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether key rotation is enabled for AWS KMS customer-managed keys.",
+    "DisplayName": "Require any AWS KMS key to have rotation configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Rotating AWS KMS keys",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::KMS::Key"
+    ],
+    "EvaluatedServices": [
+        "AWS Key Management Service (AWS KMS)"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.KMS.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'EnableKeyRotation' to 'true' for AWS KMS symmetric-encryption keys.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

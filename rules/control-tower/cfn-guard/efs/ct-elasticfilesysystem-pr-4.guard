@@ -1,0 +1,111 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# Rule Identifier:
+#   efs_access_point_enforce_user_identity_check
+# 
+# Description:
+#   This control checks whether your Amazon EFS access points are configured to enforce a user identity.
+# 
+# Reports on:
+#   AWS::EFS::AccessPoint
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EFS access point resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS access point resource
+#       And: 'PosixUser' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS access point resource
+#       And: 'PosixUser' has been provided
+#       And: 'Uid' within 'PosixUser' has not been provided or has been provided with an empty string value
+#       And: 'Gid' within 'PosixUser' has not been provided or has been provided with an empty string value
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS access point resource
+#       And: 'PosixUser' has been provided
+#       And: 'Uid' within 'PosixUser' has been provided with a non-empty string value
+#       And: 'Gid' within 'PosixUser' has been provided with a non-empty string value
+#      Then: PASS
+
+#
+# Constants
+#
+let EFS_ACCESS_POINT_TYPE = "AWS::EFS::AccessPoint"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let efs_access_points = Resources.*[ Type == %EFS_ACCESS_POINT_TYPE ]
+
+#
+# Primary Rules
+#
+rule efs_access_point_enforce_user_identity_check when is_cfn_template(this)
+                                                       %efs_access_points not empty {
+    check(%efs_access_points.Properties)
+        <<
+        [CT.ELASTICFILESYSYSTEM.PR.4]: Require Amazon EFS access points to enforce a user identity
+            [FIX]: Provide a 'PosixUser' configuration with a POSIX user ID ('Uid') and POSIX group ID ('Gid').
+        >>
+}
+
+rule efs_access_point_enforce_user_identity_check when is_cfn_hook(%INPUT_DOCUMENT, %EFS_ACCESS_POINT_TYPE) {
+    check(%INPUT_DOCUMENT.%EFS_ACCESS_POINT_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICFILESYSYSTEM.PR.4]: Require Amazon EFS access points to enforce a user identity
+            [FIX]: Provide a 'PosixUser' configuration with a POSIX user ID ('Uid') and POSIX group ID ('Gid').
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(efs_access_points) {
+    %efs_access_points {
+        # Scenario 2
+        PosixUser exists
+        PosixUser {
+            # Scenario 3 and 4
+            Uid exists
+            check_is_string_and_not_empty(Uid)
+            Gid exists
+            check_is_string_and_not_empty(Gid)
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}

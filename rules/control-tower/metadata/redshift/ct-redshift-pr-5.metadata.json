@@ -1,0 +1,71 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4",
+                "AC-4(21)",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(20)",
+                "SC-7(21)",
+                "SC-7(4)",
+                "SC-7(9)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "1.3.6"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon Redshift cluster has enhanced VPC routing configured.",
+    "DisplayName": "Require an Amazon Redshift cluster to have enhanced VPC routing",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Enhanced VPC routing in Amazon Redshift",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/redshift/latest/mgmt/enhanced-vpc-routing.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::Redshift::Cluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon Redshift"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.REDSHIFT.PR.5",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.Redshift.7",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'EnhancedVpcRouting' to 'true'.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

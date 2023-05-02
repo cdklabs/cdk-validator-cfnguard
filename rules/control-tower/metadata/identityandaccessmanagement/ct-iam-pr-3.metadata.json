@@ -1,0 +1,71 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-2",
+                "AC-2(1)",
+                "AC-3",
+                "AC-3(15)",
+                "AC-3(7)",
+                "AC-5",
+                "AC-6",
+                "AC-6(10)",
+                "AC-6(2)",
+                "AC-6(3)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "7.1.1",
+                "7.1.2",
+                "7.2.1",
+                "7.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks that AWS Identity and Access Management (IAM) customer-managed policies do not contain statements of \"Effect\": \"Allow\" with \"Action\": \"Service:*\" (for example, s3:*) for individual AWS services, and that the policies do not use the combination of \"NotAction\" with an \"Effect\" of \"Allow\".",
+    "DisplayName": "Require that AWS Identity and Access Management (IAM) customer-managed policies do not have wildcard service actions",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "IAM Least Privilege Guidance",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::IAM::ManagedPolicy"
+    ],
+    "EvaluatedServices": [
+        "AWS Identity and Access Management (IAM)"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.IAM.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.IAM.21",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Remove statements from AWS IAM customer-managed policies with \"Effect\": \"Allow\" and \"Action\": \"service:*\" or \"Effect\": \"Allow\" and \"NotAction\".",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -1,0 +1,77 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-21",
+                "AC-3",
+                "AC-3(7)",
+                "AC-4",
+                "AC-4(21)",
+                "AC-6",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(20)",
+                "SC-7(21)",
+                "SC-7(3)",
+                "SC-7(4)",
+                "SC-7(9)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "2.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an AWS Lambda function resource-based policy prohibits public access.",
+    "DisplayName": "Require AWS Lambda function policies to prohibit public access",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Using resource-based policies for Lambda",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::Lambda::Permission"
+    ],
+    "EvaluatedServices": [
+        "AWS Lambda"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.LAMBDA.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.Lambda.1",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "When setting 'Principal' to '*', provide one of 'SourceAccount', 'SourceArn', or 'PrincipalOrgID'. When setting 'Principal' to a service principal (for example, s3.amazonaws.com), provide one of 'SourceAccount' or 'SourceArn'.",
+    "Severity": "CRITICAL",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

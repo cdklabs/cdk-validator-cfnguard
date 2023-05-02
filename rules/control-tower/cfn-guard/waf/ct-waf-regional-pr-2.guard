@@ -1,0 +1,96 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   waf_regional_webacl_not_empty_check
+# 
+# Description:
+#   This control checks whether an AWS WAF Classic regional web ACL contains any WAF rules or rule groups.
+# 
+# Reports on:
+#   AWS::WAFRegional::WebACL
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any WAF Classic regional web ACL resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an WAF Classic regional web ACL resource
+#       And: 'Rules' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an WAF Classic regional web ACL resource
+#       And: 'Rules' has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an WAF Classic regional web ACL resource
+#       And: 'Rules' has been provided as a non-empty list
+#      Then: PASS
+
+#
+# Constants
+#
+let WAF_REGIONAL_WEB_ACL_TYPE = "AWS::WAFRegional::WebACL"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let waf_regional_web_acls = Resources.*[ Type == %WAF_REGIONAL_WEB_ACL_TYPE ]
+
+#
+# Primary Rules
+#
+rule waf_regional_webacl_not_empty_check when is_cfn_template(%INPUT_DOCUMENT)
+                                              %waf_regional_web_acls not empty {
+    check(%waf_regional_web_acls.Properties)
+        <<
+        [CT.WAF-REGIONAL.PR.2]: Require any AWS WAF regional web access control list (ACL) to have a rule or rule group
+            [FIX]: Provide one or more AWS WAF rules within the 'Rules' property.
+        >>
+}
+
+rule waf_regional_webacl_not_empty_check when is_cfn_hook(%INPUT_DOCUMENT, %WAF_REGIONAL_WEB_ACL_TYPE) {
+    check(%INPUT_DOCUMENT.%WAF_REGIONAL_WEB_ACL_TYPE.resourceProperties)
+        <<
+        [CT.WAF-REGIONAL.PR.2]: Require any AWS WAF regional web access control list (ACL) to have a rule or rule group
+            [FIX]: Provide one or more AWS WAF rules within the 'Rules' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(waf_regional_web_acl) {
+    %waf_regional_web_acl {
+        # Scenario 2, 3 and 4
+        Rules exists
+        Rules is_list
+        Rules not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

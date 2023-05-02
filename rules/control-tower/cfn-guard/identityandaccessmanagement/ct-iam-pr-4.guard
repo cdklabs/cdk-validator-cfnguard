@@ -1,0 +1,157 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   iam_user_no_policies_check
+# 
+# Description:
+#   This control checks whether your AWS Identity and Access Management (IAM) user has inline or managed (AWS and customer) policies directly attached. Instead, IAM users should inherit permissions from IAM groups or roles.
+# 
+# Reports on:
+#   AWS::IAM::User, AWS::IAM::Policy, AWS::IAM::ManagedPolicy
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any IAM user, policy or managed policy resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM user resource
+#       And: 'Policies' or 'ManagedPolicyArns' have been specified as a non-empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM policy or managed policy resource
+#       And: 'Users' has been specified and is a non-empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM user resource
+#       And: 'Policies' has not been been specified or is an empty list
+#       And: 'ManagedPolicyArns' has not been been specified or is an empty list
+#      Then: PASS
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM policy or managed policy resource
+#       And: 'Users' has not been specified or is an empty list
+#      Then: PASS
+
+#
+# Constants
+#
+let IAM_USER_TYPE = "AWS::IAM::User"
+let IAM_POLICY_TYPE = "AWS::IAM::Policy"
+let IAM_MANAGED_POLICY_TYPE = "AWS::IAM::ManagedPolicy"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let iam_users = Resources.*[ Type == %IAM_USER_TYPE ]
+let iam_policies = Resources.*[ Type == %IAM_POLICY_TYPE ]
+let iam_managed_policies = Resources.*[ Type == %IAM_MANAGED_POLICY_TYPE ]
+
+#
+# Primary Rules
+#
+rule iam_user_no_policies_check when is_cfn_template(%INPUT_DOCUMENT)
+                                     %iam_users not empty {
+    check_user(%iam_users.Properties)
+        <<
+        [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
+            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        >>
+}
+
+rule iam_user_no_policies_check when is_cfn_template(%INPUT_DOCUMENT)
+                                     %iam_policies not empty {
+    check_policy(%iam_policies.Properties)
+        <<
+        [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
+            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        >>
+}
+
+rule iam_user_no_policies_check when is_cfn_template(%INPUT_DOCUMENT)
+                                     %iam_managed_policies not empty {
+    check_policy(%iam_managed_policies.Properties)
+        <<
+        [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
+            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        >>
+}
+
+rule iam_user_no_policies_check when is_cfn_hook(%INPUT_DOCUMENT, %IAM_USER_TYPE) {
+    check_user(%INPUT_DOCUMENT.%IAM_USER_TYPE.resourceProperties)
+        <<
+        [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
+            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        >>
+}
+
+rule iam_user_no_policies_check when is_cfn_hook(%INPUT_DOCUMENT, %IAM_POLICY_TYPE) {
+    check_policy(%INPUT_DOCUMENT.%IAM_POLICY_TYPE.resourceProperties)
+        <<
+        [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
+            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        >>
+}
+
+rule iam_user_no_policies_check when is_cfn_hook(%INPUT_DOCUMENT, %IAM_MANAGED_POLICY_TYPE) {
+    check_policy(%INPUT_DOCUMENT.%IAM_MANAGED_POLICY_TYPE.resourceProperties)
+        <<
+        [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
+            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_user(iam_user) {
+    %iam_user {
+        # Scenario 2 and 4
+        Policies not exists or
+        exists_and_is_empty_list(Policies)
+
+        ManagedPolicyArns not exists or
+        exists_and_is_empty_list(ManagedPolicyArns)
+    }
+}
+
+rule check_policy(policy) {
+    %policy {
+        # Scenario 3 and 4
+        Users not exists or
+        exists_and_is_empty_list(Users)
+    }
+}
+
+rule exists_and_is_empty_list(list_property) {
+    %list_property {
+        this is_list
+        this empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

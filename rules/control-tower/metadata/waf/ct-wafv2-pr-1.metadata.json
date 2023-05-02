@@ -1,0 +1,56 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4(21)",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(21)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "6.6"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an AWS WAFv2 web ACL contains any WAF rules or WAF rule groups.",
+    "DisplayName": "Require an AWS WAFV2 web ACL to be non-empty",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Working with web ACLs",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-working-with.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::WAFv2::WebACL"
+    ],
+    "EvaluatedServices": [
+        "AWS WAF"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.WAFV2.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide one or more AWS WAFv2 rules within the 'Rules' property.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

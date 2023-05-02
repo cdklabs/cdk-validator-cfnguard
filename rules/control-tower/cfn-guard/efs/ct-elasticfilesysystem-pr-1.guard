@@ -1,0 +1,95 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# Rule Identifier:
+#   efs_encrypted_check
+# 
+# Description:
+#   This control checks whether an Amazon EFS file system is configured to encrypt file data using AWS KMS.
+# 
+# Reports on:
+#   AWS::EFS::FileSystem
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EFS file system resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS file system resource
+#       And: 'Encrypted' is not present
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS file system resource
+#       And: 'Encrypted' is present and set to bool(false)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EFS file system resource
+#       And: 'Encrypted' is present and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let RESOURCE_TYPE = "AWS::EFS::FileSystem"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let efs_file_systems = Resources.*[ Type == %RESOURCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule efs_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                              %efs_file_systems not empty {
+    check(%efs_file_systems.Properties)
+        <<
+        [CT.ELASTICFILESYSYSTEM.PR.1]: Require an Amazon EFS file system to encrypt file data at rest using AWS KMS
+            [FIX]: Set 'Encrypted' to 'true' and optionally set 'KmsKeyId' to a valid AWS KMS key identifier.
+        >>
+}
+
+rule efs_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %RESOURCE_TYPE) {
+    check(%INPUT_DOCUMENT.%RESOURCE_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICFILESYSYSTEM.PR.1]: Require an Amazon EFS file system to encrypt file data at rest using AWS KMS
+            [FIX]: Set 'Encrypted' to 'true' and optionally set 'KmsKeyId' to a valid AWS KMS key identifier.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(efs_file_systems) {
+    %efs_file_systems {
+        # Scenario 2
+        Encrypted exists
+        # Scenario 3 and 4
+        Encrypted == true
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,161 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Name:
+#   iam_managed_policy_no_statements_with_full_access_check
+# 
+# Description:
+#   This control checks that AWS Identity and Access Management (IAM) customer-managed policies do not contain statements of "Effect": "Allow" with "Action": "Service:*" (for example, s3:*) for individual AWS services, and that the policies do not use the combination of "NotAction" with an "Effect" of "Allow".
+# 
+# Reports on:
+#   AWS::IAM::ManagedPolicy
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any IAM Managed Policy resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM Managed Policy resource
+#       And: The policy has no statements with 'Effect' set to 'Allow'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM Managed Policy resource
+#       And: The policy has a statement with 'Effect' set to 'Allow'
+#       And: The policy has one or more 'Action' statements
+#       And: At least one 'Action' statement allows full access to a service ('Action' has a value 'service:*')
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM Managed Policy resource
+#       And: The policy has a statement with 'Effect' set to 'Allow'
+#       And: The policy has one or more 'NotAction' statements
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an IAM Managed Policy resource
+#       And: The policy has a statement with 'Effect' set to 'Allow'
+#       And: The policy has one or more 'Action' statements
+#       And: No 'Action' statements allow full access to a service ('Action' does not have a value 'service:*')
+#      Then: PASS
+
+#
+# Constants
+#
+let AWS_IAM_MANAGED_POLICY_TYPE = "AWS::IAM::ManagedPolicy"
+let WILDCARD_ACTION_PATTERN = /^[\w]*[:]*\*$/
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let iam_managed_policies = Resources.*[ Type == %AWS_IAM_MANAGED_POLICY_TYPE ]
+
+#
+# Primary Rules
+#
+rule iam_managed_policy_no_statements_with_full_access_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                                  %iam_managed_policies not empty {
+    check(%iam_managed_policies.Properties)
+        <<
+        [CT.IAM.PR.3]: Require that AWS Identity and Access Management (IAM) customer-managed policies do not have wildcard service actions
+            [FIX]: Remove statements from AWS IAM customer-managed policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
+        >>
+}
+
+rule iam_managed_policy_no_statements_with_full_access_check when is_cfn_hook(%INPUT_DOCUMENT, %AWS_IAM_MANAGED_POLICY_TYPE) {
+    check(%INPUT_DOCUMENT.%AWS_IAM_MANAGED_POLICY_TYPE.resourceProperties)
+        <<
+        [CT.IAM.PR.3]: Require that AWS Identity and Access Management (IAM) customer-managed policies do not have wildcard service actions
+            [FIX]: Remove statements from AWS IAM customer-managed policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(policy) {
+    %policy [
+        filter_policy_document_with_statement_provided(this)
+    ] {
+        PolicyDocument {
+            check_statement_no_wildcard_actions(Statement)
+            check_statement_no_not_action(Statement)
+       }
+    }
+}
+
+rule check_statement_no_wildcard_actions(statement) {
+    %statement [
+        filter_allow_on_action(this)
+    ] {
+        Action exists
+        check_no_wildcard_action(Action)
+    }
+}
+
+rule check_statement_no_not_action(statement) {
+    %statement [
+        filter_allow(this)
+    ] {
+        NotAction not exists
+    }
+}
+
+rule filter_allow_on_action(statement) {
+    %statement {
+        Effect == "Allow"
+        Action exists
+    }
+}
+
+rule filter_allow(statement) {
+    %statement {
+        Effect == "Allow"
+    }
+}
+
+rule filter_policy_document_with_statement_provided(policy) {
+    %policy {
+        PolicyDocument exists
+        PolicyDocument is_struct
+        PolicyDocument {
+            Statement exists
+            filter_statement_non_empty_list(Statement) or
+            Statement is_struct
+        }
+    }
+}
+
+rule filter_statement_non_empty_list(statement) {
+    %statement {
+        this is_list
+        this not empty
+    }
+}
+
+rule check_no_wildcard_action(actions) {
+    %actions[*] {
+        this != %WILDCARD_ACTION_PATTERN
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

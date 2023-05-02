@@ -1,0 +1,55 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-7",
+                "SI-2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether AWS Elastic Beanstalk environments and configuration templates are configured for 'enhanced' health reporting.",
+    "DisplayName": "Require AWS Elastic Beanstalk environments to have enhanced health reporting enabled",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Enabling enhanced health reporting using the Elastic Beanstalk console",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/health-enhanced-enable.html#health-enhanced-enable-console"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ElasticBeanstalk::Environment",
+        "AWS::ElasticBeanstalk::ConfigurationTemplate"
+    ],
+    "EvaluatedServices": [
+        "AWS Elastic Beanstalk"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICBEANSTALK.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ElasticBeanstalk.1",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "For AWS Elastic Beanstalk environments, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. For AWS Elastic Beanstalk configuration templates, configure an 'OptionSetting' with 'Namespace' set to 'aws:elasticbeanstalk:healthreporting:system', 'OptionName' set to 'SystemType', and 'Value' set to 'enhanced'. Omit this setting to adopt the default value of 'enhanced'.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

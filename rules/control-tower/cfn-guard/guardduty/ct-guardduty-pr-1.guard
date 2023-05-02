@@ -1,0 +1,117 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   guardduty_s3_protection_enabled_check
+# 
+# Description:
+#   This control checks whether Amazon S3 protection is enabled on an Amazon GuardDuty detector.
+# 
+# Reports on:
+#   AWS::GuardDuty::Detector
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document does not contain any Amazon GuardDuty detector resources
+#       Then: SKIP
+#   Scenario: 2
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains a GuardDuty detector resource
+#        And: 'Enable' has not been specified or specified with value is bool(false)
+#       Then: FAIL
+#   Scenario: 3
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains a GuardDuty detector resource
+#        And: 'Enable' is specified with a value of bool(true)
+#        And: 'DataSources.S3Logs' has not been specified
+#       Then: FAIL
+#   Scenario: 4
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains a GuardDuty detector resource
+#        And: 'Enable' is specified and value is bool(true)
+#        And: 'DataSources.S3Logs' has been specified
+#        And: 'Enable' has not been specified within 'S3Logs' or has been specified with a value of bool(false)
+#       Then: FAIL
+#   Scenario: 5
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains a GuardDuty detector resource
+#        And: 'Enable' is specified and value is bool(true)
+#        And: 'DataSources.S3Logs' has been specified
+#        And: 'Enable' has been specified within 'S3Logs' with a value of bool(true)
+#       Then: PASS
+
+#
+# Constants
+#
+let GUARDDUTY_DETECTOR_TYPE = "AWS::GuardDuty::Detector"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let guardduty_detectors = Resources.*[ Type == %GUARDDUTY_DETECTOR_TYPE ]
+
+#
+# Primary Rules
+#
+rule guardduty_s3_protection_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                %guardduty_detectors not empty {
+    check(%guardduty_detectors.Properties)
+        <<
+        [CT.GUARDDUTY.PR.1]: Require an Amazon GuardDuty detector to have Amazon S3 protection activated
+            [FIX]: Set 'DataSources.S3Logs' to true.
+        >>
+}
+
+rule guardduty_s3_protection_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %GUARDDUTY_DETECTOR_TYPE) {
+    check(%INPUT_DOCUMENT.%GUARDDUTY_DETECTOR_TYPE.resourceProperties)
+        <<
+        [CT.GUARDDUTY.PR.1]: Require an Amazon GuardDuty detector to have Amazon S3 protection activated
+            [FIX]: Set 'DataSources.S3Logs' to true.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(guardduty_detector) {
+    %guardduty_detector {
+        # Scenario: 2
+        Enable exists
+        Enable == true
+        # Scenario: 3
+        DataSources exists
+        DataSources is_struct
+        DataSources {
+            # Scenario: 4 and 5
+            S3Logs exists
+            S3Logs is_struct
+            S3Logs {
+                Enable exists
+                Enable == true
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

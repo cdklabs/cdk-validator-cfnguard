@@ -1,0 +1,61 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-6(2)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "7.1.1",
+                "7.2.1",
+                "7.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon EFS access points are configured to enforce a user identity.",
+    "DisplayName": "Require Amazon EFS access points to enforce a user identity",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Enforcing a user identity using an access point",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/efs/latest/ug/efs-access-points.html#enforce-identity-access-points"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EFS::AccessPoint"
+    ],
+    "EvaluatedServices": [
+        "Amazon EFS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICFILESYSYSTEM.PR.4",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.EFS.4",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide a 'PosixUser' configuration with a POSIX user ID ('Uid') and POSIX group ID ('Gid').",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

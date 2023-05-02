@@ -1,0 +1,65 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SC-7(10)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "3.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon SQS queue is encrypted at rest.",
+    "DisplayName": "Require any Amazon SQS queue to have encryption at rest configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Amazon SQS Encryption at rest",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-server-side-encryption.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::SQS::Queue"
+    ],
+    "EvaluatedServices": [
+        "Amazon SQS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.SQS.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.SQS.1",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'SqsManagedSseEnabled' to 'true' or set an AWS KMS key identifier in the 'KmsMasterKeyId' property.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

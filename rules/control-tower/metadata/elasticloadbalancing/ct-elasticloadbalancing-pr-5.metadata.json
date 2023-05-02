@@ -1,0 +1,63 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2",
+                "CM-2(2)",
+                "CM-3",
+                "SC-5(2)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "Checks whether an Elastic Load Balancer (ELB) has deletion protection activated.",
+    "DisplayName": "Require that application load balancer deletion protection is activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Application Load Balancers",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#deletion-protection"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    ],
+    "EvaluatedServices": [
+        "Elastic Load Balancing"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICLOADBALANCING.PR.5",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ELB.6",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set the load balancer attribute 'deletion_protection.enabled' to 'true'.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -1,0 +1,63 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4(21)",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(21)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "6.6"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an AWS WAF Classic regional rule contains any conditions.",
+    "DisplayName": "Require any AWS WAF regional rule to have a condition",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Creating a rule and adding conditions",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/waf/latest/developerguide/classic-web-acl-rules-creating.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::WAFRegional::Rule"
+    ],
+    "EvaluatedServices": [
+        "AWS WAF"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.WAF-REGIONAL.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.WAF.2",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide one or more AWS WAF rule conditions within the 'Predicates' property.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

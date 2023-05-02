@@ -1,0 +1,72 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-17(2)",
+                "AC-4",
+                "IA-5(1)",
+                "SC-12(3)",
+                "SC-13",
+                "SC-23",
+                "SC-23(3)",
+                "SC-7(4)",
+                "SC-8",
+                "SC-8(1)",
+                "SC-8(2)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.3",
+                "4.1",
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your AWS Elastic Load Balancing (ELB) classic load balancer front-end listeners are configured with HTTPS or SSL protocols.",
+    "DisplayName": "Require that an AWS ELB application or classic load balancer listener is configured with HTTPS or TLS termination",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "HTTPS listeners for your Classic Load Balancer",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-https-load-balancers.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ElasticLoadBalancing::LoadBalancer"
+    ],
+    "EvaluatedServices": [
+        "Elastic Load Balancing"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICLOADBALANCING.PR.9",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.3",
+            "Name": "Encrypt data in transit"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ELB.3",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Configure Classic Load Balancer front-end listeners with HTTPS or SSL protocols.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

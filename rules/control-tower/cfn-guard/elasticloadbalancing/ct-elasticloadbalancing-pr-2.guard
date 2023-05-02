@@ -1,0 +1,187 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elbv2_acm_certificate_required_check
+# 
+# Description:
+#   This control checks whether your Amazon Elastic Load Balancing (ELB) application and network load balancers use certificates provided by AWS Certificate Manager (ACM).
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancingV2::Listener, AWS::ElasticLoadBalancingV2::ListenerCertificate
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElasticLoadBalancingV2 listener or listener certificate resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener resource
+#       And: 'Protocol' is set to a value other than 'HTTPS' or 'TLS'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener certificate resource
+#       And: 'Certificates' has not been provided or has been provided as an empty list
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener resource
+#       And: 'Protocol' is set to 'HTTPS' or 'TLS'
+#       And: 'Certificates' has not been provided or has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener resource
+#       And: 'Protocol' is set to 'HTTPS' or 'TLS'
+#       And: One or more items in 'Certificates' do not match an ACM certificate ARN
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener certificate resource
+#       And: One or more items in 'Certificates' do not match an ACM certificate ARN
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener resource
+#       And: 'Protocol' is set to 'HTTPS' or 'TLS'
+#       And: All items in 'Certificates' match an ACM certificate ARN
+#      Then: PASS
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener certificate resource
+#       And: All items in 'Certificates' match an ACM certificate ARN
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE = "AWS::ElasticLoadBalancingV2::Listener"
+let ELASTIC_LOAD_BALANCER_V2_CERTIFICATE_TYPE = "AWS::ElasticLoadBalancingV2::ListenerCertificate"
+let ACM_CERTIFICATE_ARN_PATTERN = /arn:aws[a-z0-9\-]*:acm:[a-z0-9\-]+:\d{12}:certificate\/[\w\-]{1,64}/
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elb_v2_listeners = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE ]
+let elb_v2_certificates = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_V2_CERTIFICATE_TYPE ]
+
+#
+# Primary Rules
+#
+rule elbv2_acm_certificate_required_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %elb_v2_listeners not empty {
+    check_listener(%elb_v2_listeners.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.2]: Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate
+            [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
+        >>
+}
+
+rule elbv2_acm_certificate_required_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE) {
+    check_listener(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.2]: Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate
+            [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
+        >>
+}
+
+rule elbv2_acm_certificate_required_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %elb_v2_certificates not empty {
+    check_elbv2_listener_certificate(%elb_v2_certificates.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.2]: Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate
+            [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
+        >>
+}
+
+rule elbv2_acm_certificate_required_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_V2_CERTIFICATE_TYPE) {
+    check_elbv2_listener_certificate(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_CERTIFICATE_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.2]: Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate
+            [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_listener(elbv2_listener) {
+    %elbv2_listener[
+        # Scenario 2
+        Protocol in ["HTTPS", "TLS"]
+    ] {
+        # Scenarios 3 and 5
+        Certificates exists
+        Certificates is_list
+        Certificates not empty
+        Certificates[*] {
+            CertificateArn exists
+            check_is_acm_certificate(CertificateArn)
+        }
+    }
+}
+
+rule check_elbv2_listener_certificate(listener_certificate) {
+    %listener_certificate[
+        Certificates exists
+        Certificates is_list
+        Certificates not empty
+    ] {
+        # Scenarios 4 and 6
+        Certificates[*] {
+            CertificateArn exists
+            check_is_acm_certificate(CertificateArn)
+        }
+    }
+}
+
+rule check_is_acm_certificate(certificate) {
+    %certificate {
+        this == %ACM_CERTIFICATE_ARN_PATTERN or
+        check_local_references(%INPUT_DOCUMENT, this, "AWS::CertificateManager::Certificate")
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

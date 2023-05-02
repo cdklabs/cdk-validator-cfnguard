@@ -1,0 +1,77 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "CIS AWS Benchmark 1.4",
+            "Ids": [
+                "1.15"
+            ]
+        },
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-2",
+                "AC-2(1)",
+                "AC-3",
+                "AC-3(15)",
+                "AC-3(7)",
+                "AC-6",
+                "AC-6(3)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2",
+                "7.1.1",
+                "7.1.2",
+                "7.2.1",
+                "7.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your AWS Identity and Access Management (IAM) user has inline or managed (AWS and customer) policies directly attached. Instead, IAM users should inherit permissions from IAM groups or roles.",
+    "DisplayName": "Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "IAM Least Privilege Guidance",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::IAM::User",
+        "AWS::IAM::Policy",
+        "AWS::IAM::ManagedPolicy"
+    ],
+    "EvaluatedServices": [
+        "AWS Identity and Access Management (IAM)"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.IAM.PR.4",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.IAM.2",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Configure AWS IAM users to inherit permissions from IAM groups.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

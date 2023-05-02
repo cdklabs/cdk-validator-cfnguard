@@ -1,0 +1,127 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   alb_http_to_https_redirection_check
+# 
+# Description:
+#   This control checks whether HTTP to HTTPS redirection is configured as a default action on HTTP listeners of application load balancers.
+# 
+# Reports on:
+#   AWS::ElasticLoadBalancingV2::Listener
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElasticLoadBalancingV2 listener resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener
+#       And: 'Protocol' is set to a value other than 'HTTP'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener
+#       And: 'Protocol' is set to 'HTTP'
+#       And: 'DefaultActions' is missing or is provided and an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener
+#       And: 'Protocol' is set to 'HTTP'
+#       And: 'DefaultActions' contains an action with 'Type' set to a value other than 'redirect'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener
+#       And: 'Protocol' is set to 'HTTP'
+#       And: 'DefaultActions' contains an action with 'Type' set to a value of 'redirect'
+#       And: 'RedirectConfig.Protocol' is missing or set to a value other than 'HTTPS'
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElasticLoadBalancingV2 listener
+#       And: 'Protocol' is set to 'HTTP'
+#       And: All 'DefaultActions' have an action with 'Type' set to a value of 'redirect' and
+#            'Protocol.RedirectConfig' set to the value 'HTTPS'
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE = "AWS::ElasticLoadBalancingV2::Listener"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elb_v2_listeners = Resources.*[ Type == %ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE ]
+
+#
+# Primary Rules
+#
+rule alb_http_to_https_redirection_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %elb_v2_listeners not empty {
+    check(%elb_v2_listeners.Properties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.1]: Require any application load balancer listener default actions to redirect all HTTP requests to HTTPS
+            [FIX]: Configure a default HTTPS redirect action on application load balancer HTTP listeners.
+        >>
+}
+
+rule alb_http_to_https_redirection_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICLOADBALANCING.PR.1]: Require any application load balancer listener default actions to redirect all HTTP requests to HTTPS
+            [FIX]: Configure a default HTTPS redirect action on application load balancer HTTP listeners.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elbv2_listener) {
+    %elbv2_listener [
+        # Scenario 2
+        Protocol in [ "HTTP" ]
+    ] {
+        # Scenarios 3
+        DefaultActions exists
+        DefaultActions is_list
+        DefaultActions not empty
+
+        # Scenario 4 and 5
+        DefaultActions[*] {
+            Type == "redirect"
+
+            RedirectConfig exists
+            RedirectConfig is_struct
+            RedirectConfig {
+                Protocol exists
+                Protocol == "HTTPS"
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

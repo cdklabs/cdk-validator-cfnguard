@@ -1,0 +1,66 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "CP-6",
+                "CP-6(1)",
+                "CP-6(2)",
+                "CP-9",
+                "SC-5(2)",
+                "SI-12",
+                "SI-13(5)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "3.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon EFS file system has been configured with automatic backups through AWS Backup.",
+    "DisplayName": "Require an Amazon EFS volume to have an automated backup plan",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Using AWS Backup to back up and restore Amazon EFS file systems",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/efs/latest/ug/awsbackup.html#automatic-backups"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EFS::FileSystem"
+    ],
+    "EvaluatedServices": [
+        "Amazon EFS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICFILESYSYSTEM.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.EFS.2",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Enable automatic backups by setting 'BackupPolicy.Status' to 'ENABLED'.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}
