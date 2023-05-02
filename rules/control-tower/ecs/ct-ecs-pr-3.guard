@@ -1,0 +1,121 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_task_definition_nonroot_user_check
+# 
+# Description:
+#   This control checks whether Amazon Elastic Container Service (ECS) task definitions run as a non-root user within Amazon ECS containers.
+# 
+# Reports on:
+#   AWS::ECS::TaskDefinition
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document does not contain an ECS task definition resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' is not present or is an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present and is not an empty list
+#       And: One or more containers defined in 'ContainerDefinitions' do not provide a 'User' property
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' is present and is not an empty list
+#       And: One or more containers defined in 'ContainerDefinitions' has a 'User' property set to a root user
+#            value (0, 'root', '0:<group>', 'root:<group>')
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' is present and is not an empty list
+#       And: All containers defined in 'ContainerDefinitions' do not have a 'User' property set to a root user
+#            value (0, 'root', '0:<group>', 'root:<group>')
+#      Then: PASS
+
+#
+# Constants
+#
+let ECS_TASK_DEFINITION_TYPE = "AWS::ECS::TaskDefinition"
+let INPUT_DOCUMENT = this
+let ROOT_USER_PATTERNS = [ 0 , "0" , "root" , /^0:.*$/ , /^root:.*$/ ]
+
+#
+# Assignments
+#
+let ecs_task_definitions = Resources.*[ Type == %ECS_TASK_DEFINITION_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_task_definition_nonroot_user_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                 %ecs_task_definitions not empty {
+    check(%ecs_task_definitions.Properties)
+        <<
+        [CT.ECS.PR.3]: Require any Amazon ECS task definition to specify a user that is not the root
+            [FIX]: Set the 'User' property to a non-root user.
+        >>
+}
+
+rule ecs_task_definition_nonroot_user_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TASK_DEFINITION_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.3]: Require any Amazon ECS task definition to specify a user that is not the root
+            [FIX]: Set the 'User' property to a non-root user.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_task_definition) {
+    %ecs_task_definition [
+        filter_container_definitions_is_present(this)
+    ]{
+        ContainerDefinitions[*] {
+            # Scenario 3
+            User exists
+
+            # Scenario 4 and 5
+            User not in %ROOT_USER_PATTERNS
+        }
+    }
+}
+
+rule filter_container_definitions_is_present(ecs_task_definition) {
+    %ecs_task_definition {
+        # Scenario 2
+        ContainerDefinitions exists
+        ContainerDefinitions is_list
+        ContainerDefinitions not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

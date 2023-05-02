@@ -1,0 +1,61 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-2(1)",
+                "AC-3",
+                "AC-3(15)",
+                "AC-3(7)",
+                "AC-5",
+                "AC-6"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "7.1.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Elastic Container Service (ECS) task definitions run as a non-root user within Amazon ECS containers.",
+    "DisplayName": "Require any Amazon ECS task definition to specify a user that is not the root",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "ECS Task Definitions",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/config/latest/developerguide/ecs-task-definition-nonroot-user.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ECS::TaskDefinition"
+    ],
+    "EvaluatedServices": [
+        "Amazon ECS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ECS.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        },
+        {
+            "Id": "CO.12",
+            "Name": "Manage vulnerabilities"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set the 'User' property to a non-root user.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

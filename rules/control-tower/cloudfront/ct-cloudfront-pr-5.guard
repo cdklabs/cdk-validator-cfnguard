@@ -1,0 +1,139 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_access_logs_enabled_check
+# 
+# Description:
+#   This control checks whether Amazon CloudFront distributions are configured with access logging.
+# 
+# Reports on:
+#   AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DistributionConfig.Logging.Bucket' configuration is not present on the CloudFront distribution resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DistributionConfig.Logging' configuration is present on the CloudFront distribution resource
+#       And: 'Bucket' has been provided in the 'DistributionConfig.Logging' configuration with with an empty string or
+#            invalid local reference
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DistributionConfig.Logging' configuration is present on the CloudFront distribution resource
+#       And: A 'Bucket' property has been provided within the 'DistributionConfig.Logging' configuration with a
+#            non-empty string or valid local stack reference
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let S3_BUCKET_TYPE = "AWS::S3::Bucket"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_access_logs_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.5]: Require any Amazon CloudFront distribution to have logging enabled
+            [FIX]: Set 'Bucket' in 'DistributionConfig.Logging' to an Amazon S3 bucket that has been configured to receive Amazon CloudFront distribution access logs.
+        >>
+}
+
+rule cloudfront_access_logs_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.5]: Require any Amazon CloudFront distribution to have logging enabled
+            [FIX]: Set 'Bucket' in 'DistributionConfig.Logging' to an Amazon S3 bucket that has been configured to receive Amazon CloudFront distribution access logs.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            Logging exists
+            Logging is_struct
+            Logging {
+                # Scenario 2
+                Bucket exists
+
+                # Scenarios 3 and 4
+                check_is_string_and_not_empty(Bucket) or
+                check_local_references(%INPUT_DOCUMENT, Bucket, %S3_BUCKET_TYPE)
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

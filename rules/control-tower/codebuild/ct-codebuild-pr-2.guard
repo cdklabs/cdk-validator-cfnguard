@@ -1,0 +1,154 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   codebuild_project_envvar_awscred_check
+# 
+# Description:
+#   This control checks whether AWS CodeBuild projects contain environment variables 'AWS_ACCESS_KEY_ID' and 'AWS_SECRET_ACCESS_KEY' stored as 'PLAINTEXT'.
+# 
+# Reports on:
+#   AWS::CodeBuild::Project
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation Hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CodeBuild project resources
+#     Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Environment' configuration does not contains 'EnvironmentVariables'
+#     Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Environment' configuration contains 'EnvironmentVariables'
+#       And: 'EnvironmentVariables' contain variables named 'AWS_ACCESS_KEY_ID' or 'AWS_SECRET_ACCESS_KEY'
+#       And: 'Type' is not provided for 'AWS_ACCESS_KEY_ID' and 'AWS_SECRET_ACCESS_KEY' environment variables or is
+#            provided as an empty string.
+#     Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Environment' configuration contains 'EnvironmentVariables'
+#       And: 'EnvironmentVariables' contain variables named 'AWS_ACCESS_KEY_ID' or 'AWS_SECRET_ACCESS_KEY'
+#       And: 'Type' is set to 'PLAINTEXT' for 'AWS_ACCESS_KEY_ID' or 'AWS_SECRET_ACCESS_KEY' environment variables
+#     Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Environment' configuration contains 'EnvironmentVariables'
+#       And: 'EnvironmentVariables' does not contain variables named 'AWS_ACCESS_KEY_ID' or 'AWS_SECRET_ACCESS_KEY'
+#     Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Environment' configuration contains 'EnvironmentVariables'
+#       And: 'EnvironmentVariables' contain variables named 'AWS_ACCESS_KEY_ID' or 'AWS_SECRET_ACCESS_KEY'
+#       And: 'Type' is provided as a non-empty string and not set to 'PLAINTEXT' for 'AWS_ACCESS_KEY_ID' or
+#            'AWS_SECRET_ACCESS_KEY' environment variables
+#     Then: PASS
+
+
+#
+# Constants
+#
+let CODEBUILD_PROJECT_TYPE = "AWS::CodeBuild::Project"
+let AWS_CREDENTIAL_ENV_VAR_NAMES = [ "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let codebuild_project = Resources.*[ Type == %CODEBUILD_PROJECT_TYPE ]
+
+#
+# Primary Rules
+#
+rule codebuild_project_envvar_awscred_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                 %codebuild_project not empty {
+    check(%codebuild_project.Properties)
+        <<
+        [CT.CODEBUILD.PR.2]: Require any AWS CodeBuild project environment variable to encrypt credentials in environment variables
+            [FIX]: Use 'PARAMETER_STORE' or 'SECRETS_MANAGER' to store values for environment variables named 'AWS_ACCESS_KEY_ID' or 'AWS_SECRET_ACCESS_KEY'.
+        >>
+}
+
+rule codebuild_project_envvar_awscred_check when is_cfn_hook(%INPUT_DOCUMENT, %CODEBUILD_PROJECT_TYPE) {
+    check(%INPUT_DOCUMENT.%CODEBUILD_PROJECT_TYPE.resourceProperties)
+        <<
+        [CT.CODEBUILD.PR.2]: Require any AWS CodeBuild project environment variable to encrypt credentials in environment variables
+            [FIX]: Use 'PARAMETER_STORE' or 'SECRETS_MANAGER' to store values for environment variables named 'AWS_ACCESS_KEY_ID' or 'AWS_SECRET_ACCESS_KEY'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(codebuild_project) {
+    %codebuild_project [
+        # Scenario 2
+        filter_codebuild_projects_with_environment_variables(this)
+    ] {
+        Environment exists
+        Environment is_struct
+        Environment {
+            EnvironmentVariables exists
+            EnvironmentVariables is_list
+            EnvironmentVariables not empty
+            EnvironmentVariables [
+                # Scenario 3, 4 and 6
+                Name in %AWS_CREDENTIAL_ENV_VAR_NAMES
+            ] {
+                # Scenario 3
+                Type exists
+                check_is_string_and_not_empty(Type)
+                # Scenario 4 and 6
+                Type != "PLAINTEXT"
+            }
+        }
+    }
+}
+
+rule filter_codebuild_projects_with_environment_variables(codebuild_project) {
+    %codebuild_project {
+        Environment exists
+        Environment is_struct
+
+        Environment {
+            # Scenario 2
+            EnvironmentVariables exists
+            EnvironmentVariables is_list
+            EnvironmentVariables not empty
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}

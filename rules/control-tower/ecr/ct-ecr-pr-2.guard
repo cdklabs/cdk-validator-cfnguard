@@ -1,0 +1,101 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecr_private_image_scanning_enabled_check
+# 
+# Description:
+#   This control checks whether a private Amazon ECR repository has image scanning enabled.
+# 
+# Reports on:
+#   AWS::ECR::Repository
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ECR repository resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECR repository resource
+#       And: 'ImageScanningConfiguration.ScanOnPush' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECR repository resource
+#       And: 'ImageScanningConfiguration.ScanOnPush' has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECR repository resource
+#       And: 'ImageScanningConfiguration.ScanOnPush' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let ECR_REPOSITORY_TYPE = "AWS::ECR::Repository"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ecr_repositories = Resources.*[ Type == %ECR_REPOSITORY_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecr_private_image_scanning_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                   %ecr_repositories not empty {
+    check(%ecr_repositories.Properties)
+        <<
+        [CT.ECR.PR.2]: Require Amazon ECR private repositories to have image scanning enabled
+            [FIX]: Set 'ScanOnPush' in 'ImageScanningConfiguration' to 'true'.
+        >>
+}
+
+rule ecr_private_image_scanning_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ECR_REPOSITORY_TYPE) {
+    check(%INPUT_DOCUMENT.%ECR_REPOSITORY_TYPE.resourceProperties)
+        <<
+        [CT.ECR.PR.2]: Require Amazon ECR private repositories to have image scanning enabled
+            [FIX]: Set 'ScanOnPush' in 'ImageScanningConfiguration' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecr_repository) {
+    %ecr_repository {
+        # Scenario 2
+        ImageScanningConfiguration exists
+        ImageScanningConfiguration is_struct
+
+        ImageScanningConfiguration {
+            # Scenario 3 and 4
+            ScanOnPush exists
+            ScanOnPush == true
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

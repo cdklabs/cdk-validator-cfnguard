@@ -1,0 +1,66 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-2(1)",
+                "AC-3",
+                "AC-3(15)",
+                "AC-3(7)",
+                "AC-5",
+                "AC-6"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "7.1.1",
+                "7.2.1",
+                "7.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether container definitions in Amazon Elastic Container Service (ECS) task definitions are configured with elevated privileges.",
+    "DisplayName": "Require an Amazon ECS container to run as non-privileged",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Task definition parameters - Security",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_security"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ECS::TaskDefinition"
+    ],
+    "EvaluatedServices": [
+        "Amazon ECS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ECS.PR.11",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ECS.4",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Be sure that all containers defined in 'ContainerDefinitions' either omit the 'Privileged' property, or that they set 'Privileged' to 'false'.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

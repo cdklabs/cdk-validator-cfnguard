@@ -1,0 +1,190 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_origin_access_control_enabled_check
+# 
+# Description:
+#   This control checks whether your Amazon CloudFront distributions backed by Amazon S3 are configured to use an origin access control.
+# 
+# Reports on:
+#   AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: No S3 backed 'Origins' are provided on the CloudFront distribution resource or 'Origins' is not present on
+#            the CloudFront distribution resource or is present and an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'S3Origin' is present on the CloudFront distribution resource
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more S3 backed 'Origins' are configured on the CloudFront distribution resource
+#       And: 'OriginAccessControlId' is not present for the 'Origin' or is an empty string or invalid local reference
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more S3 backed 'Origins' are provided on the CloudFront distribution resource
+#       And: 'OriginAccessControlId' is present for each S3 backed 'Origin' and is a non-empty string or valid local
+#            reference
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let CLOUDFRONT_ORIGIN_ACCESS_CONTROL_TYPE = "AWS::CloudFront::OriginAccessControl"
+let S3_BUCKET_DNS_NAME_PATTERN = /(.*)\.s3(-external-\d|[-\.][a-z]*-[a-z]*-[0-9])?\.amazonaws\.com(\.cn)?$/
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_origin_access_control_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                          %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.10]: Require any Amazon CloudFront distributions with Amazon S3 backed origins to have origin access control configured
+            [FIX]: The 'Origins' property configures origins backed by Amazon S3. For each origin backed by Amazon S3, configure an origin access control identifier using the 'OriginAccessControlId' property.
+        >>
+}
+
+rule cloudfront_origin_access_control_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.10]: Require any Amazon CloudFront distributions with Amazon S3 backed origins to have origin access control configured
+            [FIX]: The 'Origins' property configures origins backed by Amazon S3. For each origin backed by Amazon S3, configure an origin access control identifier using the 'OriginAccessControlId' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution[
+        filter_cloudfront_distribution_with_legacy_s3_origins(this)
+    ] {
+        DistributionConfig {
+            # Scenario 3
+            S3Origin not exists
+        }
+    }
+
+    %cloudfront_distribution[
+        # Scenario 2
+        filter_cloudfront_distribution_with_origins(this)
+    ] {
+        DistributionConfig {
+            Origins [
+                # Scenario 4
+                DomainName == %S3_BUCKET_DNS_NAME_PATTERN or
+                check_origin_domain_name_get_att(DomainName)
+            ] {
+                # Scenario 3 and 5
+                OriginAccessControlId exists
+                check_is_string_and_not_empty(OriginAccessControlId) or
+                check_local_references(%INPUT_DOCUMENT, OriginAccessControlId, %CLOUDFRONT_ORIGIN_ACCESS_CONTROL_TYPE)
+            }
+        }
+    }
+}
+
+rule filter_cloudfront_distribution_with_legacy_s3_origins(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            S3Origin exists
+        }
+    }
+}
+
+rule filter_cloudfront_distribution_with_origins(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            Origins exists
+            Origins is_list
+            Origins not empty
+        }
+    }
+}
+
+rule check_origin_domain_name_get_att(domain) {
+  %domain {
+    'Fn::GetAtt' {
+        this is_list
+        this not empty
+        this[1] == "DomainName" or
+        this[1] == "RegionalDomainName"
+    }
+    check_local_references(%INPUT_DOCUMENT, this, "AWS::S3::Bucket")
+  }
+}
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

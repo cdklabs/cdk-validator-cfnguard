@@ -1,0 +1,64 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.3.7"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Elastic Container Service (ECS) task definitions are configured to share a host's process namespace with its containers.",
+    "DisplayName": "Require that Amazon ECS task definitions do not share the host's process namespace",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "ECS Task Definition contents",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_TaskDefinition.html#API_TaskDefinition_Contents"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ECS::TaskDefinition"
+    ],
+    "EvaluatedServices": [
+        "Amazon ECS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ECS.PR.10",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.10",
+            "Name": "Protect configurations"
+        },
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ECS.3",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Omit the 'PidMode' property, or set 'PidMode' to 'task'.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

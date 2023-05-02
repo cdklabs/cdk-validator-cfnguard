@@ -1,0 +1,212 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_traffic_to_origin_encrypted_check
+# 
+# Description:
+#   This control checks whether your Amazon CloudFront distributions are encrypting traffic to custom origins.
+# 
+# Reports on:
+#   AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIPs
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'Origins' is not present or is an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There are no 'Origins' with a 'CustomOriginConfig'
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'CustomOrigin' is present on the CloudFront distribution resource
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There one or more 'Origins' with a 'CustomOriginConfig'
+#       And: At least one 'Origins' with a 'CustomOriginConfig' has an 'OriginProtocolPolicy' of 'http-only'
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There one or more 'Origins' with a 'CustomOriginConfig'
+#       And: At least one 'Origins' with a 'CustomOriginConfig' has an 'OriginProtocolPolicy' of 'match-viewer'
+#       And: Any 'ViewerProtocolPolicy' is set to 'allow-all' for 'DefaultCacheBehavior' or any configured
+#            'CacheBehaviors'
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There one or more 'Origins' with a 'CustomOriginConfig'
+#       And: All 'Origins' with a 'CustomOriginConfig' have an 'OriginProtocolPolicy' of 'https-only'
+#      Then: PASS
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront Distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There one or more 'Origins' with a 'CustomOriginConfig'
+#       And: At least one 'Origins' with a 'CustomOriginConfig' has an 'OriginProtocolPolicy' of 'match-viewer'
+#       And: 'ViewerProtocolPolicy' is not set to 'allow-all' for both 'DefaultCacheBehavior' and any configured
+#            'CacheBehaviors'
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_traffic_to_origin_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                       %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.8]: Require an Amazon CloudFront distribution to encrypt traffic to custom origins
+            [FIX]: For Amazon CloudFront custom origins, set 'OriginProtocolPolicy' to 'https-only' or match-viewer'. When setting 'OriginProtocolPolicy' to 'match-viewer', do not set 'ViewerProtocolPolicy' to 'allow-all' for any cache behaviors.
+        >>
+}
+
+rule cloudfront_traffic_to_origin_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.8]: Require an Amazon CloudFront distribution to encrypt traffic to custom origins
+            [FIX]: For Amazon CloudFront custom origins, set 'OriginProtocolPolicy' to 'https-only' or match-viewer'. When setting 'OriginProtocolPolicy' to 'match-viewer', do not set 'ViewerProtocolPolicy' to 'allow-all' for any cache behaviors.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution[
+        filter_cloudfront_distribution_with_legacy_origins(this)
+    ] {
+        DistributionConfig {
+            # Scenario 4
+            CustomOrigin not exists
+        }
+    }
+
+    %cloudfront_distribution [
+        # Scenario 2
+        filter_cloudfront_distribution_with_origins(this)
+    ] {
+        let cloudfront_distro = this
+
+        DistributionConfig {
+            Origins [
+                # Scenario 3
+                CustomOriginConfig exists
+                CustomOriginConfig is_struct
+            ] {
+                CustomOriginConfig {
+                    # Scenario 5
+                    OriginProtocolPolicy != "http-only"
+                    # Scenario 6
+                    OriginProtocolPolicy == "https-only" or
+                    # Scenario 6 and 8
+                    match_viewer_policy_with_no_allow_all_viewer_protocol_policy(OriginProtocolPolicy, %cloudfront_distro)
+                }
+            }
+        }
+    }
+}
+
+rule match_viewer_policy_with_no_allow_all_viewer_protocol_policy(origin_protocol_policy, cloudfront_distribution) {
+    %origin_protocol_policy {
+        this == "match-viewer"
+
+        %cloudfront_distribution {
+            DistributionConfig {
+                DefaultCacheBehavior exists
+                DefaultCacheBehavior is_struct
+
+                DefaultCacheBehavior {
+                    check_viewer_protocol_policy(this)
+                }
+
+                when CacheBehaviors exists
+                     CacheBehaviors is_list
+                     CacheBehaviors not empty {
+
+                        CacheBehaviors[*] {
+                            check_viewer_protocol_policy(this)
+                        }
+                }
+            }
+        }
+    }
+}
+
+rule check_viewer_protocol_policy(cache_behaviour) {
+    %cache_behaviour {
+        ViewerProtocolPolicy exists
+        ViewerProtocolPolicy != "allow-all"
+    }
+}
+
+rule filter_cloudfront_distribution_with_origins(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            Origins exists
+            Origins is_list
+            Origins not empty
+        }
+    }
+}
+
+rule filter_cloudfront_distribution_with_legacy_origins(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            CustomOrigin exists
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

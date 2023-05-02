@@ -1,0 +1,60 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Elastic Container Service (ECS) task definition container definitions include environment variables named 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', or 'ECS_ENGINE_AUTH_DATA'.",
+    "DisplayName": "Require that Amazon ECS task definitions do not pass secrets as container environment variables",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Passing sensitive data to a container",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/specifying-sensitive-data.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ECS::TaskDefinition"
+    ],
+    "EvaluatedServices": [
+        "Amazon ECS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ECS.PR.12",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.15",
+            "Name": "Use strong authentication"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ECS.8",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Omit environment variables with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY' or 'ECS_ENGINE_AUTH_DATA' from container definitions.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

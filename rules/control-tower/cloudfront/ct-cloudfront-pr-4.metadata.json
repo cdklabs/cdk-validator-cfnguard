@@ -1,0 +1,49 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "SC-36",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon CloudFront distribution is configured with an origin group that contains two origin group members.",
+    "DisplayName": "Require an Amazon CloudFront distribution to have origin failover configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Creating an origin group.",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/high_availability_origin_failover.html#concept_origin_groups.creating"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudFront::Distribution"
+    ],
+    "EvaluatedServices": [
+        "Amazon CloudFront"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDFRONT.PR.4",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Configure an origin group on the Amazon CloudFront Distribution with two origin group members.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

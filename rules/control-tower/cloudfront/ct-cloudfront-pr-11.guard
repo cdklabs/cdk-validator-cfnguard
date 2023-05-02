@@ -1,0 +1,186 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_no_deprecated_ssl_protocols_check
+# 
+# Description:
+#   This control checks whether your Amazon CloudFront distributions are using deprecated SSL protocols for HTTPS communication between CloudFront edge locations and custom origins.
+# 
+# Reports on:
+#   AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'Origins' is not present or is an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There are no 'Origins' with a 'CustomOriginConfig'
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There one or more 'Origins' with a 'CustomOriginConfig'
+#       And: All 'Origins' with a 'CustomOriginConfig' have an 'OriginProtocolPolicy' of 'http-only'
+#      Then: SKIP
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'CustomOrigin' is present on the CloudFront distribution resource
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There one or more 'Origins' with a 'CustomOriginConfig'
+#       And: One or more 'Origins' with a 'CustomOriginConfig' have an 'OriginProtocolPolicy' not equal to 'http-only'
+#       And: 'OriginSSLProtocols' has not been specified or specified as an empty list
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There one or more 'Origins' with a 'CustomOriginConfig'
+#       And: One or more 'Origins' with a 'CustomOriginConfig' have an 'OriginProtocolPolicy' not equal to 'http-only'
+#       And: 'OriginSSLProtocols' has been specified as a non-empty list and contains 'SSLv3'
+#      Then: FAIL
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: One or more 'Origins' has been configured
+#       And: There one or more 'Origins' with a 'CustomOriginConfig'
+#       And: One or more 'Origins' with a 'CustomOriginConfig' have an 'OriginProtocolPolicy' not equal to 'http-only'
+#       And: 'OriginSSLProtocols' has been specified as a non-empty list and does not contain 'SSLv3'
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let UNSUPPORTED_ORIGIN_SSL_PROTOCOLS = [ "SSLv3" ]
+let OUT_OF_SCOPE_PROTOCOL_POLICIES = [ "http-only" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_no_deprecated_ssl_protocols_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                       %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.11]: Require an Amazon CloudFront distribution to use updated SSL protocols between edge locations and custom origins
+            [FIX]: Remove deprecated SSL protocols from 'OriginSSLProtocols' in 'Origins' that have 'CustomOriginConfig' configurations.
+        >>
+}
+
+rule cloudfront_no_deprecated_ssl_protocols_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.11]: Require an Amazon CloudFront distribution to use updated SSL protocols between edge locations and custom origins
+            [FIX]: Remove deprecated SSL protocols from 'OriginSSLProtocols' in 'Origins' that have 'CustomOriginConfig' configurations.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution[
+        filter_cloudfront_distribution_with_legacy_origins(this)
+    ] {
+        DistributionConfig {
+            # Scenario 5
+            CustomOrigin not exists
+        }
+    }
+
+    %cloudfront_distribution[
+        # Scenario 2
+        filter_cloudfront_distribution_with_origins(this)
+    ] {
+        DistributionConfig {
+            Origins [
+                # Scenario 3 and 4
+                CustomOriginConfig exists
+                CustomOriginConfig is_struct
+                filter_custom_origin_config(CustomOriginConfig)
+            ] {
+                CustomOriginConfig {
+                    # Scenario 6, 7 and 8
+                    OriginSSLProtocols exists
+                    OriginSSLProtocols is_list
+                    OriginSSLProtocols not empty
+                    %UNSUPPORTED_ORIGIN_SSL_PROTOCOLS.* not in OriginSSLProtocols
+                }
+            }
+        }
+    }
+}
+
+
+rule filter_cloudfront_distribution_with_origins(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            Origins exists
+            Origins is_list
+            Origins not empty
+        }
+    }
+}
+
+rule filter_cloudfront_distribution_with_legacy_origins(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            CustomOrigin exists
+        }
+    }
+}
+
+rule filter_custom_origin_config(custom_origin_config) {
+    %custom_origin_config {
+        OriginProtocolPolicy exists
+        OriginProtocolPolicy not in %OUT_OF_SCOPE_PROTOCOL_POLICIES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

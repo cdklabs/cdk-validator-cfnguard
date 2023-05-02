@@ -1,0 +1,43 @@
+{
+    "Behavior": "PROACTIVE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon CloudFront distributions are using a minimum security policy and cipher suite of TLSv1.2 or greater for viewer connections.",
+    "DisplayName": "Require an Amazon CloudFront distribution to have a security policy of TLSv1.2 as a minimum",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Requiring HTTPS for communication between viewers and CloudFront",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-https-viewers-to-cloudfront.html"
+        },
+        {
+            "DisplayName": "Supported protocols and ciphers between viewers and CloudFront",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/secure-connections-supported-viewer-protocols-ciphers.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudFront::Distribution"
+    ],
+    "EvaluatedServices": [
+        "Amazon CloudFront"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDFRONT.PR.9",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.12",
+            "Name": "Manage vulnerabilities"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide a 'ViewerCertificate' configuration with 'MinimumProtocolVersion' set to TLSv1.2 or higher.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

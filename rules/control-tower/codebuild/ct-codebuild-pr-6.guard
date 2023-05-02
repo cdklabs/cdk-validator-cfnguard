@@ -1,0 +1,133 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   codebuild_project_s3_logs_encrypted_check
+# 
+# Description:
+#   This control checks whether AWS CodeBuild projects configured with Amazon S3 logs have encryption enabled.
+# 
+# Reports on:
+#   AWS::CodeBuild::Project
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario 1:
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CodeBuild project resources
+#      Then: SKIP
+#   Scenario 2:
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'S3Logs' in 'LogsConfig' configuration is not provided
+#      Then: SKIP
+#   Scenario 3:
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'S3Logs' in 'LogsConfig' configuration is provided and its 'Status' is set to 'DISABLED'
+#      Then: SKIP
+#   Scenario 4:
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'S3Logs' in 'LogsConfig' configuration is provided and its 'Status' is set to 'ENABLED'
+#       And: 'EncryptionDisabled' within 'S3Logs' is provided and set to bool(true)
+#      Then: FAIL
+#   Scenario 5:
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'S3Logs' in 'LogsConfig' configuration is provided and its 'Status' is set to 'ENABLED'
+#       And: 'EncryptionDisabled' within 'S3Logs' is not provided
+#      Then: PASS
+#   Scenario 6:
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'S3Logs' in 'LogsConfig' configuration is provided and its 'Status' is set to 'ENABLED'
+#       And: 'EncryptionDisabled' within 'S3Logs' is provided and set to bool(false)
+#      Then: PASS
+
+#
+# Constants
+#
+let CODEBUILD_PROJECT_TYPE = "AWS::CodeBuild::Project"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let codebuild_project = Resources.*[ Type == %CODEBUILD_PROJECT_TYPE ]
+
+#
+# Primary Rules
+#
+rule codebuild_project_s3_logs_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                    %codebuild_project not empty {
+    check(%codebuild_project.Properties)
+        <<
+        [CT.CODEBUILD.PR.6]: Require encryption on all Amazon S3 logs for AWS CodeBuild projects
+            [FIX]: Set 'EncryptionDisabled' in 'S3Logs' to 'false', or do not specify the 'EncryptionDisabled' property.
+        >>
+}
+
+rule codebuild_project_s3_logs_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %CODEBUILD_PROJECT_TYPE) {
+    check(%INPUT_DOCUMENT.%CODEBUILD_PROJECT_TYPE.resourceProperties)
+        <<
+        [CT.CODEBUILD.PR.6]: Require encryption on all Amazon S3 logs for AWS CodeBuild projects
+            [FIX]: Set 'EncryptionDisabled' in 'S3Logs' to 'false', or do not specify the 'EncryptionDisabled' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(codebuild_project) {
+    %codebuild_project [
+        # Scenario 2 and 3
+        filter_codebuild_projects(this)
+    ] {
+        LogsConfig {
+            S3Logs {
+                # Scenario 5
+                EncryptionDisabled not exists or
+                # Scenario 4 and 6
+                EncryptionDisabled == false
+            }
+        }
+    }
+}
+
+rule filter_codebuild_projects(codebuild_project) {
+    %codebuild_project {
+        LogsConfig exists
+        LogsConfig is_struct
+        LogsConfig {
+            # Scenario 2 and 3
+            S3Logs exists
+            S3Logs is_struct
+            S3Logs {
+                Status exists
+                # Scenario 3 and 4
+                Status == "ENABLED"
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

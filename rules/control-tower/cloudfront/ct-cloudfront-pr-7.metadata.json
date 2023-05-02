@@ -1,0 +1,57 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "4.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your Amazon CloudFront distributions are configured to use SNI to serve HTTPS requests.",
+    "DisplayName": "Require an Amazon CloudFront distribution to use SNI to serve HTTPS requests",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Using SNI to serve HTTPS requests (works for most clients)",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-https-dedicated-ip-or-sni.html#cnames-https-sni"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudFront::Distribution"
+    ],
+    "EvaluatedServices": [
+        "Amazon CloudFront"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDFRONT.PR.7",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.3",
+            "Name": "Encrypt data in transit"
+        },
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Within 'ViewerCertificate', set 'SslSupportMethod' to 'sni-only', 'MinimumProtocolVersion' to a protocol that supports SNI ('TLSv1' or greater), and 'AcmCertificateArn' to the ARN of an AWS ACM certificate.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

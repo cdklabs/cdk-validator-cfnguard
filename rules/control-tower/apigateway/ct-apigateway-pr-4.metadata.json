@@ -1,0 +1,50 @@
+{
+    "Behavior": "PROACTIVE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon API Gateway V2 stages have access logging enabled. Access logging is supported for HTTP and WebSocket APIs.",
+    "DisplayName": "Require an Amazon API Gateway V2 stage to have access logging activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Setting up CloudWatch logging for a REST API in API Gateway",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ApiGatewayV2::Stage"
+    ],
+    "EvaluatedServices": [
+        "Amazon API Gateway"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.APIGATEWAY.PR.4",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "CT.APIGATEWAY.PR.1",
+            "ControlOwner": "AWS Control Tower",
+            "RelationshipType": "Can be used with (Inclusive)"
+        },
+        {
+            "ControlId": "SH.APIGateway.1",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide an 'AccessLogSettings' configuration, setting 'DestinationArn' to the ARN of an Amazon CloudWatch log group and 'Format' to a single line log format configuration.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

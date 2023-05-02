@@ -1,0 +1,63 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-7"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.1",
+                "10.2.1",
+                "10.2.4",
+                "10.2.7",
+                "10.3.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control ensures that AWS X-Ray tracing is enabled on Amazon API Gateway REST APIs.",
+    "DisplayName": "Require an Amazon API Gateway REST API stage to have AWS X-Ray tracing activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Enable AWS X-Ray tracing on API Gateway stages",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/xray/latest/devguide/xray-services-apigateway.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ApiGateway::Stage"
+    ],
+    "EvaluatedServices": [
+        "Amazon API Gateway"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.APIGATEWAY.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.APIGateway.3",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'TracingEnabled' to 'true'.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

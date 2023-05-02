@@ -1,0 +1,113 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_containers_nonprivileged_check
+# 
+# Description:
+#   This control checks whether container definitions in Amazon Elastic Container Service (ECS) task definitions are configured with elevated privileges.
+# 
+# Reports on:
+#   AWS::ECS::TaskDefinition
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation Hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain an ECS task definition resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is not present or is an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present
+#       And: One or more containers defined  in 'ContainerDefinitions' have 'Privileged' set to bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ECS task definition resource
+#       And: 'ContainerDefinitions' property is present
+#       And: All containers defined in 'ContainerDefinitions' either do not have the 'Privileged' property present or
+#            'Privileged' is present and set to bool(false)
+#      Then: PASS
+
+#
+# Constants
+#
+let ECS_TASK_DEFINITION_TYPE = "AWS::ECS::TaskDefinition"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ecs_task_definitions = Resources.*[ Type == %ECS_TASK_DEFINITION_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_containers_nonprivileged_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %ecs_task_definitions not empty {
+    check(%ecs_task_definitions.Properties)
+        <<
+        [CT.ECS.PR.11]: Require an Amazon ECS container to run as non-privileged
+            [FIX]: Be sure that all containers defined in 'ContainerDefinitions' either omit the 'Privileged' property, or that they set 'Privileged' to 'false'.
+        >>
+}
+
+rule ecs_containers_nonprivileged_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TASK_DEFINITION_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.11]: Require an Amazon ECS container to run as non-privileged
+            [FIX]: Be sure that all containers defined in 'ContainerDefinitions' either omit the 'Privileged' property, or that they set 'Privileged' to 'false'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_task_definition) {
+    %ecs_task_definition [
+        filter_container_definitions_is_present(this)
+    ]{
+        ContainerDefinitions[*] {
+            # Scenario 3
+            Privileged not exists or
+
+            # Scenario 4
+            Privileged == false
+        }
+    }
+}
+
+rule filter_container_definitions_is_present(ecs_task_definition) {
+    %ecs_task_definition {
+        # Scenario 2
+        ContainerDefinitions exists
+        ContainerDefinitions is_list
+        ContainerDefinitions not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

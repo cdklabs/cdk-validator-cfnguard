@@ -1,0 +1,181 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   codebuild_project_source_repo_url_check
+# 
+# Description:
+#   This control checks whether the GitHub or Bitbucket source repository URL contains either personal access tokens or a username and password.
+# 
+# Reports on:
+#   AWS::CodeBuild::Project
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CodeBuild project resources
+#       Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Source' configuration is not of 'Type' 'GITHUB' or 'BITBUCKET'
+#       And: 'SecondarySources' configuration is not provided or is provided and does not have any item of 'Type'
+#            'GITHUB' or 'BITBUCKET'
+#       Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Source' configuration is of 'Type' 'GITHUB' or 'BITBUCKET'
+#       And: 'Source' configuration has a 'Location' that contains credentials (username and password for BitBucket
+#            and Access Token for GitHub)
+#       Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'SecondarySources' configuration is provided
+#       And: 'SecondarySources' configuration has one or more items of 'Type' 'GITHUB' or 'BITBUCKET'
+#       And: 'SecondarySources' configuration has one or more items with 'Location' that contains credentials
+#            (username and password for BitBucket and Access Token for GitHub)
+#       Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Source' configuration is of 'Type' 'GITHUB' or 'BITBUCKET'
+#       And: 'Source' configuration has a 'Location' that does not contain credentials (username and password for
+#            BitBucket and Access Token for GitHub)
+#       And: 'SecondarySources' configuration is not provided or is provided and does not have any item of 'Type'
+#            'GITHUB' or 'BITBUCKET'
+#       Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'Source' configuration is of 'Type' 'GITHUB' or 'BITBUCKET'
+#       And: 'Source' configuration has a 'Location' that does not contain credentials (username and password for
+#            BitBucket and Access Token for GitHub)
+#       And: 'SecondarySources' configuration is provided
+#       And: 'SecondarySources' configuration has one or more items of 'Type' 'GITHUB' or 'BITBUCKET'
+#       And: 'SecondarySources' configuration has one or more items with 'Location' that does not contain credentials
+#            (username and password for BitBucket and Access Token for GitHub)
+#       Then: PASS
+
+#
+# Constants
+#
+let CODEBUILD_PROJECT_TYPE = "AWS::CodeBuild::Project"
+let INPUT_DOCUMENT = this
+let GITHUB_COMPLIANT_URL_PATTERN = /^(http(s)?)(:\/\/github\.com\/)([^\/]+)\/([\w\.-]+)(\.git)?$/
+let BITBUCKET_COMPLIANT_URL_PATTERN = /^https?:\/\/bitbucket\.org/
+
+#
+# Assignments
+#
+let codebuild_project = Resources.*[ Type == %CODEBUILD_PROJECT_TYPE ]
+
+#
+# Primary Rules
+#
+rule codebuild_project_source_repo_url_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                  %codebuild_project not empty {
+    check(%codebuild_project.Properties)
+        <<
+        [CT.CODEBUILD.PR.1]: Require OAuth on GitHub or Bitbucket source repository URLs for AWS CodeBuild projects
+            [FIX]: Remove any embedded credentials from repository URLs in AWS CodeBuild project source configurations. Instead, connect your CodeBuild projects to 'GitHub' or 'Bitbucket' repositories by configuring 'GitHub Access Token' or 'Bitbucket App Password' credentials in the AWS Console or CLI.
+        >>
+}
+
+rule codebuild_project_source_repo_url_check when is_cfn_hook(%INPUT_DOCUMENT, %CODEBUILD_PROJECT_TYPE) {
+    check(%INPUT_DOCUMENT.%CODEBUILD_PROJECT_TYPE.resourceProperties)
+        <<
+        [CT.CODEBUILD.PR.1]: Require OAuth on GitHub or Bitbucket source repository URLs for AWS CodeBuild projects
+            [FIX]: Remove any embedded credentials from repository URLs in AWS CodeBuild project source configurations. Instead, connect your CodeBuild projects to 'GitHub' or 'Bitbucket' repositories by configuring 'GitHub Access Token' or 'Bitbucket App Password' credentials in the AWS Console or CLI.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(codebuild_project) {
+    %codebuild_project[
+        filter_github_or_bitbucket_source_configuration(this) or
+        filter_github_or_bitbucket_secondary_sources_configuration(this)
+    ] {
+        # Scenario 3, 5 and 6
+        check_source(Source)
+        # Scenario 4 and 6
+        check_secondary_sources(this)
+    }
+}
+
+rule filter_github_or_bitbucket_source_configuration(codebuild_project) {
+    %codebuild_project {
+        Source exists
+        Source is_struct
+        Source {
+            Type == "GITHUB" or
+            Type == "BITBUCKET"
+        }
+    }
+}
+
+rule filter_github_or_bitbucket_secondary_sources_configuration(codebuild_project) {
+    %codebuild_project {
+        SecondarySources exists
+        SecondarySources is_list
+        SecondarySources not empty
+
+        some SecondarySources[*] {
+            Type == "GITHUB" or
+            Type == "BITBUCKET"
+        }
+    }
+}
+
+rule check_source(codebuild_source) {
+    %codebuild_source [
+        Type == "GITHUB"
+    ] {
+        Location exists
+        Location == %GITHUB_COMPLIANT_URL_PATTERN
+    }
+    %codebuild_source [
+        Type == "BITBUCKET"
+    ] {
+        Location exists
+        Location == %BITBUCKET_COMPLIANT_URL_PATTERN
+    }
+}
+
+rule check_secondary_sources(codebuild_project) {
+    %codebuild_project [
+        # Scenario 2
+        SecondarySources exists
+        SecondarySources is_list
+        SecondarySources not empty
+    ] {
+        # Scenario 4 and 6
+        SecondarySources[*] {
+            check_source(this)
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

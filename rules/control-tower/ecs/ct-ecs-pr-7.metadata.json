@@ -1,0 +1,53 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Elastic Container Service (ECS) task definitions have specified a memory limit for container definitions.",
+    "DisplayName": "Require an Amazon ECS task definition to have a specific memory usage limit",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Container definition parameters",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definition_memory"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ECS::TaskDefinition"
+    ],
+    "EvaluatedServices": [
+        "Amazon ECS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ECS.PR.7",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set the 'Memory' property in 'ContainerDefinitions' for Amazon ECS task definitions.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

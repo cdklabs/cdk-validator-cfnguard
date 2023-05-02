@@ -1,0 +1,85 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "CIS AWS Benchmark 1.4",
+            "Ids": [
+                "3.4"
+            ]
+        },
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-2(4)",
+                "AC-4(26)",
+                "AC-6(9)",
+                "AU-10",
+                "AU-12",
+                "AU-2",
+                "AU-3",
+                "AU-6(1)",
+                "AU-6(3)",
+                "AU-6(4)",
+                "AU-6(5)",
+                "AU-7(1)",
+                "AU-9(7)",
+                "CA-7",
+                "SC-7(9)",
+                "SI-20",
+                "SI-3(8)",
+                "SI-4(20)",
+                "SI-4(5)",
+                "SI-7(8)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.5.3",
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether your AWS CloudTrail trail is configured to send logs to Amazon CloudWatch Logs.",
+    "DisplayName": "Require an AWS CloudTrail trail to have an Amazon CloudWatch log group configuration",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "CloudTrail integration with CloudWatch Logs",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/send-cloudtrail-events-to-cloudwatch-logs.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudTrail::Trail"
+    ],
+    "EvaluatedServices": [
+        "AWS CloudTrail"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDTRAIL.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.CloudTrail.5",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set the 'CloudWatchLogsLogGroupArn' and 'CloudWatchLogsRoleArn' properties.",
+    "Severity": "LOW",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

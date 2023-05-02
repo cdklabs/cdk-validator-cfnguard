@@ -1,0 +1,138 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudfront_viewer_policy_https_check
+# 
+# Description:
+#   This control checks whether your Amazon CloudFront distributions use HTTPS, either directly or through a redirection.
+# 
+# Reports on:
+#   AWS::CloudFront::Distribution
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudFront distribution resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DistributionConfig.DefaultCacheBehavior' is missing on the CloudFront distribution resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DistributionConfig.DefaultCacheBehavior' is present on the CloudFront distribution resource
+#       And: 'ViewerProtocolPolicy' in 'DefaultCacheBehavior' is missing or set to a value other than 'https-only' or
+#            'redirect-to-https' (e.g. 'allow-all')
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DistributionConfig.CacheBehavior' is provided on the CloudFront distribution resource
+#       And: 'ViewerProtocolPolicy' in the 'CacheBehavior' is  is missing or set to a value other than 'https-only' or
+#            'redirect-to-https' (e.g. 'allow-all')
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DistributionConfig.DefaultCacheBehavior' is present on the CloudFront distribution resource
+#       And: 'ViewerProtocolPolicy' in 'DefaultCacheBehavior' is set to 'https-only' or 'redirect-to-https'
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudFront distribution resource
+#       And: 'DistributionConfig.CacheBehavior' are provided on the CloudFront distribution resource as a non-empty list
+#       And: 'ViewerProtocolPolicy' in the 'CacheBehavior' is set to 'https-only' or 'redirect-to-https'
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDFRONT_DISTRIBUTION_TYPE = "AWS::CloudFront::Distribution"
+let ALLOWED_VIEWER_PROTOCOL_POLICIES = [ "https-only", "redirect-to-https" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudfront_distributions = Resources.*[ Type == %CLOUDFRONT_DISTRIBUTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudfront_viewer_policy_https_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %cloudfront_distributions not empty {
+    check(%cloudfront_distributions.Properties)
+        <<
+        [CT.CLOUDFRONT.PR.3]: Require an Amazon CloudFront distribution to have encryption in transit configured
+            [FIX]: Set 'ViewerProtocolPolicy' in 'DefaultCacheBehavior' and 'CacheBehavior' to 'https-only' or 'redirect-to-https'.
+        >>
+}
+
+rule cloudfront_viewer_policy_https_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFRONT_DISTRIBUTION_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDFRONT.PR.3]: Require an Amazon CloudFront distribution to have encryption in transit configured
+            [FIX]: Set 'ViewerProtocolPolicy' in 'DefaultCacheBehavior' and 'CacheBehavior' to 'https-only' or 'redirect-to-https'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudfront_distribution) {
+    %cloudfront_distribution {
+        DistributionConfig exists
+        DistributionConfig is_struct
+
+        DistributionConfig {
+            DefaultCacheBehavior exists
+            DefaultCacheBehavior is_struct
+
+            DefaultCacheBehavior {
+                # Scenarios 2 and 4
+                check_viewer_protocol_policy(this)
+            }
+
+            when CacheBehaviors exists
+                 CacheBehaviors is_list
+                 CacheBehaviors not empty {
+
+                    CacheBehaviors[*] {
+                        # Scenarios 3 and 5
+                        check_viewer_protocol_policy(this)
+                    }
+            }
+        }
+    }
+}
+
+rule check_viewer_protocol_policy(cache_behaviour) {
+    %cache_behaviour {
+        ViewerProtocolPolicy exists
+        ViewerProtocolPolicy in %ALLOWED_VIEWER_PROTOCOL_POLICIES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,128 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ecs_fargate_latest_platform_version_check
+# 
+# Description:
+#   This control checks whether Amazon ECS Fargate services are configured to deploy using the 'LATEST' platform version rather than a specified version number.
+# 
+# Reports on:
+#   AWS::ECS::Service
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document does not contain an ECS service resource
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS service resource
+#       And: 'LaunchType' is not present
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS service resource
+#       And: 'LaunchType' is present and not set to 'FARGATE'
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS service resource
+#       And: 'LaunchType' is present and set to 'FARGATE'
+#       And: 'PlatformVersion' is present and not set to 'LATEST'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS service resource
+#       And: 'LaunchType' is present and set to 'FARGATE'
+#       And: 'PlatformVersion' is not present
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an ECS service resource
+#       And: 'LaunchType' is present and set to 'FARGATE'
+#       And: 'PlatformVersion' is set to 'LATEST'
+#      Then: PASS
+
+#
+# Constants
+#
+let ECS_SERVICE_TYPE = "AWS::ECS::Service"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ecs_services = Resources.*[ Type == %ECS_SERVICE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ecs_fargate_latest_platform_version_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                    %ecs_services not empty {
+    check(%ecs_services.Properties)
+        <<
+        [CT.ECS.PR.1]: Require AWS ECS Fargate Services to run on the latest Fargate platform version
+            [FIX]: When 'LaunchType' is set to 'FARGATE', set the 'PlatformVersion' property to 'LATEST' or omit the 'PlatformVersion' property (default: 'LATEST').
+        >>
+}
+
+rule ecs_fargate_latest_platform_version_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_SERVICE_TYPE) {
+    check(%INPUT_DOCUMENT.%ECS_SERVICE_TYPE.resourceProperties)
+        <<
+        [CT.ECS.PR.1]: Require AWS ECS Fargate Services to run on the latest Fargate platform version
+            [FIX]: When 'LaunchType' is set to 'FARGATE', set the 'PlatformVersion' property to 'LATEST' or omit the 'PlatformVersion' property (default: 'LATEST').
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ecs_service) {
+    %ecs_service [ filter_launch_type_is_fargate(this) ]{
+        # Scenario 5
+        PlatformVersion not exists  or
+
+        # Scenario 4 and 6
+        check_fargate_version_latest(PlatformVersion)
+    }
+}
+
+rule filter_launch_type_is_fargate(ecs_service) {
+    %ecs_service {
+        # Scenario 2
+        LaunchType exists
+        LaunchType is_string
+
+        # Scenario 3
+        LaunchType == "FARGATE"
+    }
+}
+
+rule check_fargate_version_latest(property) {
+    %property {
+        this is_string
+        this == "LATEST"
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

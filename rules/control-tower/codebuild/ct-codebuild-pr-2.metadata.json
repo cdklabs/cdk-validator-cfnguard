@@ -1,0 +1,60 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "IA-5(7)",
+                "SA-3"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether AWS CodeBuild projects contain environment variables 'AWS_ACCESS_KEY_ID' and 'AWS_SECRET_ACCESS_KEY' stored as 'PLAINTEXT'.",
+    "DisplayName": "Require any AWS CodeBuild project environment variable to encrypt credentials in environment variables",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Create a build project",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/codebuild/latest/userguide/create-project-console.html#create-project-console-environment"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CodeBuild::Project"
+    ],
+    "EvaluatedServices": [
+        "AWS CodeBuild"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CODEBUILD.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.15",
+            "Name": "Use strong authentication"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.CodeBuild.2",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Use 'PARAMETER_STORE' or 'SECRETS_MANAGER' to store values for environment variables named 'AWS_ACCESS_KEY_ID' or 'AWS_SECRET_ACCESS_KEY'.",
+    "Severity": "CRITICAL",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

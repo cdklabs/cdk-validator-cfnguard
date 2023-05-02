@@ -1,0 +1,60 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "RA-5"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "11.2.3",
+                "6.3.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether a private Amazon ECR repository has image scanning enabled.",
+    "DisplayName": "Require Amazon ECR private repositories to have image scanning enabled",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Image scanning",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ECR::Repository"
+    ],
+    "EvaluatedServices": [
+        "Amazon ECR"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ECR.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.12",
+            "Name": "Manage vulnerabilities"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.ECR.1",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'ScanOnPush' in 'ImageScanningConfiguration' to 'true'.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

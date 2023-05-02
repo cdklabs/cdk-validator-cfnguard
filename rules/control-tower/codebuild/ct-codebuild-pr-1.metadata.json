@@ -1,0 +1,60 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "SA-3"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "6.4.4",
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether the GitHub or Bitbucket source repository URL contains either personal access tokens or a username and password.",
+    "DisplayName": "Require OAuth on GitHub or Bitbucket source repository URLs for AWS CodeBuild projects",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "CodeBuild Project Source",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/codebuild/latest/userguide/create-project-console.html#create-project-console-source"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CodeBuild::Project"
+    ],
+    "EvaluatedServices": [
+        "AWS CodeBuild"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CODEBUILD.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.15",
+            "Name": "Use strong authentication"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.CodeBuild.1",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Remove any embedded credentials from repository URLs in AWS CodeBuild project source configurations. Instead, connect your CodeBuild projects to 'GitHub' or 'Bitbucket' repositories by configuring 'GitHub Access Token' or 'Bitbucket App Password' credentials in the AWS Console or CLI.",
+    "Severity": "CRITICAL",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -1,0 +1,69 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4(26)",
+                "AU-10",
+                "AU-12",
+                "AU-2",
+                "AU-3",
+                "AU-6(3)",
+                "AU-6(4)",
+                "CA-7",
+                "SC-7(9)",
+                "SI-7(8)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.1",
+                "10.2.1",
+                "10.2.2",
+                "10.2.3",
+                "10.2.4",
+                "10.2.5",
+                "10.2.6",
+                "10.2.7",
+                "10.3.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Elastic Container Service (ECS) task definitions have a logging configuration specified.",
+    "DisplayName": "Require an active Amazon ECS task definition to have a logging configuration",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "ECS container Definitions",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definitions"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ECS::TaskDefinition"
+    ],
+    "EvaluatedServices": [
+        "Amazon ECS"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ECS.PR.5",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "For each container definition, within 'LogConfiguration' set the 'LogDriver' property to a supported log driver.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

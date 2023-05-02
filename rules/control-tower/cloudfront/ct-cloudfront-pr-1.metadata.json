@@ -1,0 +1,56 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "SC-7(11)",
+                "SC-7(16)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.4",
+                "1.3.7"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon CloudFront distribution is configured to return a specific object that is the default root object.",
+    "DisplayName": "Require an Amazon CloudFront distribution to have a default root object configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "How to specify a default root object",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DefaultRootObject.html#DefaultRootObjectHowToDefine"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudFront::Distribution"
+    ],
+    "EvaluatedServices": [
+        "Amazon CloudFront"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDFRONT.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.10",
+            "Name": "Protect configurations"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Specify a default root object in the 'DefaultRootObject' property.",
+    "Severity": "CRITICAL",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

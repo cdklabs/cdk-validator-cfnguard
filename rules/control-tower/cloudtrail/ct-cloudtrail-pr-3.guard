@@ -1,0 +1,148 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloud_trail_cloud_watch_logs_enabled_check
+# 
+# Description:
+#   This control checks whether your AWS CloudTrail trail is configured to send logs to Amazon CloudWatch Logs.
+# 
+# Reports on:
+#   AWS::CloudTrail::Trail
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document does not contain any AWS CloudTrail Trails
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an AWS CloudTrail trail resource
+#       And: 'CloudWatchLogsLogGroupArn' or 'CloudWatchLogsRoleArn' is not present
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an AWS CloudTrail trail resource
+#       And: 'CloudWatchLogsLogGroupArn' is set to a non-empty string or a valid local reference to a log group
+#       And: 'CloudWatchLogsRoleArn' is set to an empty string or a non-valid local reference
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an AWS CloudTrail trail resource
+#       And: 'CloudWatchLogsLogGroupArn' is set to an empty string or an invalid local reference
+#       And: 'CloudWatchLogsRoleArn' is set to a non-empty string or a valid local reference to an IAM role
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation document or CloudFormation hook document
+#       And: The input document contains an AWS CloudTrail trail resource
+#       And: 'CloudWatchLogsRoleArn' is set to a non-empty string or a valid local reference to an IAM role
+#       And: 'CloudWatchLogsLogGroupArn' is set to a non-empty string or a valid local reference to a log group
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDTRAIL_TRAIL_TYPE = "AWS::CloudTrail::Trail"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudtrail_trails = Resources.*[ Type == %CLOUDTRAIL_TRAIL_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloud_trail_cloud_watch_logs_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                     %cloudtrail_trails not empty {
+    check_cloudtrail_log_group_configuration(%cloudtrail_trails.Properties)
+        <<
+        [CT.CLOUDTRAIL.PR.3]: Require an AWS CloudTrail trail to have an Amazon CloudWatch log group configuration
+            [FIX]: Set the 'CloudWatchLogsLogGroupArn' and 'CloudWatchLogsRoleArn' properties.
+        >>
+}
+
+rule cloud_trail_cloud_watch_logs_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDTRAIL_TRAIL_TYPE) {
+    check_cloudtrail_log_group_configuration(%INPUT_DOCUMENT.%CLOUDTRAIL_TRAIL_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDTRAIL.PR.3]: Require an AWS CloudTrail trail to have an Amazon CloudWatch log group configuration
+            [FIX]: Set the 'CloudWatchLogsLogGroupArn' and 'CloudWatchLogsRoleArn' properties.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_cloudtrail_log_group_configuration(cloudtrail_trail) {
+    %cloudtrail_trail {
+        # Scenario 2
+        CloudWatchLogsLogGroupArn exists
+        CloudWatchLogsRoleArn exists
+
+        # Scenario 3, 4 and 5
+        check_cloudwatch_log_group_arn(CloudWatchLogsLogGroupArn)
+        check_cloudwatch_log_role_arn(CloudWatchLogsRoleArn)
+    }
+}
+
+rule check_cloudwatch_log_group_arn(log_group) {
+   %log_group {
+      check_is_string_and_not_empty(this) or
+      check_local_references(%INPUT_DOCUMENT, this, "AWS::Logs::LogGroup")
+    }
+}
+
+rule check_cloudwatch_log_role_arn(log_role) {
+   %log_role {
+      check_is_string_and_not_empty(this) or
+      check_local_references(%INPUT_DOCUMENT, this, "AWS::IAM::Role")
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_RESOURCE_TYPE) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_RESOURCE_TYPE)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_RESOURCE_TYPE)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_RESOURCE_TYPE) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_RESOURCE_TYPE
+    }
+}

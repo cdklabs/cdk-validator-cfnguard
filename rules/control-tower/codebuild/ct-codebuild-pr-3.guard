@@ -1,0 +1,222 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   codebuild_project_logging_enabled_check
+# 
+# Description:
+#   This control checks whether AWS CodeBuild projects environment has at least one logging option enabled.
+# 
+# Reports on:
+#   AWS::CodeBuild::Project
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CodeBuild project resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is not provided on the CodeBuild project resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is provided on the CodeBuild project resource
+#       And: Neither 'CloudWatchLogs' or 'S3Logs' are present in 'LogsConfig'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is provided on the CodeBuild project resource
+#       And: 'CloudWatchLogs' is not present in 'LogsConfig'
+#       And: 'S3Logs' is present in 'LogsConfig' with 'Status' set to 'DISABLED'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is provided on the CodeBuild project resource
+#       And: 'S3Logs' is not present in 'LogsConfig'
+#       And: 'CloudWatchLogs' is present in 'LogsConfig' with 'Status' set to 'DISABLED'
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is provided on the CodeBuild project resource
+#       And: 'CloudWatchLogs' and 'S3Logs' are present in 'LogsConfig' with 'Status' set to 'DISABLED'
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is provided on the CodeBuild project resource
+#       And: 'CloudWatchLogs' is not present in 'LogsConfig'
+#       And: 'S3Logs' is present in 'LogsConfig' with 'Status' set to 'ENABLED'
+#       And: 'Location' has not been provided in 'S3Logs', or has been provided as an empty string or
+#             invalid local reference
+#      Then: FAIL
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is provided on the CodeBuild project resource
+#       And: 'S3Logs' is not present in 'LogsConfig'
+#       And: 'CloudWatchLogs' is present in 'LogsConfig' with 'Status' set to 'ENABLED'
+#      Then: PASS
+#   Scenario: 9
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is provided on the CodeBuild project resource
+#       And: 'CloudWatchLogs' is not present in 'LogsConfig'
+#       And: 'S3Logs' is present in 'LogsConfig' with 'Status' set to 'ENABLED'
+#       And: 'Location' has been provided in 'S3Logs' as a non-empty string or valid local reference
+#      Then: PASS
+#   Scenario: 10
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CodeBuild project resource
+#       And: 'LogsConfig' is provided on the CodeBuild project resource
+#       And: 'CloudWatchLogs' is present in 'LogsConfig' with 'Status' set to 'ENABLED'
+#       And: 'S3Logs' is present in 'LogsConfig' with 'Status' set to 'ENABLED'
+#       And: 'Location' has been provided in 'S3Logs' as a non-empty string or valid local reference
+#      Then: PASS
+
+#
+# Constants
+#
+let CODEBUILD_PROJECT_TYPE = "AWS::CodeBuild::Project"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let codebuild_project = Resources.*[ Type == %CODEBUILD_PROJECT_TYPE ]
+
+#
+# Primary Rules
+#
+rule codebuild_project_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                  %codebuild_project not empty {
+    check(%codebuild_project.Properties)
+        <<
+        [CT.CODEBUILD.PR.3]: Require any AWS CodeBuild project environment to have logging configured
+            [FIX]: Set 'LogsConfig' with a 'CloudWatchLogs' or 'S3Logs' configuration.
+        >>
+}
+
+rule codebuild_project_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CODEBUILD_PROJECT_TYPE) {
+    check(%INPUT_DOCUMENT.%CODEBUILD_PROJECT_TYPE.resourceProperties)
+        <<
+        [CT.CODEBUILD.PR.3]: Require any AWS CodeBuild project environment to have logging configured
+            [FIX]: Set 'LogsConfig' with a 'CloudWatchLogs' or 'S3Logs' configuration.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(codebuild_project) {
+    %codebuild_project {
+        # Scenario 2
+        LogsConfig exists
+        LogsConfig is_struct
+
+        LogsConfig {
+            # Scenario 3
+            check_cloudwatch_logs(this) or
+            check_s3_logs(this)
+        }
+    }
+}
+
+rule check_cloudwatch_logs(codebuild_project) {
+    %codebuild_project {
+        # Scenario 4
+        CloudWatchLogs exists
+        CloudWatchLogs is_struct
+
+        CloudWatchLogs {
+            # Scenario 5, 6, 8 and 10
+            Status exists
+            Status == "ENABLED"
+        }
+    }
+}
+
+rule check_s3_logs(codebuild_project) {
+    %codebuild_project {
+        # Scenario 4
+        S3Logs exists
+        S3Logs is_struct
+
+        S3Logs {
+            # Scenario 4, 6, 9 and 10
+            Status exists
+            Status == "ENABLED"
+
+            # Scenario 7, 9 and 10
+            Location exists
+            check_is_string_and_not_empty(Location) or
+            check_local_references(%INPUT_DOCUMENT, Location, "AWS::S3::Bucket") or
+            check_join_references(%INPUT_DOCUMENT, Location, "AWS::S3::Bucket")
+        }
+    }
+}
+
+rule check_join_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::Join' {
+            this is_list
+            this not empty
+            some this[1][*] {
+                check_local_references(%doc, this, %referenced_resource_type)
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

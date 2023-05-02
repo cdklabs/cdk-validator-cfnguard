@@ -1,0 +1,62 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether AWS CodeBuild projects are configured to encrypt artifacts.",
+    "DisplayName": "Require encryption on all AWS CodeBuild project artifacts",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Create a build project - Artifacts",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/codebuild/latest/userguide/create-project-console.html#create-project-console-artifacts"
+        },
+        {
+            "DisplayName": "Multiple input sources and output artifacts sample",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/codebuild/latest/userguide/sample-multi-in-out.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CodeBuild::Project"
+    ],
+    "EvaluatedServices": [
+        "AWS CodeBuild"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CODEBUILD.PR.5",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set the 'EncryptionDisabled' property in 'Artifacts' and any 'SecondaryArtifacts' to 'false', or omit the 'EncryptionDisabled' property.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

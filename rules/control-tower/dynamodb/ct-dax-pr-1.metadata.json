@@ -1,0 +1,58 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SC-7(10)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "3.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon DynamoDB Accelerator (DAX) clusters are encrypted at rest.",
+    "DisplayName": "Require encryption at rest for all Amazon DynamoDB Accelerator (DAX) clusters",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "DAX encryption at rest",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAXEncryptionAtRest.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::DAX::Cluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon DynamoDB"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.DAX.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Provide an 'SSESpecification' configuration with 'SSEEnabled' set to 'true'.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -1,0 +1,68 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-2(4)",
+                "AC-4(26)",
+                "AC-6(9)",
+                "AU-10",
+                "AU-12",
+                "AU-2",
+                "AU-3",
+                "AU-6(3)",
+                "AU-6(4)",
+                "CA-7",
+                "SC-7(9)",
+                "SI-3(8)",
+                "SI-4(20)",
+                "SI-7(8)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.1",
+                "10.2.1",
+                "10.2.4",
+                "10.3.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon CloudFront distributions are configured with access logging.",
+    "DisplayName": "Require any Amazon CloudFront distribution to have logging enabled",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Configuring and using standard logs (access logs)",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudFront::Distribution"
+    ],
+    "EvaluatedServices": [
+        "Amazon CloudFront"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDFRONT.PR.5",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'Bucket' in 'DistributionConfig.Logging' to an Amazon S3 bucket that has been configured to receive Amazon CloudFront distribution access logs.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

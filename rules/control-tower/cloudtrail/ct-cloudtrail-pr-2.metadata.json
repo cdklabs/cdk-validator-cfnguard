@@ -1,0 +1,71 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "CIS AWS Benchmark 1.4",
+            "Ids": [
+                "3.2"
+            ]
+        },
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AU-9",
+                "SI-4",
+                "SI-7(1)",
+                "SI-7(3)",
+                "SI-7(7)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.5.5",
+                "11.5",
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether log file integrity validation is enabled on an AWS CloudTrail trail.",
+    "DisplayName": "Require an AWS CloudTrail trail to have log file validation activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Ensure CloudTrail log file validation is enabled",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudTrail::Trail"
+    ],
+    "EvaluatedServices": [
+        "AWS CloudTrail"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDTRAIL.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.4",
+            "Name": "Protect data integrity"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.CloudTrail.4",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set the CloudTrail resource 'EnableLogFileValidation' property to true.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

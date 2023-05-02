@@ -1,0 +1,65 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SC-7(10)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "3.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon API Gateway REST API stage that has caching enabled also encrypts the caches.",
+    "DisplayName": "Require that an Amazon API Gateway REST API stage has encryption at rest configured for cache data",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Enable API Gateway Stage Cache Encryption",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ApiGateway::Stage"
+    ],
+    "EvaluatedServices": [
+        "Amazon API Gateway"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.APIGATEWAY.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.APIGateway.5",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Configure encryption on Amazon API Gateway caches with a 'MethodSetting' that sets 'CacheDataEncrypted' to true for all methods ('HttpMethod' of '*' and 'ResourcePath' of '/*'). Ensure that you do not set 'CacheDataEncrypted' to false for any method setting.",
+    "Severity": "MEDIUM",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

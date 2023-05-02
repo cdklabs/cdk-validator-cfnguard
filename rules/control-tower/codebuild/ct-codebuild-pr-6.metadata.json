@@ -1,0 +1,60 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.5",
+                "10.5.2",
+                "2.2",
+                "3.4"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether AWS CodeBuild projects configured with Amazon S3 logs have encryption enabled.",
+    "DisplayName": "Require encryption on all Amazon S3 logs for AWS CodeBuild projects",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Create a build project - Logs",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/codebuild/latest/userguide/create-project-console.html#create-project-console-logs"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CodeBuild::Project"
+    ],
+    "EvaluatedServices": [
+        "AWS CodeBuild"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CODEBUILD.PR.6",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2022-11-28",
+    "RemediationMessage": "Set 'EncryptionDisabled' in 'S3Logs' to 'false', or do not specify the 'EncryptionDisabled' property.",
+    "Severity": "HIGH",
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}
