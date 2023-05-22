@@ -52,6 +52,7 @@ junit.xml
 tsconfig.json
 !/API.md
 !/.github/workflows/auto-merge.yml
+!/.github/workflows/upgrade-cdklabs-projen-project-types-main.yml
 !/rosetta/default.ts-fixture
 !/.github/CODEOWNERS
 .jsii.tabl.json
