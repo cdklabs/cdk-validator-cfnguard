@@ -10,6 +10,7 @@
     ".github/workflows/pull-request-lint.yml",
     ".github/workflows/release.yml",
     ".github/workflows/update-guard.yml",
+    ".github/workflows/upgrade-cdklabs-projen-project-types-main.yml",
     ".github/workflows/upgrade-main.yml",
     ".gitignore",
     ".npmrc",
