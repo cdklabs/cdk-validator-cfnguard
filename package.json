@@ -4,6 +4,10 @@
     "type": "git",
     "url": "https://github.com/cdklabs/cdk-validator-cfnguard.git"
   },
+  "bin": {
+    "macos": "bin/macos",
+    "ubuntu": "bin/ubuntu"
+  },
   "scripts": {
     "build": "npx projen build",
     "bump": "npx projen bump",

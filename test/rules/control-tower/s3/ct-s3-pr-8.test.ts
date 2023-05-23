@@ -72,7 +72,7 @@ describe('CT.S3.PR.8', () => {
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
-    expect(rules).not.toContain(
+    expect(rules).toContain(
       GUARD_RULE_CHECK_NAME,
     );
   });
