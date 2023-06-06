@@ -58,6 +58,8 @@ describe('CfnGuardPlugin', () => {
     });
 
     // THEN
+    expect(validator.version).toEqual('0.0.0');
+    expect(validator.ruleIds).toEqual(['efsrule', 's3rule']);
     expect(execMock).toHaveBeenCalledTimes(4);
     expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
       '--rules',
@@ -88,6 +90,53 @@ describe('CfnGuardPlugin', () => {
       '--data',
       'template-path-2',
     ]), { json: true });
+  });
+
+  test('only include default rules', () => {
+    mock({
+      [path.join(__dirname, '../test-rules')]: {
+        'control-tower': {
+          'cfn-guard': {
+            s3: {
+              'ct-s3-rule.guard': '',
+            },
+            efs: {
+              'ct-efs-rule.guard': '',
+            },
+          },
+        },
+      },
+      [path.join(__dirname, '../rules')]: {
+        'control-tower': {
+          'cfn-guard': {
+            s3: {
+              'ct-s3-pr-1.guard': '',
+            },
+            ecr: {
+              'ct-ecr-pr-1.guard': '',
+              'ct-ecr-pr-2.guard': '',
+              'ct-ecr-pr-3.guard': '',
+            },
+          },
+        },
+      },
+    });
+    const validator = new plugin.CfnGuardValidator({
+      controlTowerRulesEnabled: false,
+      disabledRules: [
+        'ct-s3-pr-1',
+      ],
+      rules: [
+        path.join(__dirname, '../rules/control-tower/cfn-guard/s3/ct-s3-pr-1.guard'),
+        path.join(__dirname, '../rules/control-tower/cfn-guard/ecr'),
+        path.join(__dirname, '../test-rules'),
+      ],
+    });
+    expect(validator.ruleIds).toEqual([
+      'ecrpr1',
+      'ecrpr2',
+      'ecrpr3',
+    ]);
   });
 
   test('rules can be disabled', () => {

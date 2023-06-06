@@ -6,9 +6,7 @@ import {
   Stack,
   aws_s3 as s3,
 } from 'aws-cdk-lib';
-//import { Key } from 'aws-cdk-lib/aws-kms';
 import { CfnGuardValidator } from '../../../../src';
-import { GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN } from '../../../constants';
 
 const GUARD_RULE_CHECK_NAME = 's3_bucket_logging_enabled_check';
 const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/cfn-guard/s3/ct-s3-pr-2.guard');
@@ -29,16 +27,13 @@ describe('CT.S3.PR.2', () => {
         '@aws-cdk/core:validationReportJson': true,
       },
     });
-    //console.log(app.outdir)
     // WHEN
     const stack = new Stack(app, 'Stack');
     new s3.Bucket(stack, 'access-bucket', { serverAccessLogsBucket: s3.Bucket.fromBucketName(stack, 'loggingbucket', 'inceptionbucket') });
-    //new s3.Bucket(stack, 'Bucket', { serverAccessLogsBucket: alogbucket});
 
     // THEN
     expect(() => {
       app.synth();
-
     }).not.toThrow();
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
@@ -63,9 +58,8 @@ describe('CT.S3.PR.2', () => {
     const stack = new Stack(app, 'Stack');
     new s3.Bucket(stack, 'Bucket');
     // THEN
-    expect(() => {
-      app.synth();
-    }).toThrow(GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN);
+    app.synth();
+    expect(process.exitCode).toEqual(1);
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toContain(

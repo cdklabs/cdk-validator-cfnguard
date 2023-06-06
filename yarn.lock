@@ -645,7 +645,22 @@
     chalk "^4.1.2"
     semver "^7.5.0"
 
-"@jsii/spec@1.81.0", "@jsii/spec@^1.80.0", "@jsii/spec@^1.81.0":
+"@jsii/check-node@1.82.0":
+  version "1.82.0"
+  resolved "https://registry.yarnpkg.com/@jsii/check-node/-/check-node-1.82.0.tgz#a3a7fc6bb6fea1843cb60ddd072a79f42c2b5379"
+  integrity sha512-7Djhxv+MZ80e/FAB7lT2vpQidzLDh6xcKTgA5JSuHMOJl4dylDR8g3Q06IZUrx5Hib6AmpmdTzHmosQFX0h80g==
+  dependencies:
+    chalk "^4.1.2"
+    semver "^7.5.1"
+
+"@jsii/spec@1.82.0", "@jsii/spec@^1.82.0":
+  version "1.82.0"
+  resolved "https://registry.yarnpkg.com/@jsii/spec/-/spec-1.82.0.tgz#d2379f60e067bc9a3c92984be0cd3b8153e6e6f3"
+  integrity sha512-6+KHsKuRBBdIA17Rqcrw9WCcab3UkZAP/9xWZEu2sCpVUc3DMjadZS1QyVh4XMdIsJoQoaUjc8TuriloAkkr8Q==
+  dependencies:
+    ajv "^8.12.0"
+
+"@jsii/spec@^1.81.0":
   version "1.81.0"
   resolved "https://registry.yarnpkg.com/@jsii/spec/-/spec-1.81.0.tgz#35c461a10dbf8e903df4956eb9d1097c1fcc8129"
   integrity sha512-Ea1xP3ajppj6obhWrIrZASIbwsr9bGJEYHxs8UJaAoEfnDJVTRSSE1LsJtFaUuuDgeXDYGDvyhs37e8jhRvFdA==
@@ -1030,7 +1045,7 @@
     "@types/jsonfile" "*"
     "@types/node" "*"
 
-"@types/glob@*":
+"@types/glob@^8.0.0":
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/@types/glob/-/glob-8.1.0.tgz#b63e70155391b0584dce44e7ea25190bbc38f2fc"
   integrity sha512-IO+MJPVhoqz+28h1qLAcBEH2+xHMK6MTyHJc7MTnnYb6wsoLR29POVGJ7LycmVXIqyy/4/2ShP5sUwTXuOwb/w==
@@ -1248,6 +1263,11 @@
   version "0.8.7"
   resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.7.tgz#8b1e39c547013941974d83ad5e9cf5042071a9a0"
   integrity sha512-sI1Ly2cODlWStkINzqGrZ8K6n+MTSbAeQnAipGyL+KZCXuHaRlj2gyyy8B/9MvsFFqN7XHryQnB2QwhzvJXovg==
+
+"@xmldom/xmldom@^0.8.8":
+  version "0.8.8"
+  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.8.tgz#d0d11511cbc1de77e53342ad1546a4d487d6ea72"
+  integrity sha512-0LNz4EY8B/8xXY86wMrQ4tz6zEHZv9ehFMJPm8u2gq5lQ71cfRKdaKyxfJAx5aUoyzx0qzgURblTisPGgz3d+Q==
 
 JSONStream@^1.0.4:
   version "1.3.5"
@@ -1514,10 +1534,10 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-aws-cdk-lib@2.71.0:
-  version "2.71.0"
-  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.71.0.tgz#7a8516bfb4f3242c8b4aa7e2406bdaaba6429b1a"
-  integrity sha512-YHAeClmsv7EbXpwPIKIBWO1aOp6VdvQFPp+7P1pQMgOz9kKiMO+B/m9g74iKscICEYmbHlZJ8T2KduHxObqIQw==
+aws-cdk-lib@2.76.0:
+  version "2.76.0"
+  resolved "https://registry.yarnpkg.com/aws-cdk-lib/-/aws-cdk-lib-2.76.0.tgz#4662fcb7591ed90ebb39dc68bfefc1bbb46bb5f4"
+  integrity sha512-EYWdHh/qJA7v+jD6SeW+BOEChI7oe6IYPHHap+SoJMUrKBVSDKnIGJ8wTP5eV6F27aYaUQiA7rWTKcCWoda8ag==
   dependencies:
     "@aws-cdk/asset-awscli-v1" "^2.2.97"
     "@aws-cdk/asset-kubectl-v20" "^2.1.1"
@@ -1904,10 +1924,10 @@ co@^4.6.0:
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
   integrity sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==
 
-codemaker@^1.81.0:
-  version "1.81.0"
-  resolved "https://registry.yarnpkg.com/codemaker/-/codemaker-1.81.0.tgz#389d9d90c62f1a3a498504fdedd0452141603688"
-  integrity sha512-gkvKT2ljySlEy9w+TVfsgJCfLlMh8wOkvWsbMfTx/yDqahorSi8rnnncXnhUrsb8iEM7HV1V0qGCZ4RgTQe2IQ==
+codemaker@^1.82.0:
+  version "1.82.0"
+  resolved "https://registry.yarnpkg.com/codemaker/-/codemaker-1.82.0.tgz#ad38e31a88402f4d8d082fbc8011896aaa65ef67"
+  integrity sha512-urr9UZD4HvuKj0fKZg480N5+TtSk2LNX5Dw7e/mOCOtSWxrUBlGN10s+AucBigUMX2ROUIJmbflIIXALs7ZS7Q==
   dependencies:
     camelcase "^6.3.0"
     decamelize "^5.0.1"
@@ -3194,12 +3214,12 @@ glob-parent@^6.0.2:
   dependencies:
     is-glob "^4.0.3"
 
-glob-promise@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/glob-promise/-/glob-promise-3.4.0.tgz#b6b8f084504216f702dc2ce8c9bc9ac8866fdb20"
-  integrity sha512-q08RJ6O+eJn+dVanerAndJwIcumgbDdYiUT7zFQl3Wm1xD6fBKtah7H8ZJChj4wP+8C+QfeVy8xautR7rdmKEw==
+glob-promise@^6.0.2:
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/glob-promise/-/glob-promise-6.0.2.tgz#7c7f2a223e3aaa8f7bd7ff5f24d0ab2352724b31"
+  integrity sha512-Ni2aDyD1ekD6x8/+K4hDriRDbzzfuK4yKpqSymJ4P7IxbtARiOOuU+k40kbHM0sLIlbf1Qh0qdMkAHMZYE6XJQ==
   dependencies:
-    "@types/glob" "*"
+    "@types/glob" "^8.0.0"
 
 glob@^10.2.2, glob@^10.2.5:
   version "10.2.6"
@@ -3212,7 +3232,7 @@ glob@^10.2.2, glob@^10.2.5:
     minipass "^5.0.0 || ^6.0.2"
     path-scurry "^1.7.0"
 
-glob@^7.0.0, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.2.3:
+glob@^7.0.0, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4:
   version "7.2.3"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.2.3.tgz#b8df0fb802bbfa8e89bd1d938b4e16578ed44f2b"
   integrity sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==
@@ -3224,7 +3244,7 @@ glob@^7.0.0, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.2.3:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^8, glob@^8.0.1:
+glob@^8, glob@^8.0.1, glob@^8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/glob/-/glob-8.1.0.tgz#d388f656593ef708ee3e34640fdfb99a9fd1c33e"
   integrity sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==
@@ -4395,41 +4415,41 @@ jsii-diff@^1.81.0:
     log4js "^6.9.1"
     yargs "^16.2.0"
 
-jsii-docgen@^7.2.9:
-  version "7.2.9"
-  resolved "https://registry.yarnpkg.com/jsii-docgen/-/jsii-docgen-7.2.9.tgz#869c8064c5df62cad0c665f6f237ccdc48165fbf"
-  integrity sha512-cPDQJ/NgHxVcekZh79jy1VwvFpS9Vlo2U9bnP/FMOIWBUSd6bTbi0VAMC5VBvec6/TUslw+JEBBErdEqop+EZA==
+jsii-docgen@^8.0.0:
+  version "8.0.41"
+  resolved "https://registry.yarnpkg.com/jsii-docgen/-/jsii-docgen-8.0.41.tgz#362b51522bb3e11591f7318ed95850e71bc8b21c"
+  integrity sha512-r4kGfboclDoRjX4OIjHTRMnUIMPaESqD+E1gkEeEntWLmf6KtaknMIMx1J+oE06PrpkqvuLl5RAeexV0q0oacQ==
   dependencies:
-    "@jsii/spec" "^1.80.0"
+    "@jsii/spec" "^1.82.0"
     case "^1.6.3"
     fs-extra "^10.1.0"
-    glob "^7.2.3"
-    glob-promise "^3.4.0"
-    jsii-reflect "^1.80.0"
-    jsii-rosetta "^1.80.0"
-    semver "^7.5.0"
+    glob "^8.1.0"
+    glob-promise "^6.0.2"
+    jsii-reflect "^1.82.0"
+    jsii-rosetta "^1.82.0"
+    semver "^7.5.1"
     yargs "^16.2.0"
 
-jsii-pacmak@^1.81.0:
-  version "1.81.0"
-  resolved "https://registry.yarnpkg.com/jsii-pacmak/-/jsii-pacmak-1.81.0.tgz#c68730cd219514245ad967ec998209eb6a1da447"
-  integrity sha512-/P4c9qdU02HI/luh/2GsodU1wr+8EO3KrU/ygkr2UK7l85yKa4MKYJqlxJ4Igi6+cZ05/DfZw0qyEDUYXpVqAA==
+jsii-pacmak@^1.82.0:
+  version "1.82.0"
+  resolved "https://registry.yarnpkg.com/jsii-pacmak/-/jsii-pacmak-1.82.0.tgz#6a7fdded1af46268ff0034ce8184ce5a79744e80"
+  integrity sha512-2Nck/HUElL/JLD1TjGrCyLxRKm9xrysT1qUi9eQKN+kZTsdcJNtiN0EsX+77ibq9YQzcKj8H98Gnskg3BL3KTg==
   dependencies:
-    "@jsii/check-node" "1.81.0"
-    "@jsii/spec" "^1.81.0"
+    "@jsii/check-node" "1.82.0"
+    "@jsii/spec" "^1.82.0"
     clone "^2.1.2"
-    codemaker "^1.81.0"
+    codemaker "^1.82.0"
     commonmark "^0.30.0"
     escape-string-regexp "^4.0.0"
     fs-extra "^10.1.0"
-    jsii-reflect "^1.81.0"
-    jsii-rosetta "^1.81.0"
-    semver "^7.5.0"
+    jsii-reflect "^1.82.0"
+    jsii-rosetta "^1.82.0"
+    semver "^7.5.1"
     spdx-license-list "^6.6.0"
     xmlbuilder "^15.1.1"
     yargs "^16.2.0"
 
-jsii-reflect@^1.80.0, jsii-reflect@^1.81.0:
+jsii-reflect@^1.81.0:
   version "1.81.0"
   resolved "https://registry.yarnpkg.com/jsii-reflect/-/jsii-reflect-1.81.0.tgz#51ad71021de979a55192d094afdea2e3acde1976"
   integrity sha512-HENelplypflpgMbkwyOBhH/McVJP+LzYZHnMjxZOSMXOMl9ZmZf8bhr9ZBu56ZyMicK0JGPQMqcu5xE+cPyklQ==
@@ -4441,42 +4461,92 @@ jsii-reflect@^1.80.0, jsii-reflect@^1.81.0:
     oo-ascii-tree "^1.81.0"
     yargs "^16.2.0"
 
-jsii-rosetta@^1.80.0, jsii-rosetta@^1.81.0:
-  version "1.81.0"
-  resolved "https://registry.yarnpkg.com/jsii-rosetta/-/jsii-rosetta-1.81.0.tgz#636281b54cba8d1dd1ea9b5c14a4682c0bd88362"
-  integrity sha512-eb93UzJapapW+h87C3EgykVNqpqjuVzaUSlB3xgtOGmSOJIuL9kCfABYPujV6MVAC2d415H5mIeW/y65iGFMyg==
+jsii-reflect@^1.82.0:
+  version "1.82.0"
+  resolved "https://registry.yarnpkg.com/jsii-reflect/-/jsii-reflect-1.82.0.tgz#0d98ecabd4273c1c8bcf03350f845bad24b87be8"
+  integrity sha512-23lYPizIqmBC0CqX9iKdWrYUVVxRxUf/OJMXNnjGQ6UCa62QHPUbqEmKES/0jSmV3oIouwx/ePi5PE1529TucQ==
   dependencies:
-    "@jsii/check-node" "1.81.0"
-    "@jsii/spec" "1.81.0"
+    "@jsii/check-node" "1.82.0"
+    "@jsii/spec" "^1.82.0"
+    chalk "^4"
+    fs-extra "^10.1.0"
+    oo-ascii-tree "^1.82.0"
+    yargs "^16.2.0"
+
+jsii-rosetta@^1.82.0:
+  version "1.82.0"
+  resolved "https://registry.yarnpkg.com/jsii-rosetta/-/jsii-rosetta-1.82.0.tgz#8680af6223ada85a247731e036cf4fc3220b90e3"
+  integrity sha512-3R/+fYm1gIUp6HEBzRyvHgCxKy1BZB2ZqO+0zYvgi7LEUEsvn7OBUDI7NoVe6/Bqp8DKOxzUYm4xe8jJ6Gr0og==
+  dependencies:
+    "@jsii/check-node" "1.82.0"
+    "@jsii/spec" "1.82.0"
     "@xmldom/xmldom" "^0.8.7"
     commonmark "^0.30.0"
     fast-glob "^3.2.12"
-    jsii "1.81.0"
-    semver "^7.5.0"
+    jsii "1.82.0"
+    semver "^7.5.1"
     semver-intersect "^1.4.0"
     stream-json "^1.7.5"
     typescript "~3.9.10"
     workerpool "^6.4.0"
     yargs "^16.2.0"
 
-jsii@1.81.0:
-  version "1.81.0"
-  resolved "https://registry.yarnpkg.com/jsii/-/jsii-1.81.0.tgz#144daeacfa41660d04b9c695f21c17d3ffd58515"
-  integrity sha512-m5BQlNJGHFFwxUxZwagSqqMCS1wbt/0fKeEr+j7WWsG1lhu3fUxANYukUAeQEPJAPWuv0kAbqMaxj/4HSgd5RA==
+jsii-rosetta@^5.0.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/jsii-rosetta/-/jsii-rosetta-5.1.0.tgz#22cdad3dd6a8a4dec7b5c5bffdf6d2b7763f497f"
+  integrity sha512-5n4XGD8yBVJcvjq0QLpnspEx8N6KUvopM2kVDgWLApry50rXbRHSiH3Tmb5LUJKA/s3IJrexNRwYBAcPNl4h+A==
   dependencies:
-    "@jsii/check-node" "1.81.0"
-    "@jsii/spec" "^1.81.0"
+    "@jsii/check-node" "1.82.0"
+    "@jsii/spec" "^1.82.0"
+    "@xmldom/xmldom" "^0.8.8"
+    chalk "^4"
+    commonmark "^0.30.0"
+    fast-glob "^3.2.12"
+    jsii "5.1.x"
+    semver "^7.5.1"
+    semver-intersect "^1.4.0"
+    stream-json "^1.8.0"
+    typescript "~5.1.3"
+    workerpool "^6.4.0"
+    yargs "^17.7.2"
+
+jsii@1.82.0:
+  version "1.82.0"
+  resolved "https://registry.yarnpkg.com/jsii/-/jsii-1.82.0.tgz#dbc5d61853619a0fb7653539663832ae1c2bf2a5"
+  integrity sha512-EMOjpWCiRYCo5ZzndGXsSsMrBSj4sa7njzEcFWryVnXj6reVP2axwsa3AXC/xCf4/PjchESxGDbSieX7cP9A+A==
+  dependencies:
+    "@jsii/check-node" "1.82.0"
+    "@jsii/spec" "^1.82.0"
     case "^1.6.3"
     chalk "^4"
     fast-deep-equal "^3.1.3"
     fs-extra "^10.1.0"
     log4js "^6.9.1"
-    semver "^7.5.0"
+    semver "^7.5.1"
     semver-intersect "^1.4.0"
     sort-json "^2.0.1"
     spdx-license-list "^6.6.0"
     typescript "~3.9.10"
     yargs "^16.2.0"
+
+jsii@5.1.x:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/jsii/-/jsii-5.1.1.tgz#403ef10ae0cdb1814319f48d98d5dff12fd6945f"
+  integrity sha512-K7LDH6ltqnRhlcSDS1AacjuxTJdz+ZOCwNQAyVL81ssBmj6PaRbn71ejLdVn26WsZjtaOJBHg9I3zp6LVl3u8Q==
+  dependencies:
+    "@jsii/check-node" "1.82.0"
+    "@jsii/spec" "^1.82.0"
+    case "^1.6.3"
+    chalk "^4"
+    downlevel-dts "^0.11.0"
+    fast-deep-equal "^3.1.3"
+    log4js "^6.9.1"
+    semver "^7.5.1"
+    semver-intersect "^1.4.0"
+    sort-json "^2.0.1"
+    spdx-license-list "^6.6.0"
+    typescript "~5.1.3"
+    yargs "^17.7.2"
 
 jsii@~5.0.0:
   version "5.0.9"
@@ -5327,6 +5397,11 @@ oo-ascii-tree@^1.81.0:
   version "1.81.0"
   resolved "https://registry.yarnpkg.com/oo-ascii-tree/-/oo-ascii-tree-1.81.0.tgz#e10a4e725ea697794f27d0dc0768493a809da032"
   integrity sha512-rfGg7tBvwiNrdP5MqVUGt/4Kwiy9y7Y6G3z6Nue5hhd0pHiAAyDVJ/GcwfW3cjMDrWlJ/itg+QuXREA1yfwynA==
+
+oo-ascii-tree@^1.82.0:
+  version "1.82.0"
+  resolved "https://registry.yarnpkg.com/oo-ascii-tree/-/oo-ascii-tree-1.82.0.tgz#41fb043975b1b3250932b70608d9e31ab81e4eca"
+  integrity sha512-I9tWDtyeOMkQ6L6+RFwscmxUNAbBxhTsdHZk7NnjZZszKvFvWGN/XpPyCU/sY0u5zsAsi4AJYPMy4ZZkx7+iNA==
 
 open@^9.1.0:
   version "9.1.0"
@@ -6275,6 +6350,13 @@ stream-json@^1.7.5:
   dependencies:
     stream-chain "^2.2.5"
 
+stream-json@^1.8.0:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/stream-json/-/stream-json-1.8.0.tgz#53f486b2e3b4496c506131f8d7260ba42def151c"
+  integrity sha512-HZfXngYHUAr1exT4fxlbc1IOce1RYxp2ldeaf97LYCOPSoOqY/1Psp7iGvpb+6JIOgkra9zDYnPX01hGAHzEPw==
+  dependencies:
+    stream-chain "^2.2.5"
+
 streamroller@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/streamroller/-/streamroller-3.1.5.tgz#1263182329a45def1ffaef58d31b15d13d2ee7ff"
@@ -6756,6 +6838,11 @@ typescript@~5.0.4:
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.0.4.tgz#b217fd20119bd61a94d4011274e0ab369058da3b"
   integrity sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==
+
+typescript@~5.1.3:
+  version "5.1.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.1.3.tgz#8d84219244a6b40b6fb2b33cc1c062f715b9e826"
+  integrity sha512-XH627E9vkeqhlZFQuL+UsyAXEnibT0kWR2FWONlr4sTjvxyJYnyefgrkyECLzM5NenmKzRAy2rR/OlYLA1HkZw==
 
 uglify-js@^3.1.4:
   version "3.17.4"

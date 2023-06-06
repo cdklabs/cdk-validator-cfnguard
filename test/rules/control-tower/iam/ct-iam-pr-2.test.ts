@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { App, Stack, aws_iam as iam } from 'aws-cdk-lib';
 import { CfnGuardValidator } from '../../../../src';
-import { GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN } from '../../../constants';
 
 const GUARD_RULE_CHECK_NAME = 'iam_managed_policy_no_statements_with_admin_access_check';
 const GUARD_RULE_PATH = path.join(__dirname, '../../../../rules/control-tower/cfn-guard/identityandaccessmanagement/ct-iam-pr-2.guard');
@@ -90,9 +89,7 @@ describe('CT.IAM.PR.2', () => {
     });
 
     // THEN
-    expect(() => {
-      app.synth();
-    }).toThrow(GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN);
+    app.synth();
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));

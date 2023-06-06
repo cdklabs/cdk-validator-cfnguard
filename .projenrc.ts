@@ -17,8 +17,9 @@ const project = new CdklabsJsiiProject({
     'mock-fs',
     '@types/mock-fs',
     'constructs',
-    'aws-cdk-lib@^2.71.0',
+    'aws-cdk-lib@^2.76.0',
     'jsii@^5.0.0',
+    'jsii-rosetta@^5.0.0',
     'fs-extra@^11.1.1',
     '@types/fs-extra@11.0.1',
     'klaw@^4.1.0',
@@ -40,7 +41,7 @@ const project = new CdklabsJsiiProject({
   release: true,
   repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
   peerDeps: [
-    'aws-cdk-lib@^2.71.0',
+    'aws-cdk-lib@^2.76.0',
   ],
   publishToPypi: {
     distName: 'cdklabs.cdk-validator-cfnguard',
@@ -57,6 +58,15 @@ const project = new CdklabsJsiiProject({
     packageId: 'Cdklabs.CdkValidatorCfnGuard',
   },
 
+  jestOptions: {
+    jestConfig: {
+      globals: {
+        'ts-jest': {
+          isolatedModules: true,
+        },
+      },
+    },
+  },
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   // packageName: undefined,  /* The "name" in package.json. */

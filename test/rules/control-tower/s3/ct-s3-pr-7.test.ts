@@ -10,7 +10,6 @@ import {
 } from 'aws-cdk-lib';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { CfnGuardValidator } from '../../../../src';
-import { GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN } from '../../../constants';
 
 const GUARD_RULE_CHECK_NAME = 's3_bucket_default_encryption_enabled_check';
 const GUARD_RULE_PATH = join(__dirname, '../../../../rules/control-tower/cfn-guard/s3/ct-s3-pr-7.guard');
@@ -133,9 +132,8 @@ describe('CT.S3.PR.7', () => {
     new s3.Bucket(stack, 'Bucket');
 
     // THEN
-    expect(() => {
-      app.synth();
-    }).toThrow(GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN);
+    app.synth();
+    expect(process.exitCode).toEqual(1);
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
@@ -174,9 +172,8 @@ describe('CT.S3.PR.7', () => {
     });
 
     // THEN
-    expect(() => {
-      app.synth();
-    }).toThrow(GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN);
+    app.synth();
+    expect(process.exitCode).toEqual(1);
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     console.log(report);

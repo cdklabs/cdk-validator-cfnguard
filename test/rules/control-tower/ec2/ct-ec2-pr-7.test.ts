@@ -17,7 +17,6 @@ import {
   Vpc,
 } from 'aws-cdk-lib/aws-ec2';
 import { CfnGuardValidator } from '../../../../src';
-import { GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN } from '../../../constants';
 
 beforeEach(() => {
   jest.spyOn(console, 'error').mockImplementation(() => { });
@@ -126,9 +125,8 @@ describe('CT.EC2.PR.7', () => {
     });
 
     // THEN
-    expect(() => {
-      app.synth();
-    }).toThrow(GUARD_RULE_VALIDATION_FAILED_MESSAGE_PATTERN);
+    app.synth();
+    expect(process.exitCode).toEqual(1);
 
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
