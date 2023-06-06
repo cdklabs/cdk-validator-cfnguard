@@ -1807,10 +1807,10 @@ case@1.6.3, case@^1.6.3:
   resolved "https://registry.yarnpkg.com/case/-/case-1.6.3.tgz#0a4386e3e9825351ca2e6216c60467ff5f1ea1c9"
   integrity sha512-mzDSXIPaFwVDvZAHqZ9VlbyF4yyXRuX6IvB06WvPYkqJVO24kX1PPhv9bfpKNFZyxYFmmgo03HUiD8iklmJYRQ==
 
-cdklabs-projen-project-types@^0.1.123:
-  version "0.1.123"
-  resolved "https://registry.yarnpkg.com/cdklabs-projen-project-types/-/cdklabs-projen-project-types-0.1.123.tgz#54d5fd301193239732c22030e2620e7850b781d8"
-  integrity sha512-5Y6SYKTb4qzAwqP4gFkjVU+TS2S5MOY6sW2gFjEy2cScn8LuGQ6w+0JXDoih3Xglj7BNkzEophJ3wbyBaU8Ijw==
+cdklabs-projen-project-types@^0.1.124:
+  version "0.1.124"
+  resolved "https://registry.yarnpkg.com/cdklabs-projen-project-types/-/cdklabs-projen-project-types-0.1.124.tgz#42ed6f0fe548f2609e0b13701d892ad8b075dad3"
+  integrity sha512-b/Ur8IMoFL4c2MebTB7AtSggcwUNUq1xpt926AZo3BPc9XOf/AF7tQUUa3yDFZrN45fYQwnpdPtFDZSjcWUseg==
   dependencies:
     projen "^0.71.82"
     yaml "^2.3.1"
@@ -2028,9 +2028,9 @@ console-control-strings@^1.1.0:
   integrity sha512-ty/fTekppD2fIwRvnZAVdeOiGd1c7YXEixbgJTNzqcxJWKQnjJ/V1bNEEE6hygpM3WjwHFUVK6HTjWSzV4a8sQ==
 
 constructs@^10.2.43:
-  version "10.2.43"
-  resolved "https://registry.yarnpkg.com/constructs/-/constructs-10.2.43.tgz#81bbc7718d7535f26e6286dc711c1c1288ead6c8"
-  integrity sha512-i/Bo08YGBNGYUau9st+qghNfbdAnSeplSuoYcwI0Ixwh2je3u1ZqIv6KfmB/515QzO8mK5/WQ3hxu4N18er0MA==
+  version "10.2.44"
+  resolved "https://registry.yarnpkg.com/constructs/-/constructs-10.2.44.tgz#748afaad06586fc9668081ee4837aa0bf4e3d630"
+  integrity sha512-7v4KnradGM1JeOuuhey4m9t6pLkwc0XOlgO1TrjB8HLRbfxDHeJ10Tt6IfxihgkrDjYN1SOMmpeVFzLLNjGRQw==
 
 conventional-changelog-angular@^5.0.12:
   version "5.0.13"
@@ -6750,9 +6750,9 @@ typescript@^4.9.5:
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
 typescript@next:
-  version "5.2.0-dev.20230605"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.2.0-dev.20230605.tgz#60479c398e828163323a351300c976a1ac911a47"
-  integrity sha512-xMeI7pFrOfxZTt1m4a2txN1E2Qh9IzLT9LNdc0DlEwJJKXjajj5j/nFLwWOUEnaFZBT6v35jlgLogG5HuSxUyA==
+  version "5.2.0-dev.20230606"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.2.0-dev.20230606.tgz#6f44e8a6440686e163506c4cdccb299eb4af6fcd"
+  integrity sha512-aS+7vCKtiKKuzHFWW3sZ0zX1mHqSHESmM+LgOXx2jAMQ8NnHoT+7ixl37t0Z+JWXjOb0umUbgjBepaOLiGTuSQ==
 
 typescript@~3.9.10:
   version "3.9.10"
