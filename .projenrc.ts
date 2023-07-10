@@ -89,7 +89,7 @@ new TextFile(project, 'rosetta/default.ts-fixture', {
   lines: [
     '// Fixture with packages imported, but nothing else',
     "import { Construct } from 'constructs';",
-    "import { CfnGuardValidator } from './src';",
+    "import { CfnGuardValidator } from '@cdklabs/cdk-validator-cfnguard';",
     'import {',
     '  Stack,',
     '  App,',
