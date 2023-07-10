@@ -1,0 +1,101 @@
+{
+      "name": "",
+      "metadata": {},
+      "status": "FAIL",
+      "not_compliant": [
+        {
+          "Rule": {
+            "name": "cloudfront_custom_ssl_certificate_check",
+            "metadata": {},
+            "messages": {
+              "custom_message": null,
+              "error_message": null
+            },
+            "checks": [
+              {
+                "Rule": {
+                  "name": "check",
+                  "metadata": {},
+                  "messages": {
+                    "custom_message": "\n        [CT.CLOUDFRONT.PR.6]: Require an Amazon CloudFront distribution to use custom SSL/TLS certificates\n            [FIX]: Provide a 'ViewerCertificate' configuration with values for 'AcmCertificateArn', 'MinimumProtocolVersion', and 'SslSupportMethod'.\n        ",
+                    "error_message": null
+                  },
+                  "checks": [
+                    {
+                      "Disjunctions": {
+                        "checks": [
+                          {
+                            "Clause": {
+                              "Unary": {
+                                "context": " CloudFrontDefaultCertificate not EXISTS  ",
+                                "messages": {
+                                  "custom_message": "",
+                                  "error_message": "Check was not compliant as property [/Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate/CloudFrontDefaultCertificate[L:295,C:38]] existed."
+                                },
+                                "check": {
+                                  "Resolved": {
+                                    "value": {
+                                      "path": "/Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate/CloudFrontDefaultCertificate",
+                                      "value": true
+                                    },
+                                    "comparison": [
+                                      "Exists",
+                                      true
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "Disjunctions": {
+                        "checks": [
+                          {
+                            "Rule": {
+                              "name": "check_custom_acm_certificate_provided",
+                              "metadata": {},
+                              "messages": {
+                                "custom_message": null,
+                                "error_message": null
+                              },
+                              "checks": [
+                                {
+                                  "Block": {
+                                    "context": "GuardBlockAccessClause#Location[file:ct-cloudfront-pr-6.guard, line:114, column:5]",
+                                    "messages": {
+                                      "custom_message": "",
+                                      "error_message": "Check was not compliant as property [AcmCertificateArn] is missing. Value traversed to [Path=/Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate[L:294,C:26] Value={\"CloudFrontDefaultCertificate\":true}]"
+                                    },
+                                    "unresolved": {
+                                      "traversed_to": {
+                                        "path": "/Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate",
+                                        "value": {
+                                          "CloudFrontDefaultCertificate": true
+                                        }
+                                      },
+                                      "remaining_query": "AcmCertificateArn",
+                                      "reason": "Could not find key AcmCertificateArn inside struct at path /Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate[L:294,C:26]"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "not_applicable": [
+        "cloudfront_custom_ssl_certificate_check"
+      ],
+      "compliant": []
+    }

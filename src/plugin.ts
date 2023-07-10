@@ -357,17 +357,32 @@ function extractNestedObject(object: any): any {
       // A check can either be resolved or unresolved
       case 'resolved':
       case 'inresolved':
-        newObject = {
-          resolved: true,
-          traversed: {
-            from: nestedValue.from,
-            to: {
-              path: nestedValue.from.path,
-              value: nestedValue.to.value,
+        if ('from' in nestedValue) {
+          newObject = {
+            resolved: true,
+            traversed: {
+              from: nestedValue.from,
+              to: {
+                path: nestedValue.from.path,
+                value: nestedValue.to.value,
+              },
             },
-          },
-          messages: nestedValue.messages,
-        };
+            messages: nestedValue.messages,
+          };
+        } else if ('value' in nestedValue) {
+          newObject = {
+            resolved: true,
+            traversed: {
+              from: nestedValue.value,
+              to: {
+                path: nestedValue.value.path,
+                value: nestedValue.value.value,
+              },
+            },
+            messages: nestedValue.messages,
+          };
+
+        }
         break;
     }
     // this check will be evaluated _after_ the 'traversed_to' check and _before_ the 'resolved'

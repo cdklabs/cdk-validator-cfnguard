@@ -467,6 +467,40 @@ describe('CfnGuardPlugin', () => {
     });
   });
 
+  test('guard-disjunctions-checks', () => {
+    // GIVEN
+    execMock.mockReturnValue(getData('guard-disjunction-resolved-check.json'));
+    const validator = new plugin.CfnGuardValidator();
+
+    // WHEN
+    const result = validator.validate({
+      templatePaths: ['./tmp'],
+    });
+
+    // THEN
+    expect(result).toEqual({
+      success: false,
+      violations: [{
+        description: '[CT.CLOUDFRONT.PR.6]: Require an Amazon CloudFront distribution to use custom SSL/TLS certificates',
+        ruleMetadata: {
+          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+        },
+        fix: "[FIX]: Provide a 'ViewerCertificate' configuration with values for 'AcmCertificateArn', 'MinimumProtocolVersion', and 'SslSupportMethod'.",
+        ruleName: 'cloudfront_custom_ssl_certificate_check',
+        violatingResources: [
+          {
+            resourceLogicalId: 'DistributionCFDistribution882A7313',
+            templatePath: './tmp',
+            locations: [
+              '/Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate/CloudFrontDefaultCertificate',
+              '/Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate',
+            ],
+          },
+        ],
+      }],
+    });
+  });
+
   test('guard fails', () => {
     // GIVEN
     const validator = new plugin.CfnGuardValidator();
