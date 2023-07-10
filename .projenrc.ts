@@ -128,8 +128,11 @@ new TextFile(project, '.github/CODEOWNERS', {
 project.postCompileTask.spawn(rosettaTask);
 project.addGitIgnore('.jsii.tabl.json');
 
-project.tryFindObjectFile(path.join(__dirname, './.github/workflows/build.yml'))?.patch(JsonPatch.add('/jobs/build/env/GITHUB_TOKEN', '${{ secrets.GITHUB_TOKEN }}' ));
-project.tryFindObjectFile(path.join(__dirname, './.github/workflows/release.yml'))?.patch(JsonPatch.add('/jobs/release/env/GITHUB_TOKEN', '${{ secrets.GITHUB_TOKEN }}' ));
+for (const workflow of ['build', 'release']) {
+  const file = project.tryFindObjectFile(path.join(__dirname, `./.github/workflows/${workflow}.yml`));
+  file?.patch(JsonPatch.add(`/jobs/${workflow}/env/GITHUB_TOKEN`, '${{ secrets.GITHUB_TOKEN }}' ));
+  file?.patch(JsonPatch.add(`/jobs/${workflow}/env/NODE_OPTIONS`, '"--max-old-space-size=8196 --experimental-worker ${NODE_OPTIONS:-}"'));
+}
 project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
 project.gitignore.exclude('cdk.out');
