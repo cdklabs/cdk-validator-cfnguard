@@ -131,7 +131,7 @@ project.addGitIgnore('.jsii.tabl.json');
 for (const workflow of ['build', 'release']) {
   const file = project.tryFindObjectFile(path.join(__dirname, `./.github/workflows/${workflow}.yml`));
   file?.patch(JsonPatch.add(`/jobs/${workflow}/env/GITHUB_TOKEN`, '${{ secrets.GITHUB_TOKEN }}' ));
-  file?.patch(JsonPatch.add(`/jobs/${workflow}/env/NODE_OPTIONS`, '"--max-old-space-size=8196 --experimental-worker ${NODE_OPTIONS:-}"'));
+  file?.patch(JsonPatch.add(`/jobs/${workflow}/env/NODE_OPTIONS`, '--max-old-space-size=8196 --experimental-worker ${NODE_OPTIONS:-}'));
 }
 project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
