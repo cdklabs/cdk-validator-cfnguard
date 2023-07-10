@@ -9,6 +9,8 @@ import {
 } from 'aws-cdk-lib';
 import { ViolationCheck, GuardResult } from './check';
 import { exec } from './utils';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const packageJson = require('../package.json');
 
 export interface CfnGuardValidatorProps {
   /**
@@ -60,6 +62,8 @@ interface GuardExecutionConfig {
  */
 export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
   public readonly name: string;
+  public readonly version?: string;
+  public readonly ruleIds?: string[];
   private readonly rulesPaths: string[] = [];
   private readonly guard: string;
   private readonly disabledRules: string[];
@@ -68,8 +72,9 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
   constructor(props: CfnGuardValidatorProps = {}) {
     this.name = 'cdk-validator-cfnguard';
     this.disabledRules = props.disabledRules ?? [];
+    const defaultRulesPath = path.join(__dirname, '..', 'rules/control-tower/cfn-guard');
     if (props.controlTowerRulesEnabled ?? true) {
-      this.rulesPaths.push(path.join(__dirname, '..', 'rules/control-tower/cfn-guard'));
+      this.rulesPaths.push(defaultRulesPath);
     }
     this.rulesPaths.push(...props.rules ?? []);
     const osPlatform = os.platform();
@@ -83,6 +88,28 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
       throw new Error(`${os.platform()} not supported, must be either 'darwin' or 'linux'`);
     }
     this.guard = path.join(__dirname, '..', 'bin', platform, 'cfn-guard');
+    this.ruleIds = this.rulesPaths.flatMap(rule => {
+      const parsed = path.parse(rule);
+      if (rule === defaultRulesPath || parsed.dir.startsWith(defaultRulesPath)) {
+        return this.getRuleIds(rule);
+      }
+      return [];
+    });
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    this.version = packageJson.version;
+  }
+
+  private getRuleIds(rulesPath: string): string[] {
+    const stat = fs.statSync(rulesPath);
+    if (stat.isFile()) {
+      const parsed = path.parse(rulesPath);
+      if (!this.disabledRules.includes(parsed.name)) {
+        return [path.parse(rulesPath).name.replace('ct-', '').replace(/-/g, '')];
+      }
+      return [];
+    } else {
+      return fs.readdirSync(rulesPath).flatMap(rule => this.getRuleIds(path.join(rulesPath, rule)));
+    }
   }
 
   /**

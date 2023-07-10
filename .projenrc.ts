@@ -17,8 +17,9 @@ const project = new CdklabsJsiiProject({
     'mock-fs',
     '@types/mock-fs',
     'constructs',
-    'aws-cdk-lib@^2.71.0',
+    'aws-cdk-lib@^2.76.0',
     'jsii@^5.0.0',
+    'jsii-rosetta@^5.0.0',
     'fs-extra@^11.1.1',
     '@types/fs-extra@11.0.1',
     'klaw@^4.1.0',
@@ -40,7 +41,7 @@ const project = new CdklabsJsiiProject({
   release: true,
   repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
   peerDeps: [
-    'aws-cdk-lib@^2.71.0',
+    'aws-cdk-lib@^2.76.0',
   ],
   publishToPypi: {
     distName: 'cdklabs.cdk-validator-cfnguard',
@@ -57,6 +58,15 @@ const project = new CdklabsJsiiProject({
     packageId: 'Cdklabs.CdkValidatorCfnGuard',
   },
 
+  jestOptions: {
+    jestConfig: {
+      globals: {
+        'ts-jest': {
+          isolatedModules: true,
+        },
+      },
+    },
+  },
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   // packageName: undefined,  /* The "name" in package.json. */
@@ -79,7 +89,7 @@ new TextFile(project, 'rosetta/default.ts-fixture', {
   lines: [
     '// Fixture with packages imported, but nothing else',
     "import { Construct } from 'constructs';",
-    "import { CfnGuardValidator } from './src';",
+    "import { CfnGuardValidator } from '@cdklabs/cdk-validator-cfnguard';",
     'import {',
     '  Stack,',
     '  App,',
@@ -118,8 +128,11 @@ new TextFile(project, '.github/CODEOWNERS', {
 project.postCompileTask.spawn(rosettaTask);
 project.addGitIgnore('.jsii.tabl.json');
 
-project.tryFindObjectFile(path.join(__dirname, './.github/workflows/build.yml'))?.patch(JsonPatch.add('/jobs/build/env/GITHUB_TOKEN', '${{ secrets.GITHUB_TOKEN }}' ));
-project.tryFindObjectFile(path.join(__dirname, './.github/workflows/release.yml'))?.patch(JsonPatch.add('/jobs/release/env/GITHUB_TOKEN', '${{ secrets.GITHUB_TOKEN }}' ));
+for (const workflow of ['build', 'release']) {
+  const file = project.tryFindObjectFile(path.join(__dirname, `./.github/workflows/${workflow}.yml`));
+  file?.patch(JsonPatch.add(`/jobs/${workflow}/env/GITHUB_TOKEN`, '${{ secrets.GITHUB_TOKEN }}' ));
+  file?.patch(JsonPatch.add(`/jobs/${workflow}/env/NODE_OPTIONS`, '--max-old-space-size=8196 --experimental-worker ${NODE_OPTIONS:-}'));
+}
 project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
 project.gitignore.exclude('cdk.out');

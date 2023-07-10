@@ -51,7 +51,7 @@
     "@types/node": "^16",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
-    "aws-cdk-lib": "2.71.0",
+    "aws-cdk-lib": "2.76.0",
     "cdklabs-projen-project-types": "^0.1.156",
     "constructs": "^10.2.67",
     "eslint": "^8",
@@ -63,8 +63,9 @@
     "jest-junit": "^15",
     "jsii": "~5.0.0",
     "jsii-diff": "^1.84.0",
-    "jsii-docgen": "^7.2.9",
+    "jsii-docgen": "^9.1.1",
     "jsii-pacmak": "^1.84.0",
+    "jsii-rosetta": "~5.0.0",
     "klaw": "^4.1.0",
     "mock-fs": "^5.2.0",
     "npm-check-updates": "^16",
@@ -75,7 +76,7 @@
     "typescript": "^4.9.5"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.71.0"
+    "aws-cdk-lib": "^2.76.0"
   },
   "keywords": [
     "cdk",
@@ -92,6 +93,12 @@
   },
   "version": "0.0.0",
   "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.dev.json",
+        "isolatedModules": true
+      }
+    },
     "testMatch": [
       "<rootDir>/src/**/__tests__/**/*.ts?(x)",
       "<rootDir>/(test|src)/**/*(*.)@(spec|test).ts?(x)"
@@ -124,12 +131,7 @@
         }
       ]
     ],
-    "preset": "ts-jest",
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.dev.json"
-      }
-    }
+    "preset": "ts-jest"
   },
   "types": "lib/index.d.ts",
   "stability": "stable",

@@ -403,6 +403,8 @@ templates for compliance and report and violations
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#@cdklabs/cdk-validator-cfnguard.CfnGuardValidator.property.name">name</a></code> | <code>string</code> | The name of the plugin that will be displayed in the validation report. |
+| <code><a href="#@cdklabs/cdk-validator-cfnguard.CfnGuardValidator.property.ruleIds">ruleIds</a></code> | <code>string[]</code> | The list of rule IDs that the plugin will evaluate. |
+| <code><a href="#@cdklabs/cdk-validator-cfnguard.CfnGuardValidator.property.version">version</a></code> | <code>string</code> | The version of the plugin, following the Semantic Versioning specification (see https://semver.org/). This version is used for analytics purposes, to measure the usage of different plugins and different versions. The value of this property should be kept in sync with the actual version of the software package. If the version is not provided or is not a valid semantic version, it will be reported as `0.0.0`. |
 
 ---
 
@@ -415,6 +417,33 @@ public readonly name: string;
 - *Type:* string
 
 The name of the plugin that will be displayed in the validation report.
+
+---
+
+##### `ruleIds`<sup>Optional</sup> <a name="ruleIds" id="@cdklabs/cdk-validator-cfnguard.CfnGuardValidator.property.ruleIds"></a>
+
+```typescript
+public readonly ruleIds: string[];
+```
+
+- *Type:* string[]
+
+The list of rule IDs that the plugin will evaluate.
+
+Used for analytics
+purposes.
+
+---
+
+##### `version`<sup>Optional</sup> <a name="version" id="@cdklabs/cdk-validator-cfnguard.CfnGuardValidator.property.version"></a>
+
+```typescript
+public readonly version: string;
+```
+
+- *Type:* string
+
+The version of the plugin, following the Semantic Versioning specification (see https://semver.org/). This version is used for analytics purposes, to measure the usage of different plugins and different versions. The value of this property should be kept in sync with the actual version of the software package. If the version is not provided or is not a valid semantic version, it will be reported as `0.0.0`.
 
 ---
 

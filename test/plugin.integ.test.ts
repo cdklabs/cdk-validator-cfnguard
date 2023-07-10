@@ -16,9 +16,10 @@ beforeEach(() => {
 describe('CfnGuardValidator', () => {
   test('synth fails', () => {
     // GIVEN
+    const validator = new CfnGuardValidator();
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator(),
+        validator,
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -30,9 +31,13 @@ describe('CfnGuardValidator', () => {
     new s3.Bucket(stack, 'Bucket');
 
     // THEN
-    expect(() => {
-      app.synth();
-    }).toThrow();
+    app.synth();
+    expect(validator.ruleIds).toEqual(expect.arrayContaining([
+      'apigatewaypr2',
+      's3pr1',
+    ]));
+    expect(validator.ruleIds?.length).toBeGreaterThanOrEqual(133);
+    expect(process.exitCode).toEqual(1);
     const report = JSON.parse(fs.readFileSync(path.join(app.outdir, 'policy-validation-report.json')).toString('utf-8').trim());
     const rules = report.pluginReports.flatMap((r: any) => r.violations.flatMap((v: any) => v.ruleName));
     expect(rules).toEqual(expect.arrayContaining([
@@ -41,14 +46,15 @@ describe('CfnGuardValidator', () => {
   });
   test('synth succeeds', () => {
     // GIVEN
+    const validator = new CfnGuardValidator({
+      controlTowerRulesEnabled: false,
+      rules: [
+        path.join(__dirname, '../rules/control-tower/cfn-guard/s3/ct-s3-pr-1.guard'),
+      ],
+    });
     const app = new App({
       policyValidationBeta1: [
-        new CfnGuardValidator({
-          controlTowerRulesEnabled: false,
-          rules: [
-            path.join(__dirname, '../rules/control-tower/cfn-guard/s3/ct-s3-pr-1.guard'),
-          ],
-        }),
+        validator,
       ],
       context: {
         '@aws-cdk/core:validationReportJson': true,
@@ -67,6 +73,8 @@ describe('CfnGuardValidator', () => {
     });
 
     // THEN
+
+    expect(validator.ruleIds).toEqual(['s3pr1']);
     expect(() => {
       app.synth();
     }).not.toThrow(/Validation failed. See the validation report above for details/);

@@ -9,7 +9,14 @@ import { CfnGuardValidator } from '../src';
  */
 
 const app = new App({
-  policyValidationBeta1: [new CfnGuardValidator()],
+  policyValidationBeta1: [new CfnGuardValidator({
+    disabledRules: [
+      'ct-s3-pr-6',
+      'ct-s3-pr-7',
+      'ct-s3-pr-4',
+      'ct-s3-pr-2',
+    ],
+  })],
   context: {
     '@aws-cdk/aws-lambda:recognizeLayerVersion': 'true',
     '@aws-cdk/core:checkSecretUsage': 'true',
@@ -36,12 +43,12 @@ class MyConstruct extends Construct {
   constructor(scope: Construct, id: string) {
     super(scope, id);
     new s3.Bucket(this as any, 'Bucket', {
-      // blockPublicAccess: {
-      //   blockPublicAcls: true,
-      //   blockPublicPolicy: true,
-      //   ignorePublicAcls: true,
-      //   restrictPublicBuckets: true,
-      // },
+      blockPublicAccess: {
+        blockPublicAcls: true,
+        blockPublicPolicy: true,
+        ignorePublicAcls: true,
+        restrictPublicBuckets: true,
+      },
     });
   }
 }
