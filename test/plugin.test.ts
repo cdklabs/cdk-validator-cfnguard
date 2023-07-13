@@ -58,7 +58,8 @@ describe('CfnGuardPlugin', () => {
     });
 
     // THEN
-    expect(validator.version).toEqual('0.0.0');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    expect(validator.version).toEqual(require('../package.json').version);
     expect(validator.ruleIds).toEqual(['efsrule', 's3rule']);
     expect(execMock).toHaveBeenCalledTimes(4);
     expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
