@@ -41,7 +41,7 @@ const project = new CdklabsJsiiProject({
   release: true,
   repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
   peerDeps: [
-    'aws-cdk-lib@^2.76.0',
+    'aws-cdk-lib',
   ],
   publishToPypi: {
     distName: 'cdklabs.cdk-validator-cfnguard',
