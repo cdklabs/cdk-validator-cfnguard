@@ -352,7 +352,7 @@
           "exec": "npm-check-updates --dep dev --upgrade --target=minor --reject='@types/fs-extra,@types/klaw,aws-cdk-lib,jsii-rosetta,jsii'"
         },
         {
-          "exec": "npm-check-updates --dep optional --upgrade --target=minor --reject='@types/fs-extra,@types/klaw,aws-cdk-lib,jsii-rosetta,jsii'"
+          "exec": "npm-check-updates --dep bundle --upgrade --target=minor --reject='@types/fs-extra,@types/klaw,aws-cdk-lib,jsii-rosetta,jsii'"
         },
         {
           "exec": "npm-check-updates --dep peer --upgrade --target=minor --reject='@types/fs-extra,@types/klaw,aws-cdk-lib,jsii-rosetta,jsii'"
@@ -361,7 +361,7 @@
           "exec": "npm-check-updates --dep prod --upgrade --target=minor --reject='@types/fs-extra,@types/klaw,aws-cdk-lib,jsii-rosetta,jsii'"
         },
         {
-          "exec": "npm-check-updates --dep bundle --upgrade --target=minor --reject='@types/fs-extra,@types/klaw,aws-cdk-lib,jsii-rosetta,jsii'"
+          "exec": "npm-check-updates --dep optional --upgrade --target=minor --reject='@types/fs-extra,@types/klaw,aws-cdk-lib,jsii-rosetta,jsii'"
         },
         {
           "exec": "yarn install --check-files"
