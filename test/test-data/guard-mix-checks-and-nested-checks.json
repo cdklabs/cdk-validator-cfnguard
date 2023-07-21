@@ -1,5 +1,5 @@
-{
-    "name": "",
+[{
+    "name": "mytemplate.json",
     "metadata": {},
     "status": "FAIL",
     "not_compliant": [
@@ -150,4 +150,4 @@
         "cloud_trail_encryption_enabled_check"
     ],
     "compliant": []
-}
+}]

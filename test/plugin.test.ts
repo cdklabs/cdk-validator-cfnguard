@@ -23,9 +23,9 @@ beforeEach(() => {
       },
     },
   });
-  execMock = jest.spyOn(utils, 'exec').mockReturnValue({
+  execMock = jest.spyOn(utils, 'exec').mockReturnValue([{
     not_compliant: [],
-  });
+  }]);
 });
 
 afterEach(() => {
@@ -61,35 +61,22 @@ describe('CfnGuardPlugin', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     expect(validator.version).toEqual(require('../package.json').version);
     expect(validator.ruleIds).toEqual(['efsrule', 's3rule']);
-    expect(execMock).toHaveBeenCalledTimes(4);
+    expect(execMock).toHaveBeenCalledTimes(1);
     expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
-      '--rules',
-      path.join(__dirname, '../rules/control-tower/cfn-guard/efs/ct-efs-rule.guard'),
-      '--data',
-      'template-path-1',
-    ]), { json: true });
-    expect(execMock).toHaveBeenNthCalledWith(2, expect.arrayContaining([
-      '--rules',
-      path.join(__dirname, '../rules/control-tower/cfn-guard/efs/ct-efs-rule.guard'),
-      '--data',
-      'template-path-2',
-    ]), { json: true });
-    expect(execMock).toHaveBeenNthCalledWith(3, expect.arrayContaining([
       expect.stringMatching(/.*bin\/\w+\/cfn-guard$/),
       '--rules',
-      path.join(__dirname, '../rules/control-tower/cfn-guard/s3/ct-s3-rule.guard'),
+      path.join(__dirname, '../rules/control-tower/cfn-guard'),
+      '--data',
+      'template-path-1',
+      '--data',
+      'template-path-2',
       '--data',
       'template-path-1',
       '--output-format',
       'json',
       '--show-summary',
       'none',
-    ]), { json: true });
-    expect(execMock).toHaveBeenNthCalledWith(4, expect.arrayContaining([
-      '--rules',
-      path.join(__dirname, '../rules/control-tower/cfn-guard/s3/ct-s3-rule.guard'),
-      '--data',
-      'template-path-2',
+      '--structured',
     ]), { json: true });
   });
 
@@ -169,7 +156,7 @@ describe('CfnGuardPlugin', () => {
     expect(execMock).toHaveBeenCalledTimes(1);
     expect(execMock).toHaveBeenCalledWith(expect.arrayContaining([
       '--rules',
-      path.join(__dirname, '../rules/control-tower/cfn-guard/efs/ct-efs-rule.guard'),
+      path.join(__dirname, '../rules/control-tower/cfn-guard'),
       '--data',
       'template.json',
     ]), { json: true });
@@ -197,14 +184,10 @@ describe('CfnGuardPlugin', () => {
       templatePaths: ['template.json'],
     });
 
-    expect(execMock).toHaveBeenCalledTimes(2);
+    expect(execMock).toHaveBeenCalledTimes(1);
     expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
       '--rules',
-      path.join(__dirname, 'local-rules', 'directory', 'dir-rule.guard'),
-      '--data',
-      'template.json',
-    ]), { json: true });
-    expect(execMock).toHaveBeenNthCalledWith(2, expect.arrayContaining([
+      path.join(__dirname, 'local-rules', 'directory'),
       '--rules',
       path.join(__dirname, 'local-rules', 'file-rule.guard'),
       '--data',
@@ -219,7 +202,7 @@ describe('CfnGuardPlugin', () => {
 
     // WHEN
     const result = validator.validate({
-      templatePaths: ['./tmp'],
+      templatePaths: ['mytemplate.json'],
     });
 
     // THEN
@@ -229,12 +212,12 @@ describe('CfnGuardPlugin', () => {
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleMetadata: {
-          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+          DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         violatingResources: [{
           resourceLogicalId: 'MyCustomL3ConstructBucket8C61BCA7',
-          templatePath: './tmp',
+          templatePath: 'mytemplate.json',
           locations: ['/Resources/MyCustomL3ConstructBucket8C61BCA7'],
         }],
       }],
@@ -248,7 +231,7 @@ describe('CfnGuardPlugin', () => {
 
     // WHEN
     const result = validator.validate({
-      templatePaths: ['./tmp'],
+      templatePaths: ['mytemplate.json'],
     });
 
     // THEN
@@ -259,12 +242,12 @@ describe('CfnGuardPlugin', () => {
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         ruleMetadata: {
-          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+          DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
         violatingResources: [
           {
             resourceLogicalId: 'Bucket83908E77',
-            templatePath: './tmp',
+            templatePath: 'mytemplate.json',
             locations: [
               '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
               '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -274,7 +257,7 @@ describe('CfnGuardPlugin', () => {
           },
           {
             resourceLogicalId: 'Bucket25524B414',
-            templatePath: './tmp',
+            templatePath: 'mytemplate.json',
             locations: [
               '/Resources/Bucket25524B414',
             ],
@@ -291,7 +274,7 @@ describe('CfnGuardPlugin', () => {
 
     // WHEN
     const result = validator.validate({
-      templatePaths: ['./tmp'],
+      templatePaths: ['mytemplate.json'],
     });
 
     // THEN
@@ -301,12 +284,12 @@ describe('CfnGuardPlugin', () => {
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleMetadata: {
-          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+          DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         violatingResources: [{
           resourceLogicalId: 'Bucket83908E77',
-          templatePath: './tmp',
+          templatePath: 'mytemplate.json',
           locations: [
             '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
             '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -325,7 +308,7 @@ describe('CfnGuardPlugin', () => {
 
     // WHEN
     const result = validator.validate({
-      templatePaths: ['./tmp'],
+      templatePaths: ['mytemplate.json'],
     });
 
     // THEN
@@ -335,13 +318,13 @@ describe('CfnGuardPlugin', () => {
         fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleMetadata: {
-          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+          DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         violatingResources: [
           {
             resourceLogicalId: 'Bucket83908E77',
-            templatePath: './tmp',
+            templatePath: 'mytemplate.json',
             locations: [
               '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
               '/Resources/Bucket83908E77/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -351,7 +334,7 @@ describe('CfnGuardPlugin', () => {
           },
           {
             resourceLogicalId: 'Bucket25524B414',
-            templatePath: './tmp',
+            templatePath: 'mytemplate.json',
             locations: [
               '/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
               '/Resources/Bucket25524B414/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -371,7 +354,7 @@ describe('CfnGuardPlugin', () => {
 
     // WHEN
     const result = validator.validate({
-      templatePaths: ['./tmp'],
+      templatePaths: ['mytemplate.json'],
     });
 
     // THEN
@@ -381,13 +364,13 @@ describe('CfnGuardPlugin', () => {
         fix: '',
         description: 'Check was not compliant as property value [Path=/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicAcls[L:6,C:24] Value=false] not equal to value [Path=[L:0,C:0] Value=true].',
         ruleMetadata: {
-          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+          DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
         ruleName: 'S3_BUCKET_LEVEL_PUBLIC_ACCESS_PROHIBITED',
         violatingResources: [
           {
             resourceLogicalId: 'MyCustomL3ConstructBucket8C61BCA7',
-            templatePath: './tmp',
+            templatePath: 'mytemplate.json',
             locations: [
               '/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicAcls',
               '/Resources/MyCustomL3ConstructBucket8C61BCA7/Properties/PublicAccessBlockConfiguration/BlockPublicPolicy',
@@ -406,7 +389,7 @@ describe('CfnGuardPlugin', () => {
 
     // WHEN
     const result = validator.validate({
-      templatePaths: ['./tmp'],
+      templatePaths: ['mytemplate.json'],
     });
 
     // THEN
@@ -416,13 +399,13 @@ describe('CfnGuardPlugin', () => {
         fix: '',
         description: 'Check was not compliant as property [Properties.ObjectLockEnabled] is missing. Value traversed to [Path=/Resources/MyCustomL3ConstructBucket8C61BCA7[L:2,C:39] Value={\"Type\":\"AWS::S3::Bucket\",\"UpdateReplacePolicy\":\"Retain\",\"DeletionPolicy\":\"Retain\",\"Metadata\":{\"aws:cdk:path\":\"CdkTestAppStack/MyCustomL3Construct/Bucket/Resource\"}}].',
         ruleMetadata: {
-          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+          DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
         ruleName: 'S3_BUCKET_DEFAULT_LOCK_ENABLED',
         violatingResources: [
           {
             resourceLogicalId: 'MyCustomL3ConstructBucket8C61BCA7',
-            templatePath: './tmp',
+            templatePath: 'mytemplate.json',
             locations: [
               '/Resources/MyCustomL3ConstructBucket8C61BCA7',
               '/Resources/MyCustomL3ConstructBucket8C61BCA7',
@@ -440,7 +423,7 @@ describe('CfnGuardPlugin', () => {
 
     // WHEN
     const result = validator.validate({
-      templatePaths: ['./tmp'],
+      templatePaths: ['mytemplate.json'],
     });
 
     // THEN
@@ -449,14 +432,14 @@ describe('CfnGuardPlugin', () => {
       violations: [{
         description: '[CT.CLOUDTRAIL.PR.1]: Require an AWS CloudTrail trail to have encryption at rest activated',
         ruleMetadata: {
-          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+          DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
         fix: "[FIX]: Set the 'KMSKeyId' property to a valid KMS key.",
         ruleName: 'cloud_trail_encryption_enabled_check',
         violatingResources: [
           {
             resourceLogicalId: 'CloudTrailA62D711D',
-            templatePath: './tmp',
+            templatePath: 'mytemplate.json',
             locations: [
               '/Resources/CloudTrailA62D711D/Properties',
               '/Resources/CloudTrailA62D711D/Properties',
@@ -475,7 +458,7 @@ describe('CfnGuardPlugin', () => {
 
     // WHEN
     const result = validator.validate({
-      templatePaths: ['./tmp'],
+      templatePaths: ['mytemplate.json'],
     });
 
     // THEN
@@ -484,14 +467,14 @@ describe('CfnGuardPlugin', () => {
       violations: [{
         description: '[CT.CLOUDFRONT.PR.6]: Require an Amazon CloudFront distribution to use custom SSL/TLS certificates',
         ruleMetadata: {
-          DocumentationUrl: 'https://docs.aws.amazon.com/controltower/latest/userguide/amazon_s3-rules.html#s3-rule-description',
+          DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
         fix: "[FIX]: Provide a 'ViewerCertificate' configuration with values for 'AcmCertificateArn', 'MinimumProtocolVersion', and 'SslSupportMethod'.",
         ruleName: 'cloudfront_custom_ssl_certificate_check',
         violatingResources: [
           {
             resourceLogicalId: 'DistributionCFDistribution882A7313',
-            templatePath: './tmp',
+            templatePath: 'mytemplate.json',
             locations: [
               '/Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate/CloudFrontDefaultCertificate',
               '/Resources/DistributionCFDistribution882A7313/Properties/DistributionConfig/ViewerCertificate',
@@ -512,7 +495,7 @@ describe('CfnGuardPlugin', () => {
     // THEN
     expect(() => {
       validator.validate({
-        templatePaths: ['./tmp'],
+        templatePaths: ['mytemplate.json'],
       });
     }).toThrow(/CfnGuardValidator plugin failed processing/);
   });

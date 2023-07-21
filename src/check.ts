@@ -1,4 +1,3 @@
-import * as path from 'path';
 import {
   PolicyViolationBeta1,
   PolicyViolatingResourceBeta1,
@@ -48,10 +47,9 @@ interface Traversed {
  */
 export interface GuardResult {
   /**
-   * TODO: figure out what this is
-   * it's always an empty string
+   * The name of the template
    */
-  readonly name?: string;
+  readonly name: string;
 
   /**
    * The overall status of the rule, pass or fail
@@ -152,7 +150,6 @@ export class ViolationCheck {
   constructor(
     private readonly ruleCheck: NonCompliantRule,
     private readonly templatePath: string,
-    private readonly rulePath: string,
   ) { }
 
   /**
@@ -262,10 +259,7 @@ export class ViolationCheck {
     });
   }
   private generateRuleDocUrl(): string {
-    const serviceName = path.basename(path.dirname(this.rulePath));
-    const ruleName = path.basename(this.rulePath, '.guard');
-    const root = 'https://docs.aws.amazon.com/controltower/latest/userguide';
-    return `${root}/${serviceName}-rules.html#${ruleName}-description`;
+    return 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules';
   }
 }
 
