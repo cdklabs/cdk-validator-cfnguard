@@ -1,5 +1,5 @@
-{
-  "name": "",
+[{
+  "name": "mytemplate.json",
   "metadata": {},
   "status": "FAIL",
   "not_compliant": [
@@ -140,4 +140,4 @@
     "s3_bucket_level_public_access_prohibited_check"
   ],
   "compliant": []
-}
+}]

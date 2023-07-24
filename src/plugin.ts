@@ -49,12 +49,12 @@ interface GuardExecutionConfig {
    * The path to the CloudFormation template that should
    * be validated
    */
-  readonly templatePath: string;
+  readonly templatePaths: string[];
 
   /**
    * The path to the guard rule file
    */
-  readonly rulePath: string;
+  readonly rulePaths: string[];
 }
 
 /**
@@ -67,7 +67,6 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
   private readonly rulesPaths: string[] = [];
   private readonly guard: string;
   private readonly disabledRules: string[];
-  private readonly executionConfig: GuardExecutionConfig[] = [];
 
   constructor(props: CfnGuardValidatorProps = {}) {
     this.name = 'cdk-validator-cfnguard';
@@ -112,74 +111,68 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
     }
   }
 
-  /**
-   * This is (hopefully) a temporary solution to https://github.com/aws-cloudformation/cloudformation-guard/issues/180
-   * Rather than try and parse the output and split out the JSON entries we'll just
-   * invoke guard separately for each rule.
-   */
-  private generateGuardExecutionConfig(filePath: string, templatePaths: string[]): void {
-    const stat = fs.statSync(filePath);
-    if (stat.isDirectory()) {
-      const dir = fs.readdirSync(filePath);
-      dir.forEach(d => this.generateGuardExecutionConfig(path.join(filePath, d), templatePaths));
-    } else {
-      templatePaths.forEach(template => {
-        if (!this.disabledRules.includes(path.parse(filePath).name)) {
-          this.executionConfig.push({ rulePath: filePath, templatePath: template });
-        }
-      });
-    }
+  validate(context: IPolicyValidationContextBeta1): PolicyValidationPluginReportBeta1 {
+    const report = this.execGuard({
+      templatePaths: context.templatePaths,
+      rulePaths: this.rulesPaths,
+    });
+    return report;
   }
 
-  validate(context: IPolicyValidationContextBeta1): PolicyValidationPluginReportBeta1 {
-    const templatePaths = context.templatePaths;
-    this.rulesPaths.forEach(rule => this.generateGuardExecutionConfig(rule, templatePaths));
-    const result = this.executionConfig.reduce((acc, config) => {
-      const report = this.execGuard(config);
-      return {
-        violations: [...acc.violations, ...report.violations],
-        success: acc.success === false ? false : report.success,
-      };
-    }, { violations: [], success: true } as Pick<PolicyValidationPluginReportBeta1, 'success' | 'violations'>);
-    return {
-      ...result,
-    };
+  /**
+   * Get the rules to execute. We can return directories as long as none of the rules in the
+   * directory have been disabled
+   */
+  private getRules(filePaths: string[]): string[] {
+    return filePaths.flatMap(file => {
+      const stat = fs.statSync(file);
+      if (stat.isDirectory()) {
+        const dir = fs.readdirSync(file);
+        const rules = dir.flatMap(d => this.getRules([path.join(file, d)]));
+        if (rules.length === dir.length) return [file];
+        return rules;
+      } else {
+        if (!this.disabledRules.includes(path.parse(file).name)) {
+          return [file];
+        } else {
+          return [];
+        }
+      }
+    });
   }
 
   private execGuard(config: GuardExecutionConfig): Pick<PolicyValidationPluginReportBeta1, 'success' | 'violations'> {
     const flags = [
       'validate',
-      '--rules',
-      config.rulePath,
-      '--data',
-      config.templatePath,
-      '--output-format',
-      'json',
-      '--show-summary',
-      'none',
+      ...config.rulePaths.flatMap(rule => ['--rules', rule]),
+      ...config.templatePaths.flatMap(template => ['--data', template]),
+      '--output-format', 'json',
+      '--show-summary', 'none',
+      '--structured',
     ];
     const violations: PolicyViolationBeta1[] = [];
-    let success: boolean;
+    let success: boolean = true;
     try {
       const result = exec([this.guard, ...flags], {
         json: true,
       });
-      const guardResult: GuardResult = JSON.parse(JSON.stringify(result), reviver);
-      if (!guardResult.not_compliant || guardResult.not_compliant.length === 0) {
-        return { success: true, violations: [] };
+      const guardResults: GuardResult[] = JSON.parse(JSON.stringify(result), reviver);
+      for (const guardResult of guardResults) {
+        if (!guardResult.not_compliant || guardResult.not_compliant.length === 0) {
+          continue;
+        }
+        success = false;
+        guardResult.not_compliant.forEach((check) => {
+          const violationCheck = new ViolationCheck(check, guardResult.name);
+          const violation = violationCheck.processCheck();
+          violations.push(...violation);
+        });
       }
-      success = false;
-      guardResult.not_compliant.forEach((check) => {
-        const violationCheck = new ViolationCheck(check, config.templatePath, config.rulePath);
-        const violation = violationCheck.processCheck();
-        violations.push(...violation);
-      });
     } catch (e) {
       success = false;
       throw new Error(`
         CfnGuardValidator plugin failed processing cfn-guard results.
         Please create an issue https://github.com/cdklabs/cdk-validator-cfnguard/issues/new
-        Rule: ${path.basename(config.rulePath)}
         Error: ${e}`);
     }
     return {

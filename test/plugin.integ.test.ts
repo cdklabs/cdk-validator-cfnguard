@@ -44,6 +44,33 @@ describe('CfnGuardValidator', () => {
       's3_bucket_level_public_access_prohibited_check',
     ]));
   });
+
+  test('synth fails, debuggable', () => {
+    // GIVEN
+    const app = new App({
+      context: {
+        '@aws-cdk/core:validationReportJson': true,
+      },
+    });
+
+    // WHEN
+    const stack = new Stack(app, 'Stack');
+    new s3.Bucket(stack, 'Bucket');
+
+    // THEN
+    const assembly = app.synth();
+    const validator = new CfnGuardValidator();
+    const report = validator.validate({ templatePaths: [assembly.getStackArtifact(stack.artifactId).templateFullPath] });
+    expect(validator.ruleIds).toEqual(expect.arrayContaining([
+      'apigatewaypr2',
+      's3pr1',
+    ]));
+    expect(validator.ruleIds?.length).toBeGreaterThanOrEqual(133);
+    const rules = report.violations.flatMap((v: any) => v.ruleName);
+    expect(rules).toEqual(expect.arrayContaining([
+      's3_bucket_level_public_access_prohibited_check',
+    ]));
+  });
   test('synth succeeds', () => {
     // GIVEN
     const validator = new CfnGuardValidator({

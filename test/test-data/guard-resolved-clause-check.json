@@ -1,5 +1,5 @@
-{
-  "name": "",
+[{
+  "name": "mytemplate.json",
   "metadata": {},
   "status": "FAIL",
   "not_compliant": [
@@ -99,4 +99,4 @@
   ],
   "not_applicable": [],
   "compliant": []
-}
+}]
