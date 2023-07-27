@@ -332,7 +332,6 @@ If you do not yet have a Control Tower environment, see [What is AWS Control Tow
 | [CT.WAFV2.PR.1](https://docs.aws.amazon.com/controltower/latest/userguide/wafv2-rules.html#ct-wafv2-pr-1-description)                                  | Require an AWS WAF web ACL to be non-empty                                                                                                                                               | `AWS::WAFv2::WebACL`<br/>                                                                           |
 | [CT.WAFV2.PR.2](https://docs.aws.amazon.com/controltower/latest/userguide/wafv2-rules.html#ct-wafv2-pr-2-description)                                  | Require an AWS WAF rule group to be non-empty                                                                                                                                            | `AWS::WAFv2::RuleGroup`<br/>                                                                        |
 
-
 # API Reference <a name="API Reference" id="api-reference"></a>
 
 
@@ -503,3 +502,6 @@ public readonly version: string;
 The version of the plugin, following the Semantic Versioning specification (see https://semver.org/). This version is used for analytics purposes, to measure the usage of different plugins and different versions. The value of this property should be kept in sync with the actual version of the software package. If the version is not provided or is not a valid semantic version, it will be reported as `0.0.0`.
 
 ---
+
+
+
