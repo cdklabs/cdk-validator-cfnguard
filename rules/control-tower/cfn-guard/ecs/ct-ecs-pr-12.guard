@@ -70,7 +70,7 @@ rule ecs_no_environment_secrets_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%ecs_task_definitions.Properties)
         <<
         [CT.ECS.PR.12]: Require that Amazon ECS task definitions do not pass secrets as container environment variables
-            [FIX]: Omit environment variables with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY' or 'ECS_ENGINE_AUTH_DATA' from container definitions.
+        [FIX]: Omit environment variables with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY' or 'ECS_ENGINE_AUTH_DATA' from container definitions.
         >>
 }
 
@@ -78,7 +78,7 @@ rule ecs_no_environment_secrets_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_TAS
     check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.12]: Require that Amazon ECS task definitions do not pass secrets as container environment variables
-            [FIX]: Omit environment variables with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY' or 'ECS_ENGINE_AUTH_DATA' from container definitions.
+        [FIX]: Omit environment variables with 'Name' set to 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY' or 'ECS_ENGINE_AUTH_DATA' from container definitions.
         >>
 }
 

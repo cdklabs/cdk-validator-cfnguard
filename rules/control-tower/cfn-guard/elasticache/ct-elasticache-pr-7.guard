@@ -1,0 +1,127 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elasticache_repl_grp_redis_auth_enabled_check
+# 
+# Description:
+#   This control checks whether an Amazon ElastiCache replication group with an engine version earlier than 6.0 has Redis AUTH enabled.
+# 
+# Reports on:
+#   AWS::ElastiCache::ReplicationGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElastiCache replication group resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache replication group resource
+#       And: 'Engine' has not been provided or has been provided and is not set to 'redis'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache replication group resource
+#       And: 'Engine' has been provided and is set to 'redis'
+#       And: 'EngineVersion' has not been provided or has been provided and set to a version greater than or equal to 6
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache replication group resource
+#       And: 'Engine' has been provided and is set to 'redis'
+#       And: 'EngineVersion' has been provided and set to a version less than 6
+#       And: 'AuthToken' has not been provided or has been provided and set to an empty string
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache replication group resource
+#       And: 'Engine' has been provided and is set to 'redis'
+#       And: 'EngineVersion' has been provided and set to a version less than 6
+#       And: 'AuthToken' has been provided and set to a non-empty string
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTICACHE_REPLICATION_GROUP_TYPE = "AWS::ElastiCache::ReplicationGroup"
+let REDIS_ENGINE_TYPE = "redis"
+let SUPPORTED_REDIS_ENGINE_VERSIONS_FOR_REDIS_AUTH = [
+    /^2\./,
+    /^3\./,
+    /^4\./,
+    /^5\./
+]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elasticache_replication_groups = Resources.*[ Type == %ELASTICACHE_REPLICATION_GROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule elasticache_repl_grp_redis_auth_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                        %elasticache_replication_groups not empty {
+    check(%elasticache_replication_groups.Properties)
+        <<
+        [CT.ELASTICACHE.PR.7]: Require an Amazon ElastiCache replication group of earlier Redis versions to have Redis AUTH activated
+        [FIX]: Set the value of the 'AuthToken' parameter to a string between 16 characters and 128 characters in length, which contains only printable ASCII characters and does not contain non-alphanumeric characters outside of the set (!, &,
+        >>
+}
+
+rule elasticache_repl_grp_redis_auth_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTICACHE_REPLICATION_GROUP_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTICACHE_REPLICATION_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICACHE.PR.7]: Require an Amazon ElastiCache replication group of earlier Redis versions to have Redis AUTH activated
+        [FIX]: Set the value of the 'AuthToken' parameter to a string between 16 characters and 128 characters in length, which contains only printable ASCII characters and does not contain non-alphanumeric characters outside of the set (!, &,
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elasticache_replication_group) {
+    %elasticache_replication_group [
+        # Scenario 2
+        Engine exists
+        Engine == %REDIS_ENGINE_TYPE
+
+        # Scenario 3
+        EngineVersion exists
+        EngineVersion in %SUPPORTED_REDIS_ENGINE_VERSIONS_FOR_REDIS_AUTH
+    ] {
+        # Scenarios 4 and 5
+        AuthToken exists
+        check_is_string_and_not_empty(AuthToken)
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}

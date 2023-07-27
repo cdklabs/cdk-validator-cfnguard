@@ -62,7 +62,7 @@ rule ecs_task_definition_pid_mode_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%ecs_task_definitions.Properties)
         <<
         [CT.ECS.PR.10]: Require that Amazon ECS task definitions do not share the host's process namespace
-            [FIX]: Omit the 'PidMode' property, or set 'PidMode' to 'task'.
+        [FIX]: Omit the 'PidMode' property, or set 'PidMode' to 'task'.
         >>
 }
 
@@ -70,7 +70,7 @@ rule ecs_task_definition_pid_mode_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_T
     check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.10]: Require that Amazon ECS task definitions do not share the host's process namespace
-            [FIX]: Omit the 'PidMode' property, or set 'PidMode' to 'task'.
+        [FIX]: Omit the 'PidMode' property, or set 'PidMode' to 'task'.
         >>
 }
 

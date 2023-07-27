@@ -1,0 +1,156 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   lambda_inside_vpc_check
+# 
+# Description:
+#   This control checks whether an AWS Lambda function has been configured with access to resources in a customer-managed Amazon Virtual Private Cloud (VPC).
+# 
+# Reports on:
+#   AWS::Lambda::Function
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Lambda function resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda function resource
+#       And: 'VpcConfig' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda function resource
+#       And: 'VpcConfig' has been provided
+#       And: 'SubnetIds' in 'VpcConfig' has been provided as a non-empty list that contains non-empty strings or valid
+#            local references
+#       And: 'SecurityGroupIds' in 'VpcConfig' has not been been provided or has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda function resource
+#       And: 'VpcConfig' has been provided
+#       And: 'SecurityGroupIds' in 'VpcConfig' has been provided as a non-empty list that contains non-empty strings
+#            or valid local references
+#       And: 'SubnetIds' in 'VpcConfig' has not been been provided or has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda function resource
+#       And: 'VpcConfig' has been provided
+#       And: 'SecurityGroupIds' in 'VpcConfig' has been provided as a non-empty list that contains non-empty strings or
+#            valid local references
+#       And: 'SubnetIds' in 'VpcConfig' has been provided as a non-empty list that contains non-empty strings or valid
+#            local references
+#      Then: PASS
+
+#
+# Constants
+#
+let LAMBDA_FUNCTION_TYPE = "AWS::Lambda::Function"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let lambda_functions = Resources.*[ Type == %LAMBDA_FUNCTION_TYPE ]
+
+#
+# Primary Rules
+#
+rule lambda_inside_vpc_check when is_cfn_template(%INPUT_DOCUMENT)
+                                  %lambda_functions not empty {
+    check(%lambda_functions.Properties)
+        <<
+        [CT.LAMBDA.PR.3]: Require an AWS Lambda function to be in a customer-managed Amazon Virtual Private Cloud (VPC)
+        [FIX]: In 'VpcConfig', provide the 'SubnetIds' property with one or more Subnet IDs, and provide the 'SecurityGroupIds' property with one or more Security Group IDs.
+        >>
+}
+
+rule lambda_inside_vpc_check when is_cfn_hook(%INPUT_DOCUMENT, %LAMBDA_FUNCTION_TYPE) {
+    check(%INPUT_DOCUMENT.%LAMBDA_FUNCTION_TYPE.resourceProperties)
+        <<
+        [CT.LAMBDA.PR.3]: Require an AWS Lambda function to be in a customer-managed Amazon Virtual Private Cloud (VPC)
+        [FIX]: In 'VpcConfig', provide the 'SubnetIds' property with one or more Subnet IDs, and provide the 'SecurityGroupIds' property with one or more Security Group IDs.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(lambda_function) {
+    %lambda_function {
+        # Scenario 2
+        VpcConfig exists
+        VpcConfig is_struct
+
+        VpcConfig {
+            # Scenario 3 and 5
+            SubnetIds exists
+            SubnetIds is_list
+            SubnetIds not empty
+            SubnetIds[*] {
+                check_is_string_and_not_empty(this) or
+                check_local_references(%INPUT_DOCUMENT, this, "AWS::EC2::Subnet")
+            }
+            # Scenario 4 and 5
+            SecurityGroupIds exists
+            SecurityGroupIds is_list
+            SecurityGroupIds not empty
+            SecurityGroupIds[*] {
+                check_is_string_and_not_empty(this) or
+                check_local_references(%INPUT_DOCUMENT, this, "AWS::EC2::SecurityGroup")
+            }
+        }
+     }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

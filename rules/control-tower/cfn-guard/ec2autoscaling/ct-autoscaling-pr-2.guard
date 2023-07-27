@@ -1,0 +1,131 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   autoscaling_launch_config_requires_imdsv2_check
+# 
+# Description:
+#   This control checks whether an Amazon EC2 Auto Scaling launch configuration is configured to require the use of Instance Metadata Service Version 2 (IMDSv2).
+# 
+# Reports on:
+#   AWS::AutoScaling::LaunchConfiguration
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#  Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Autoscaling launch configuration resources
+#      Then: SKIP
+#  Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Autoscaling launch configuration resource
+#       And: 'MetadataOptions' has been provided.
+#       And: 'MetadataOptions.HttpEndpoint' has been provided is equal to 'disabled'
+#      Then: SKIP
+#  Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Autoscaling launch configuration resource
+#       And: 'MetadataOptions.HttpEndpoint' has not been provided or has been provided and is equal to 'enabled'
+#       And: 'MetadataOptions.HttpTokens' has not been provided
+#      Then: FAIL
+#  Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Autoscaling launch configuration resource
+#       And: 'MetadataOptions' has been provided.
+#       And: 'MetadataOptions.HttpEndpoint' has not been provided or has been provided and is equal to 'enabled'
+#       And: 'MetadataOptions.HttpTokens' has been provided and set to a value other than 'required'
+#      Then: FAIL
+#  Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Autoscaling launch configuration resource
+#       And: 'MetadataOptions' has been provided.
+#       And: 'MetadataOptions.HttpEndpoint' has not been provided or has been provided and is equal to 'enabled'
+#       And: 'MetadataOptions.HttpTokens' has been provided and set to 'required'
+#      Then: PASS
+
+#
+# Constants
+#
+let AUTOSCALING_LAUNCH_CONFIGURATION_TYPE = "AWS::AutoScaling::LaunchConfiguration"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let autoscaling_launch_configurations = Resources.*[ Type == %AUTOSCALING_LAUNCH_CONFIGURATION_TYPE ]
+
+#
+# Primary Rules
+#
+rule autoscaling_launch_config_requires_imdsv2_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                          %autoscaling_launch_configurations not empty {
+    check(%autoscaling_launch_configurations.Properties)
+        <<
+        [CT.AUTOSCALING.PR.2]: Require an Amazon EC2 Auto Scaling group launch configuration to configure Amazon EC2 instances for IMDSv2
+        [FIX]: Provide a 'MetadataOptions' configuration and set the value of 'HttpTokens' to 'required'.
+        >>
+}
+
+rule autoscaling_launch_config_requires_imdsv2_check when is_cfn_hook(%INPUT_DOCUMENT, %AUTOSCALING_LAUNCH_CONFIGURATION_TYPE) {
+    check(%INPUT_DOCUMENT.%AUTOSCALING_LAUNCH_CONFIGURATION_TYPE.resourceProperties)
+        <<
+        [CT.AUTOSCALING.PR.2]: Require an Amazon EC2 Auto Scaling group launch configuration to configure Amazon EC2 instances for IMDSv2
+        [FIX]: Provide a 'MetadataOptions' configuration and set the value of 'HttpTokens' to 'required'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(autoscaling_launch_configuration) {
+    %autoscaling_launch_configuration [
+        # Scenario 2
+        filter_autoscaling_launch_configurations(this)
+    ] {
+        # Scenario 3, 4 and 5
+        MetadataOptions exists
+        MetadataOptions is_struct
+
+        MetadataOptions {
+            HttpTokens exists
+            HttpTokens == "required"
+        }
+    }
+}
+
+rule filter_autoscaling_launch_configurations(autoscaling_launch_configurations) {
+    %autoscaling_launch_configurations {
+        MetadataOptions not exists or
+        filter_metadata_options(this)
+    }
+}
+
+rule filter_metadata_options(metadata_options) {
+    %metadata_options {
+        MetadataOptions is_struct
+        MetadataOptions {
+            HttpEndpoint not exists or
+            HttpEndpoint == "enabled"
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

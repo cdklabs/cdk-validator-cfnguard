@@ -67,7 +67,7 @@ rule ecs_container_insights_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%ecs_clusters.Properties)
         <<
         [CT.ECS.PR.2]: Require any Amazon ECS cluster to have container insights activated
-            [FIX]: Enable container insights on Amazon ECS clusters with an entry in 'ClusterSettings' that has 'Name' set to 'containerInsights' and 'Value' set to 'enabled'.
+        [FIX]: Enable container insights on Amazon ECS clusters with an entry in 'ClusterSettings' that has 'Name' set to 'containerInsights' and 'Value' set to 'enabled'.
         >>
 }
 
@@ -75,7 +75,7 @@ rule ecs_container_insights_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS
     check(%INPUT_DOCUMENT.%ECS_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.2]: Require any Amazon ECS cluster to have container insights activated
-            [FIX]: Enable container insights on Amazon ECS clusters with an entry in 'ClusterSettings' that has 'Name' set to 'containerInsights' and 'Value' set to 'enabled'.
+        [FIX]: Enable container insights on Amazon ECS clusters with an entry in 'ClusterSettings' that has 'Name' set to 'containerInsights' and 'Value' set to 'enabled'.
         >>
 }
 

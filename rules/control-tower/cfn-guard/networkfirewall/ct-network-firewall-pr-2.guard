@@ -66,7 +66,7 @@ rule netfw_policy_default_action_full_packets_check when is_cfn_template(%INPUT_
     check(%netfw_firewall_policies.Properties)
         <<
         [CT.NETWORK-FIREWALL.PR.2]: Require any AWS Network Firewall firewall policy to drop or forward stateless full packets by default when they do not match a rule
-            [FIX]: Within 'FirewallPolicy', include one of 'aws:drop' or 'aws:forward_to_sfe' in 'StatelessDefaultActions'.
+        [FIX]: Within 'FirewallPolicy', include one of 'aws:drop' or 'aws:forward_to_sfe' in 'StatelessDefaultActions'.
         >>
 }
 
@@ -74,7 +74,7 @@ rule netfw_policy_default_action_full_packets_check when is_cfn_hook(%INPUT_DOCU
     check(%INPUT_DOCUMENT.%NETFW_FIREWALL_POLICY_TYPE.resourceProperties)
         <<
         [CT.NETWORK-FIREWALL.PR.2]: Require any AWS Network Firewall firewall policy to drop or forward stateless full packets by default when they do not match a rule
-            [FIX]: Within 'FirewallPolicy', include one of 'aws:drop' or 'aws:forward_to_sfe' in 'StatelessDefaultActions'.
+        [FIX]: Within 'FirewallPolicy', include one of 'aws:drop' or 'aws:forward_to_sfe' in 'StatelessDefaultActions'.
         >>
 }
 

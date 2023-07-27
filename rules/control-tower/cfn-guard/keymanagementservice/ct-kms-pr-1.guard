@@ -65,7 +65,7 @@ rule kms_key_rotation_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%kms_keys.Properties)
         <<
         [CT.KMS.PR.1]: Require any AWS KMS key to have rotation configured
-            [FIX]: Set 'EnableKeyRotation' to 'true' for AWS KMS symmetric-encryption keys.
+        [FIX]: Set 'EnableKeyRotation' to 'true' for AWS KMS symmetric-encryption keys.
         >>
 }
 
@@ -73,7 +73,7 @@ rule kms_key_rotation_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %KMS_KEY_T
     check(%INPUT_DOCUMENT.%KMS_KEY_TYPE.resourceProperties)
         <<
         [CT.KMS.PR.1]: Require any AWS KMS key to have rotation configured
-            [FIX]: Set 'EnableKeyRotation' to 'true' for AWS KMS symmetric-encryption keys.
+        [FIX]: Set 'EnableKeyRotation' to 'true' for AWS KMS symmetric-encryption keys.
         >>
 }
 

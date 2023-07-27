@@ -18,11 +18,12 @@
             ]
         }
     ],
+    "ConfigRuleIdentifier": "WAF_GLOBAL_WEBACL_NOT_EMPTY",
     "ControlOwner": "AWS Control Tower",
     "DeploymentMechanism": "AWS CloudFormation Hook",
     "DeploymentOwner": "AWS Control Tower",
-    "Description": "This control checks whether an AWS WAFv2 web ACL contains any WAF rules or WAF rule groups.",
-    "DisplayName": "Require an AWS WAFV2 web ACL to be non-empty",
+    "Description": "This control checks whether an AWS WAF web ACL contains any WAF rules or WAF rule groups.",
+    "DisplayName": "Require an AWS WAF web ACL to be non-empty",
     "DocumentationReferences": [
         {
             "DisplayName": "Working with web ACLs",
@@ -47,9 +48,40 @@
         }
     ],
     "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.WAF.10",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
     "ReleaseDate": "2022-11-28",
-    "RemediationMessage": "Provide one or more AWS WAFv2 rules within the 'Rules' property.",
+    "RemediationMessage": "Provide one or more AWS WAF rules within the 'Rules' property.",
     "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
     "TargetOuType": "CUSTOM",
     "Version": "1",
     "Visibility": "PUBLIC"

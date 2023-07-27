@@ -60,7 +60,7 @@ rule elb_connection_draining_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%classic_load_balancers.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.11]: Require any ELB classic load balancer to have connection draining activated
-            [FIX]: Configure a 'ConnectionDrainingPolicy' on ELB classic load balancers.
+        [FIX]: Configure a 'ConnectionDrainingPolicy' on ELB classic load balancers.
         >>
 }
 
@@ -68,7 +68,7 @@ rule elb_connection_draining_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %EL
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.11]: Require any ELB classic load balancer to have connection draining activated
-            [FIX]: Configure a 'ConnectionDrainingPolicy' on ELB classic load balancers.
+        [FIX]: Configure a 'ConnectionDrainingPolicy' on ELB classic load balancers.
         >>
 }
 

@@ -73,7 +73,7 @@ rule alb_http_to_https_redirection_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%elb_v2_listeners.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.1]: Require any application load balancer listener default actions to redirect all HTTP requests to HTTPS
-            [FIX]: Configure a default HTTPS redirect action on application load balancer HTTP listeners.
+        [FIX]: Configure a default HTTPS redirect action on application load balancer HTTP listeners.
         >>
 }
 
@@ -81,7 +81,7 @@ rule alb_http_to_https_redirection_check when is_cfn_hook(%INPUT_DOCUMENT, %ELAS
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.1]: Require any application load balancer listener default actions to redirect all HTTP requests to HTTPS
-            [FIX]: Configure a default HTTPS redirect action on application load balancer HTTP listeners.
+        [FIX]: Configure a default HTTPS redirect action on application load balancer HTTP listeners.
         >>
 }
 

@@ -1,0 +1,98 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   dynamodb_table_encrypted_kms_check
+# 
+# Description:
+#   This control checks whether your Amazon DynamoDB table is encrypted with an AWS Key Management Service (KMS) key.
+# 
+# Reports on:
+#   AWS::DynamoDB::Table
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any DynamoDB table resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DynamoDB table resources
+#       And: 'SSEEnabled' in 'SSESpecification' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DynamoDB table resources
+#       And: 'SSEEnabled' in 'SSESpecification' has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DynamoDB table resources
+#       And: 'SSEEnabled' in 'SSESpecification' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let DYNAMODB_TABLE_TYPE = "AWS::DynamoDB::Table"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let dynamodb_tables = Resources.*[ Type == %DYNAMODB_TABLE_TYPE ]
+
+#
+# Primary Rules
+#
+rule dynamodb_table_encrypted_kms_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %dynamodb_tables not empty {
+    check(%dynamodb_tables.Properties)
+        <<
+        [CT.DYNAMODB.PR.2]: Require an Amazon DynamoDB table to be encrypted at rest using an AWS KMS key
+        [FIX]: Provide a 'SSESpecification' configuration and set 'SSEEnabled' to 'true'.
+        >>
+}
+
+rule dynamodb_table_encrypted_kms_check when is_cfn_hook(%INPUT_DOCUMENT, %DYNAMODB_TABLE_TYPE) {
+    check(%INPUT_DOCUMENT.%DYNAMODB_TABLE_TYPE.resourceProperties)
+        <<
+        [CT.DYNAMODB.PR.2]: Require an Amazon DynamoDB table to be encrypted at rest using an AWS KMS key
+        [FIX]: Provide a 'SSESpecification' configuration and set 'SSEEnabled' to 'true'.
+        >>
+}
+
+rule check(dynamodb_table) {
+    %dynamodb_table {
+        # Scenario 2
+        SSESpecification exists
+        SSESpecification is_struct
+
+        # Scenarios 3 and 4
+        SSESpecification {
+            SSEEnabled exists
+            SSEEnabled == true
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, DYNAMODB_TABLE_TYPE) {
+    %doc.%DYNAMODB_TABLE_TYPE.resourceProperties exists
+}

@@ -56,16 +56,16 @@ rule waf_regional_rule_not_empty_check when is_cfn_template(%INPUT_DOCUMENT)
                                             %waf_regional_rules not empty {
     check(%waf_regional_rules.Properties)
         <<
-        [CT.WAF-REGIONAL.PR.1]: Require any AWS WAF regional rule to have a condition
-            [FIX]: Provide one or more AWS WAF rule conditions within the 'Predicates' property.
+        [CT.WAF-REGIONAL.PR.1]: Require any AWS WAF Classic regional rule to have a condition
+        [FIX]: Provide one or more AWS WAF Classic regional rule conditions within the 'Predicates' property.
         >>
 }
 
 rule waf_regional_rule_not_empty_check when is_cfn_hook(%INPUT_DOCUMENT, %WAF_REGIONAL_RULE_TYPE) {
     check(%INPUT_DOCUMENT.%WAF_REGIONAL_RULE_TYPE.resourceProperties)
         <<
-        [CT.WAF-REGIONAL.PR.1]: Require any AWS WAF regional rule to have a condition
-            [FIX]: Provide one or more AWS WAF rule conditions within the 'Predicates' property.
+        [CT.WAF-REGIONAL.PR.1]: Require any AWS WAF Classic regional rule to have a condition
+        [FIX]: Provide one or more AWS WAF Classic regional rule conditions within the 'Predicates' property.
         >>
 }
 

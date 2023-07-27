@@ -1,0 +1,75 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AU-6(1)",
+                "AU-6(5)",
+                "CA-7",
+                "SI-2",
+                "SI-4(12)"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "CLOUDWATCH_ALARM_ACTION_ENABLED_CHECK",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon CloudWatch alarm has actions enabled.",
+    "DisplayName": "Require an Amazon CloudWatch alarm to have actions activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Alarm actions",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html#alarms-and-actions"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::CloudWatch::Alarm"
+    ],
+    "EvaluatedServices": [
+        "Amazon CloudWatch"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.CLOUDWATCH.PR.4",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.1",
+            "Name": "Establish logging and monitoring"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-07-24",
+    "RemediationMessage": "Set 'ActionsEnabled' to 'true' or do not provide the 'ActionsEnabled' property.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

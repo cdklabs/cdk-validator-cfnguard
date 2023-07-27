@@ -65,7 +65,7 @@ rule cloud_trail_cloud_watch_logs_enabled_check when is_cfn_template(%INPUT_DOCU
     check_cloudtrail_log_group_configuration(%cloudtrail_trails.Properties)
         <<
         [CT.CLOUDTRAIL.PR.3]: Require an AWS CloudTrail trail to have an Amazon CloudWatch log group configuration
-            [FIX]: Set the 'CloudWatchLogsLogGroupArn' and 'CloudWatchLogsRoleArn' properties.
+        [FIX]: Set the 'CloudWatchLogsLogGroupArn' and 'CloudWatchLogsRoleArn' properties.
         >>
 }
 
@@ -73,7 +73,7 @@ rule cloud_trail_cloud_watch_logs_enabled_check when is_cfn_hook(%INPUT_DOCUMENT
     check_cloudtrail_log_group_configuration(%INPUT_DOCUMENT.%CLOUDTRAIL_TRAIL_TYPE.resourceProperties)
         <<
         [CT.CLOUDTRAIL.PR.3]: Require an AWS CloudTrail trail to have an Amazon CloudWatch log group configuration
-            [FIX]: Set the 'CloudWatchLogsLogGroupArn' and 'CloudWatchLogsRoleArn' properties.
+        [FIX]: Set the 'CloudWatchLogsLogGroupArn' and 'CloudWatchLogsRoleArn' properties.
         >>
 }
 

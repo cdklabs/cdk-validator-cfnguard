@@ -83,7 +83,7 @@ rule elbv2_acm_certificate_required_check when is_cfn_template(%INPUT_DOCUMENT)
     check_listener(%elb_v2_listeners.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.2]: Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate
-            [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
+        [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
         >>
 }
 
@@ -91,7 +91,7 @@ rule elbv2_acm_certificate_required_check when is_cfn_hook(%INPUT_DOCUMENT, %ELA
     check_listener(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_LISTENER_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.2]: Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate
-            [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
+        [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
         >>
 }
 
@@ -100,7 +100,7 @@ rule elbv2_acm_certificate_required_check when is_cfn_template(%INPUT_DOCUMENT)
     check_elbv2_listener_certificate(%elb_v2_certificates.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.2]: Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate
-            [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
+        [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
         >>
 }
 
@@ -108,7 +108,7 @@ rule elbv2_acm_certificate_required_check when is_cfn_hook(%INPUT_DOCUMENT, %ELA
     check_elbv2_listener_certificate(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_CERTIFICATE_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.2]: Require any Amazon ELB application or network load balancer to have an AWS Certificate Manager certificate
-            [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
+        [FIX]: Configure the 'Certificates' property to use certificates provided by AWS Certificate Manager.
         >>
 }
 

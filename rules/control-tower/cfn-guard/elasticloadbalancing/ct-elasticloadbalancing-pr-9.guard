@@ -58,7 +58,7 @@ rule elb_tls_https_listeners_only_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%classic_load_balancers.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.9]: Require that an AWS ELB application or classic load balancer listener is configured with HTTPS or TLS termination
-            [FIX]: Configure Classic Load Balancer front-end listeners with HTTPS or SSL protocols.
+        [FIX]: Configure Classic Load Balancer front-end listeners with HTTPS or SSL protocols.
         >>
 }
 
@@ -67,7 +67,7 @@ rule elb_tls_https_listeners_only_check when is_cfn_hook(%INPUT_DOCUMENT, %ELAST
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.9]: Require that an AWS ELB application or classic load balancer listener is configured with HTTPS or TLS termination
-            [FIX]: Configure Classic Load Balancer front-end listeners with HTTPS or SSL protocols.
+        [FIX]: Configure Classic Load Balancer front-end listeners with HTTPS or SSL protocols.
         >>
 }
 

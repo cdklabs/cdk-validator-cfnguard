@@ -103,7 +103,7 @@ rule rds_instance_no_default_ports_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%rds_db_instances.Properties)
         <<
         [CT.RDS.PR.20]: Require an Amazon RDS database instance not to use a database engine default port
-            [FIX]: Set a value for 'Port' that is different than the default value for the Amazon RDS DB instance engine type.
+        [FIX]: Set a value for 'Port' that is different than the default value for the Amazon RDS DB instance engine type.
         >>
 }
 
@@ -111,7 +111,7 @@ rule rds_instance_no_default_ports_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_
     check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.20]: Require an Amazon RDS database instance not to use a database engine default port
-            [FIX]: Set a value for 'Port' that is different than the default value for the Amazon RDS DB instance engine type.
+        [FIX]: Set a value for 'Port' that is different than the default value for the Amazon RDS DB instance engine type.
         >>
 }
 

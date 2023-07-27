@@ -66,7 +66,7 @@ rule s3_bucket_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%s3_buckets.Properties)
         <<
         [CT.S3.PR.2]: Require an Amazon S3 bucket to have server access logging configured
-            [FIX]: Set a 'LoggingConfiguration' on the S3 Bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
+        [FIX]: Set a 'LoggingConfiguration' on the S3 Bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
         >>
 }
 
@@ -74,7 +74,7 @@ rule s3_bucket_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKE
     check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
         <<
         [CT.S3.PR.2]: Require an Amazon S3 bucket to have server access logging configured
-            [FIX]: Set a 'LoggingConfiguration' on the S3 Bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
+        [FIX]: Set a 'LoggingConfiguration' on the S3 Bucket and optionally set 'DestinationBucketName' to an S3 bucket configured to receive S3 Access Logs.
         >>
 }
 

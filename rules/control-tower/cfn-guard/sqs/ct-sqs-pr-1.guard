@@ -74,7 +74,7 @@ rule sqs_dlq_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%sqs_queues.Properties)
         <<
         [CT.SQS.PR.1]: Require any Amazon SQS queue to have a dead-letter queue configured
-            [FIX]: Create a 'RedrivePolicy' with a 'deadLetterTargetArn' value that's set to the ARN of an Amazon SQS dead-letter queue. For Amazon SQS dead-letter queues, instead provide a redrive configuration in the 'RedriveAllowPolicy' property.
+        [FIX]: Create a 'RedrivePolicy' with a 'deadLetterTargetArn' value that's set to the ARN of an Amazon SQS dead-letter queue. For Amazon SQS dead-letter queues, instead provide a redrive configuration in the 'RedriveAllowPolicy' property.
         >>
 }
 
@@ -82,7 +82,7 @@ rule sqs_dlq_check when is_cfn_hook(%INPUT_DOCUMENT, %SQS_QUEUE_TYPE) {
     check(%INPUT_DOCUMENT.%SQS_QUEUE_TYPE.resourceProperties)
         <<
         [CT.SQS.PR.1]: Require any Amazon SQS queue to have a dead-letter queue configured
-            [FIX]: Create a 'RedrivePolicy' with a 'deadLetterTargetArn' value that's set to the ARN of an Amazon SQS dead-letter queue. For Amazon SQS dead-letter queues, instead provide a redrive configuration in the 'RedriveAllowPolicy' property.
+        [FIX]: Create a 'RedrivePolicy' with a 'deadLetterTargetArn' value that's set to the ARN of an Amazon SQS dead-letter queue. For Amazon SQS dead-letter queues, instead provide a redrive configuration in the 'RedriveAllowPolicy' property.
         >>
 }
 

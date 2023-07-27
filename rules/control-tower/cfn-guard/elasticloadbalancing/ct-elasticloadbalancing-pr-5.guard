@@ -67,7 +67,7 @@ rule elbv2_deletion_protection_enabled_check when is_cfn_template(%INPUT_DOCUMEN
     check(%elastic_load_balancers.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.5]: Require that application load balancer deletion protection is activated
-            [FIX]: Set the load balancer attribute 'deletion_protection.enabled' to 'true'.
+        [FIX]: Set the load balancer attribute 'deletion_protection.enabled' to 'true'.
         >>
 }
 
@@ -75,7 +75,7 @@ rule elbv2_deletion_protection_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.5]: Require that application load balancer deletion protection is activated
-            [FIX]: Set the load balancer attribute 'deletion_protection.enabled' to 'true'.
+        [FIX]: Set the load balancer attribute 'deletion_protection.enabled' to 'true'.
         >>
 }
 

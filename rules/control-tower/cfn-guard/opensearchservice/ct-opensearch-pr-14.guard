@@ -1,0 +1,130 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   opensearch_data_node_fault_tolerance_check
+# 
+# Description:
+#   This control checks whether Amazon OpenSearch Service domains are configured with at least three data nodes and zone awareness enabled.
+# 
+# Reports on:
+#   AWS::OpenSearchService::Domain
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any OpenSearch Service domain resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service domain resource
+#       And: 'ClusterConfig' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service domain resource
+#       And: 'ClusterConfig' has been provided
+#       And: 'ZoneAwarenessEnabled' in 'ClusterConfig' has not been provided
+#             or provided and set to a value other than bool(true)
+#       And: 'InstanceCount' in 'ClusterConfig' has not been provided or
+#             provided and set to an integer value less than three (< 3)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service domain resource
+#       And: 'ClusterConfig' has been provided
+#       And: 'ZoneAwarenessEnabled' in 'ClusterConfig' has been provided
+#             and set to bool(true)
+#       And: 'InstanceCount' in 'ClusterConfig' has not been provided or
+#             provided and set to an integer value less than three (< 3)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service domain resource
+#       And: 'ClusterConfig' has been provided
+#       And: 'ZoneAwarenessEnabled' in 'ClusterConfig' has not been provided
+#             or provided and set to a value other than bool(true)
+#       And: 'InstanceCount' in 'ClusterConfig' has been provided and set to
+#             an integer value greater than or equal to three (>= 3)
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service domain resource
+#       And: 'ClusterConfig' has been provided
+#       And: 'ZoneAwarenessEnabled' in 'ClusterConfig' has been provided
+#             and set to bool(true)
+#       And: 'InstanceCount' in 'ClusterConfig' has been provided and set to
+#             an integer value greater than or equal to three (>= 3)
+#      Then: PASS
+
+#
+# Constants
+#
+let OPENSEARCH_SERVICE_DOMAIN_TYPE = "AWS::OpenSearchService::Domain"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let opensearch_service_domains = Resources.*[ Type == %OPENSEARCH_SERVICE_DOMAIN_TYPE ]
+
+#
+# Primary Rules
+#
+rule opensearch_data_node_fault_tolerance_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                     %opensearch_service_domains not empty {
+    check(%opensearch_service_domains.Properties)
+        <<
+        [CT.OPENSEARCH.PR.14]: Require an Amazon OpenSearch Service domain to have zone awareness and at least three data nodes
+        [FIX]: Within 'ClusterConfig', set 'ZoneAwarenessEnabled' to 'true' and 'InstanceCount' to an integer value greater than or equal to three.
+        >>
+}
+
+rule opensearch_data_node_fault_tolerance_check when is_cfn_hook(%INPUT_DOCUMENT, %OPENSEARCH_SERVICE_DOMAIN_TYPE) {
+    check(%INPUT_DOCUMENT.%OPENSEARCH_SERVICE_DOMAIN_TYPE.resourceProperties)
+        <<
+        [CT.OPENSEARCH.PR.14]: Require an Amazon OpenSearch Service domain to have zone awareness and at least three data nodes
+        [FIX]: Within 'ClusterConfig', set 'ZoneAwarenessEnabled' to 'true' and 'InstanceCount' to an integer value greater than or equal to three.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(opensearch_service_domain) {
+    %opensearch_service_domain {
+        # Scenario 2
+        ClusterConfig exists
+        ClusterConfig is_struct
+
+        ClusterConfig {
+            # Scenario 3, 4, 5 and 6
+            ZoneAwarenessEnabled exists
+            ZoneAwarenessEnabled == true
+
+            InstanceCount exists
+            InstanceCount >= 3
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

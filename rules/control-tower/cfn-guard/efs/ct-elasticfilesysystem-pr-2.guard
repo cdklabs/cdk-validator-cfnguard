@@ -57,7 +57,7 @@ rule efs_automatic_backups_enabled_check when is_cfn_template(this)
     check(%efs_file_systems.Properties)
         <<
         [CT.ELASTICFILESYSYSTEM.PR.2]: Require an Amazon EFS volume to have an automated backup plan
-            [FIX]: Enable automatic backups by setting 'BackupPolicy.Status' to 'ENABLED'.
+        [FIX]: Enable automatic backups by setting 'BackupPolicy.Status' to 'ENABLED'.
         >>
 
 }
@@ -66,7 +66,7 @@ rule efs_automatic_backups_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %RESO
     check(%INPUT_DOCUMENT.%RESOURCE_TYPE.resourceProperties)
         <<
         [CT.ELASTICFILESYSYSTEM.PR.2]: Require an Amazon EFS volume to have an automated backup plan
-            [FIX]: Enable automatic backups by setting 'BackupPolicy.Status' to 'ENABLED'.
+        [FIX]: Enable automatic backups by setting 'BackupPolicy.Status' to 'ENABLED'.
         >>
 }
 

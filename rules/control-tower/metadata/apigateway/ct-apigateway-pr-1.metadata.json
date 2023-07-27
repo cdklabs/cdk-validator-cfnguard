@@ -23,10 +23,16 @@
                 "10.2.1",
                 "10.2.4",
                 "10.2.7",
-                "10.3.1"
+                "10.3.1",
+                "10.3.2",
+                "10.3.3",
+                "10.3.4",
+                "10.3.5",
+                "10.3.6"
             ]
         }
     ],
+    "ConfigRuleIdentifier": "API_GW_EXECUTION_LOGGING_ENABLED",
     "ControlOwner": "AWS Control Tower",
     "DeploymentMechanism": "AWS CloudFormation Hook",
     "DeploymentOwner": "AWS Control Tower",
@@ -66,6 +72,30 @@
     "ReleaseDate": "2022-11-28",
     "RemediationMessage": "Configure execution logging on Amazon API Gateway stages with a 'MethodSetting' that sets 'LoggingLevel' to 'ERROR' or 'INFO' for all methods ('HttpMethod' of '*' and 'ResourcePath' of '/*'). Ensure that you do not set 'LoggingLevel' to 'OFF' for any method setting.",
     "Severity": "HIGH",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
     "TargetOuType": "CUSTOM",
     "Version": "1",
     "Visibility": "PUBLIC"

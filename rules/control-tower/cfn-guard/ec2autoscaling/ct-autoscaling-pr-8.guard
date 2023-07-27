@@ -1,0 +1,210 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   autoscaling_launch_template_check
+# 
+# Description:
+#   This control checks whether an Amazon EC2 Auto Scaling group is configured to use an EC2 launch template.
+# 
+# Reports on:
+#   AWS::AutoScaling::AutoscalingGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#  Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contains any Amazon EC2 Auto Scaling group resources
+#      Then: SKIP
+#  Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 Auto Scaling group resource
+#       And: 'LaunchTemplate' has not been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has not been provided
+#      Then: FAIL
+#  Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 Auto Scaling group resource
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has not been provided
+#       And: 'LaunchTemplate' has been provided
+#       And: 'LaunchTemplate' has a non-valid configuration ('Version' has not been provided and one of 'LaunchTemplateId'
+#            or 'LaunchTemplateName' has not been provided or 'Version' has been provided as an empty string or non-valid local
+#            reference and one of 'LaunchTemplateId' or 'LaunchTemplateName' has been provided as an empty string or a
+#            non-valid local reference)
+#      Then: FAIL
+#  Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 Auto Scaling group resource
+#       And: 'LaunchTemplate' has not been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has a non-valid configuration ('Version' has
+#            not been provided and one of 'LaunchTemplateId' or 'LaunchTemplateName' has not been provided or 'Version' has
+#            been provided as an empty string or non-valid local reference and one of 'LaunchTemplateId' or 'LaunchTemplateName'
+#            has been provided as an empty string or a non-valid local reference)
+#      Then: FAIL
+#  Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EC2 Auto Scaling group resource
+#       And: 'LaunchTemplate' has been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has
+#            been provided.
+#       Then: FAIL
+#   Scenario: 6
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an Amazon EC2 Auto Scaling group resource
+#        And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has not been provided
+#        And: 'LaunchTemplate' has been provided
+#        And: 'LaunchTemplate' has a valid configuration ('Version' has been provided and one of 'LaunchTemplateId' or
+#             'LaunchTemplateName' has been provided as a non-empty string or valid local reference)
+#       Then: PASS
+#   Scenario: 7
+#      Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#        And: The input document contains an Amazon EC2 Auto Scaling group resource
+#        And: 'LaunchTemplate' has not been provided
+#        And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has been provided
+#        And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has a valid configuration ('Version' has
+#             been provided and one of 'LaunchTemplateId' or 'LaunchTemplateName' has been provided as a non-empty string
+#             or valid local reference)
+#       Then: PASS
+
+#
+# Constants
+#
+let AUTOSCALING_GROUP_TYPE = "AWS::AutoScaling::AutoScalingGroup"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let autoscaling_groups = Resources.*[ Type == %AUTOSCALING_GROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule autoscaling_launch_template_check when is_cfn_template(%INPUT_DOCUMENT)
+                                            %autoscaling_groups not empty {
+    check(%autoscaling_groups.Properties)
+        <<
+        [CT.AUTOSCALING.PR.8]: Require an Amazon EC2 Auto Scaling group to have EC2 launch templates configured
+        [FIX]: Provide a 'LaunchTemplate' or 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' configuration with a valid 'Version' and a 'LaunchTemplateId' or 'LaunchTemplateName'.
+        >>
+}
+
+rule autoscaling_launch_template_check when is_cfn_hook(%INPUT_DOCUMENT, %AUTOSCALING_GROUP_TYPE) {
+    check(%INPUT_DOCUMENT.%AUTOSCALING_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.AUTOSCALING.PR.8]: Require an Amazon EC2 Auto Scaling group to have EC2 launch templates configured
+        [FIX]: Provide a 'LaunchTemplate' or 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' configuration with a valid 'Version' and a 'LaunchTemplateId' or 'LaunchTemplateName'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(autoscaling_groups) {
+    %autoscaling_groups {
+        # Scenario 3 and 6
+        check_launch_template(this) or
+
+        # Scenario 4 and 7
+        check_mixed_instances_policy(this)
+    }
+}
+
+rule check_launch_template(autoscaling_groups) {
+    %autoscaling_groups {
+        check_mutually_exclusive_property_combination(LaunchTemplate, MixedInstancesPolicy)
+        LaunchTemplate is_struct
+        LaunchTemplate {
+            check_valid_launch_template_config(this)
+        }
+    }
+}
+
+rule check_mixed_instances_policy(autoscaling_groups) {
+    %autoscaling_groups {
+        check_mutually_exclusive_property_combination(MixedInstancesPolicy, LaunchTemplate)
+        MixedInstancesPolicy is_struct
+        MixedInstancesPolicy {
+            LaunchTemplate exists
+            LaunchTemplate is_struct
+            LaunchTemplate {
+                LaunchTemplateSpecification exists
+                LaunchTemplateSpecification is_struct
+                check_valid_launch_template_config(LaunchTemplateSpecification)
+            }
+        }
+    }
+}
+
+rule check_valid_launch_template_config(launch_template_specification) {
+    %launch_template_specification {
+        check_valid_launch_template_property(Version)
+        check_valid_prop_combination(LaunchTemplateId, LaunchTemplateName) or
+        check_valid_prop_combination(LaunchTemplateName, LaunchTemplateId)
+    }
+}
+
+rule check_valid_prop_combination(valid_property, invalid_property) {
+    check_mutually_exclusive_property_combination(%valid_property, %invalid_property)
+    check_valid_launch_template_property(%valid_property)
+}
+
+rule check_mutually_exclusive_property_combination(valid_property, invalid_property) {
+    %invalid_property not exists
+    %valid_property exists
+}
+
+rule check_valid_launch_template_property(property) {
+    %property {
+        check_is_string_and_not_empty(this) or
+        check_local_references(%INPUT_DOCUMENT, this, "AWS::EC2::LaunchTemplate")
+    }
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

@@ -84,7 +84,7 @@ rule rds_instance_backup_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%rds_db_instances.Properties)
         <<
         [CT.RDS.PR.8]: Require an Amazon RDS database instance to have automatic backups configured
-            [FIX]: Set 'BackupRetentionPeriod' to an integer value between 7 and 35 days (inclusive).
+        [FIX]: Set 'BackupRetentionPeriod' to an integer value between 7 and 35 days (inclusive).
         >>
 }
 
@@ -92,7 +92,7 @@ rule rds_instance_backup_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB
     check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.8]: Require an Amazon RDS database instance to have automatic backups configured
-            [FIX]: Set 'BackupRetentionPeriod' to an integer value between 7 and 35 days (inclusive).
+        [FIX]: Set 'BackupRetentionPeriod' to an integer value between 7 and 35 days (inclusive).
         >>
 }
 

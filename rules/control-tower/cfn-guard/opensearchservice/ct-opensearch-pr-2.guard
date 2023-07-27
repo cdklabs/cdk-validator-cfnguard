@@ -1,0 +1,105 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elasticsearch_in_vpc_only_check
+# 
+# Description:
+#   This control checks whether Elasticsearch domains are configured with VPC option settings that specify a target Amazon VPC.
+# 
+# Reports on:
+#   AWS::Elasticsearch::Domain
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Elasticsearch domain resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'VPCOptions' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'VPCOptions' has been provided
+#       And: 'SubnetIds' in 'VPCOptions' has not been provided or has been provided
+#            as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'VPCOptions' has been provided
+#       And: 'SubnetIds' in 'VPCOptions' has been provided as a list with one or more values
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTICSEARCH_DOMAIN_TYPE = "AWS::Elasticsearch::Domain"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elasticsearch_domains = Resources.*[ Type == %ELASTICSEARCH_DOMAIN_TYPE ]
+
+#
+# Primary Rules
+#
+rule elasticsearch_in_vpc_only_check when is_cfn_template(%INPUT_DOCUMENT)
+                                          %elasticsearch_domains not empty {
+    check(%elasticsearch_domains.Properties)
+        <<
+        [CT.OPENSEARCH.PR.2]: Require an Elasticsearch domain to be created in a user-specified Amazon VPC
+        [FIX]: Within 'VPCOptions', set 'SubnetIds' to a list with one or more Amazon EC2 subnet IDs.
+        >>
+}
+
+rule elasticsearch_in_vpc_only_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTICSEARCH_DOMAIN_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTICSEARCH_DOMAIN_TYPE.resourceProperties)
+        <<
+        [CT.OPENSEARCH.PR.2]: Require an Elasticsearch domain to be created in a user-specified Amazon VPC
+        [FIX]: Within 'VPCOptions', set 'SubnetIds' to a list with one or more Amazon EC2 subnet IDs.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elasticsearch_domain) {
+    %elasticsearch_domain {
+        # Scenario 2
+        VPCOptions exists
+        VPCOptions is_struct
+
+        VPCOptions {
+            # Scenarios 3 and 4
+            SubnetIds exists
+            SubnetIds is_list
+            SubnetIds not empty
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

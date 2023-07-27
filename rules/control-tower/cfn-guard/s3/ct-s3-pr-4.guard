@@ -61,7 +61,7 @@ rule s3_event_notifications_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%s3_buckets.Properties)
         <<
         [CT.S3.PR.4]: Require an Amazon S3 bucket to have event notifications configured
-            [FIX]: Set a 'NotificationConfiguration' parameter on your bucket with one of 'EventBridgeConfiguration', 'LambdaConfigurations', 'QueueConfigurations' or 'TopicConfigurations.'
+        [FIX]: Set a 'NotificationConfiguration' parameter on your bucket with one of 'EventBridgeConfiguration', 'LambdaConfigurations', 'QueueConfigurations' or 'TopicConfigurations.'
         >>
 }
 
@@ -69,7 +69,7 @@ rule s3_event_notifications_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_
     check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
         <<
         [CT.S3.PR.4]: Require an Amazon S3 bucket to have event notifications configured
-            [FIX]: Set a 'NotificationConfiguration' parameter on your bucket with one of 'EventBridgeConfiguration', 'LambdaConfigurations', 'QueueConfigurations' or 'TopicConfigurations.'
+        [FIX]: Set a 'NotificationConfiguration' parameter on your bucket with one of 'EventBridgeConfiguration', 'LambdaConfigurations', 'QueueConfigurations' or 'TopicConfigurations.'
         >>
 }
 

@@ -60,7 +60,7 @@ rule ecs_containers_nonprivileged_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%ecs_task_definitions.Properties)
         <<
         [CT.ECS.PR.11]: Require an Amazon ECS container to run as non-privileged
-            [FIX]: Be sure that all containers defined in 'ContainerDefinitions' either omit the 'Privileged' property, or that they set 'Privileged' to 'false'.
+        [FIX]: Be sure that all containers defined in 'ContainerDefinitions' either omit the 'Privileged' property, or that they set 'Privileged' to 'false'.
         >>
 }
 
@@ -68,7 +68,7 @@ rule ecs_containers_nonprivileged_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_T
     check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.11]: Require an Amazon ECS container to run as non-privileged
-            [FIX]: Be sure that all containers defined in 'ContainerDefinitions' either omit the 'Privileged' property, or that they set 'Privileged' to 'false'.
+        [FIX]: Be sure that all containers defined in 'ContainerDefinitions' either omit the 'Privileged' property, or that they set 'Privileged' to 'false'.
         >>
 }
 

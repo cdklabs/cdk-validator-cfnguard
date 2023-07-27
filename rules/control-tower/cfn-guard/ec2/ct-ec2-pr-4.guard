@@ -6,7 +6,7 @@
 #   vpc_sg_restricted_common_ports_check
 # 
 # Description:
-#   This control checks whether Amazon EC2 security groups allow unrestricted incoming TCP or UDP traffic to ports '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.
+#   This control checks whether an Amazon EC2 security group rule that contains the strings '0.0.0.0/0' or '::/0' as a source IP range does not allow incoming TCP, UDP, ICMP, ICMPv6 traffic to the following ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.
 # 
 # Reports on:
 #   AWS::EC2::SecurityGroup, AWS::EC2::SecurityGroupIngress
@@ -25,22 +25,22 @@
 #   Scenario: 2
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
 #       And: The input document contains an EC2 security group resource or EC2 security group ingress resource
-#       And: EC2 security group or EC2 security group ingress resource has no rules allowing inbound traffic
-#            from source '0.0.0.0/0' or '::/0'
+#       And: The EC2 security group or EC2 security group ingress resource does not allow inbound traffic from a source
+#            prefix list and has no rules allowing inbound traffic from '0.0.0.0/0' or '::/0' 
 #      Then: SKIP
 #   Scenario: 3
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
 #       And: The input document contains an EC2 security group resource or EC2 security group ingress resource
-#       And: EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
-#            from source '0.0.0.0/0' or '::/0'
+#       And: The EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
+#            from a source prefix list, '0.0.0.0/0' or '::/0'
 #       And: EC2 security group or EC2 security group ingress resource has a rule that allows all traffic
 #            ('IpProtocol' is set to '-1' or another protocol number)
 #      Then: FAIL
 #   Scenario: 4
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
 #       And: The input document contains an EC2 security group resource or EC2 security group ingress resource
-#       And: EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
-#            from source '0.0.0.0/0' or '::/0'
+#       And: The EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
+#            from a source prefix list, '0.0.0.0/0' or '::/0'
 #       And: EC2 security group or EC2 security group ingress resource has no rules that allow all traffic
 #            ('IpProtocol' is not set to '-1' or another protocol number)
 #       And: Ports allowed are in the list of blocked ports
@@ -48,8 +48,8 @@
 #   Scenario: 5
 #     Given: The input document is an AWS CloudFormation or CloudFormation hook document
 #       And: The input document contains an EC2 security group resource or EC2 security group ingress resource
-#       And: EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
-#            from source '0.0.0.0/0' or '::/0'
+#       And: The EC2 security group or EC2 security group ingress resource has rules allowing inbound traffic
+#            from a source prefix list, '0.0.0.0/0' or '::/0'
 #       And: EC2 security group or EC2 security group ingress resource has no rules that allow all traffic
 #            ('IpProtocol' is not set to '-1' or another protocol number)
 #       And: Ports allowed are not in the list of blocked ports
@@ -85,8 +85,8 @@ rule vpc_sg_restricted_common_ports_check when is_cfn_template(%INPUT_DOCUMENT)
 
     check_security_group(%ec2_security_groups.Properties)
         <<
-        [CT.EC2.PR.4]: Require that an Amazon EC2 security group does not allow incoming traffic for high-risk ports
-            [FIX]: Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.
+        [CT.EC2.PR.4]: Require that any Amazon EC2 security group rule does not use the source IP range 0.0.0.0/0 or ::/0 for specific high-risk ports
+        [FIX]: Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'. The use of managed prefix lists is not supported.
         >>
 }
 
@@ -95,8 +95,8 @@ rule vpc_sg_restricted_common_ports_check when is_cfn_template(%INPUT_DOCUMENT)
 
     check_ingress_rule(%ec2_security_group_ingress_rules.Properties)
         <<
-        [CT.EC2.PR.4]: Require that an Amazon EC2 security group does not allow incoming traffic for high-risk ports
-            [FIX]: Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.
+        [CT.EC2.PR.4]: Require that any Amazon EC2 security group rule does not use the source IP range 0.0.0.0/0 or ::/0 for specific high-risk ports
+        [FIX]: Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'. The use of managed prefix lists is not supported.
         >>
 }
 
@@ -104,8 +104,8 @@ rule vpc_sg_restricted_common_ports_check when is_cfn_hook(%INPUT_DOCUMENT, %SEC
 
     check_security_group(%INPUT_DOCUMENT.%SECURITY_GROUP_TYPE.resourceProperties)
         <<
-        [CT.EC2.PR.4]: Require that an Amazon EC2 security group does not allow incoming traffic for high-risk ports
-            [FIX]: Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.
+        [CT.EC2.PR.4]: Require that any Amazon EC2 security group rule does not use the source IP range 0.0.0.0/0 or ::/0 for specific high-risk ports
+        [FIX]: Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'. The use of managed prefix lists is not supported.
         >>
 }
 
@@ -113,8 +113,8 @@ rule vpc_sg_restricted_common_ports_check when is_cfn_hook(%INPUT_DOCUMENT, %SEC
 
     check_ingress_rule(%INPUT_DOCUMENT.%SECURITY_GROUP_INGRESS_TYPE.resourceProperties)
         <<
-        [CT.EC2.PR.4]: Require that an Amazon EC2 security group does not allow incoming traffic for high-risk ports
-            [FIX]: Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.
+        [CT.EC2.PR.4]: Require that any Amazon EC2 security group rule does not use the source IP range 0.0.0.0/0 or ::/0 for specific high-risk ports
+        [FIX]: Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'. The use of managed prefix lists is not supported.
         >>
 }
 
@@ -135,7 +135,8 @@ rule check_security_group(security_group) {
 
 rule check_ingress_rule(ingress_rule) {
     %ingress_rule[ CidrIp in %UNRESTRICTED_IPV4_RANGES or
-                   CidrIpv6 in %UNRESTRICTED_IPV6_RANGES ] {
+                   CidrIpv6 in %UNRESTRICTED_IPV6_RANGES or 
+                   SourcePrefixListId exists ] {
         # Scenario 3
         IpProtocol exists
         IpProtocol in %AUTHORIZED_PROTOCOLS

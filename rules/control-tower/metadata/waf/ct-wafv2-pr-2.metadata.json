@@ -15,11 +15,12 @@
             ]
         }
     ],
+    "ConfigRuleIdentifier": "WAF_GLOBAL_RULEGROUP_NOT_EMPTY",
     "ControlOwner": "AWS Control Tower",
     "DeploymentMechanism": "AWS CloudFormation Hook",
     "DeploymentOwner": "AWS Control Tower",
-    "Description": "This control checks whether AWS WAFV2 rule groups contain rules.",
-    "DisplayName": "Require an AWS WAFV2 rule group to be non-empty",
+    "Description": "This control checks whether AWS WAF rule groups contain rules.",
+    "DisplayName": "Require an AWS WAF rule group to be non-empty",
     "DocumentationReferences": [
         {
             "DisplayName": "Rule groups",
@@ -45,8 +46,32 @@
     ],
     "RegionalPreference": "REGIONAL",
     "ReleaseDate": "2022-11-28",
-    "RemediationMessage": "Provide one or more AWS WAFV2 rules within the 'Rules' property.",
+    "RemediationMessage": "Provide one or more AWS WAF rules within the 'Rules' property.",
     "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
     "TargetOuType": "CUSTOM",
     "Version": "1",
     "Visibility": "PUBLIC"

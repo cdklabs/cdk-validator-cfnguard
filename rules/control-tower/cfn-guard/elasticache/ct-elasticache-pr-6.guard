@@ -1,0 +1,137 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elasticache_subnet_group_check
+# 
+# Description:
+#   This control checks whether an Amazon ElastiCache cache cluster is configured with a custom subnet group.
+# 
+# Reports on:
+#   AWS::ElastiCache::CacheCluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElastiCache cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'CacheSubnetGroupName' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'CacheSubnetGroupName' has been provided as an empty string or as a non-valid local reference
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'CacheSubnetGroupName' has been provided and set to a value of 'default'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'CacheSubnetGroupName' has been provided as a non-empty string or a valid local reference
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTICACHE_CACHE_CLUSTER_TYPE = "AWS::ElastiCache::CacheCluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elasticache_cache_clusters = Resources.*[ Type == %ELASTICACHE_CACHE_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule elasticache_subnet_group_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                %elasticache_cache_clusters not empty {
+    check(%elasticache_cache_clusters.Properties)
+        <<
+        [CT.ELASTICACHE.PR.6]: Require an Amazon ElastiCache cache cluster to use a custom subnet group
+        [FIX]: Set the 'CacheSubnetGroupName' parameter to the name of a custom Amazon ElastiCache cache subnet group.
+        >>
+}
+
+rule elasticache_subnet_group_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTICACHE_CACHE_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTICACHE_CACHE_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICACHE.PR.6]: Require an Amazon ElastiCache cache cluster to use a custom subnet group
+        [FIX]: Set the 'CacheSubnetGroupName' parameter to the name of a custom Amazon ElastiCache cache subnet group.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elasticache_cache_cluster) {
+    %elasticache_cache_cluster {
+        # Scenario 2
+        CacheSubnetGroupName exists
+
+        # Scenarios 3, 4 and 5
+        check_subnet_group_is_not_default(this) or
+        check_local_references(%INPUT_DOCUMENT, CacheSubnetGroupName, "AWS::ElastiCache::SubnetGroup")
+    }
+}
+
+rule check_subnet_group_is_not_default(elasticache_cache_cluster) {
+        %elasticache_cache_cluster {
+            check_is_string_and_not_empty(CacheSubnetGroupName)
+            CacheSubnetGroupName != "default"
+        }
+    }
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

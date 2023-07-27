@@ -59,7 +59,7 @@ rule redshift_cluster_audit_logging_enabled_check when is_cfn_template(%INPUT_DO
     check(%redshift_clusters.Properties)
         <<
         [CT.REDSHIFT.PR.3]: Require an Amazon Redshift cluster to have audit logging configured
-            [FIX]: Provide a 'LoggingProperties' configuration and set 'BucketName' to the name of an Amazon S3 bucket configured to receive Amazon Redshift audit logs.
+        [FIX]: Provide a 'LoggingProperties' configuration and set 'BucketName' to the name of an Amazon S3 bucket configured to receive Amazon Redshift audit logs.
         >>
 }
 
@@ -67,7 +67,7 @@ rule redshift_cluster_audit_logging_enabled_check when is_cfn_hook(%INPUT_DOCUME
     check(%INPUT_DOCUMENT.%REDSHIFT_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.REDSHIFT.PR.3]: Require an Amazon Redshift cluster to have audit logging configured
-            [FIX]: Provide a 'LoggingProperties' configuration and set 'BucketName' to the name of an Amazon S3 bucket configured to receive Amazon Redshift audit logs.
+        [FIX]: Provide a 'LoggingProperties' configuration and set 'BucketName' to the name of an Amazon S3 bucket configured to receive Amazon Redshift audit logs.
         >>
 }
 

@@ -77,7 +77,7 @@ rule cloudfront_security_policy_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%cloudfront_distributions.Properties)
         <<
         [CT.CLOUDFRONT.PR.9]: Require an Amazon CloudFront distribution to have a security policy of TLSv1.2 as a minimum
-            [FIX]: Provide a 'ViewerCertificate' configuration with 'MinimumProtocolVersion' set to TLSv1.2 or higher.
+        [FIX]: Provide a 'ViewerCertificate' configuration with 'MinimumProtocolVersion' set to TLSv1.2 or higher.
         >>
 }
 
@@ -85,7 +85,7 @@ rule cloudfront_security_policy_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDFR
     check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
         <<
         [CT.CLOUDFRONT.PR.9]: Require an Amazon CloudFront distribution to have a security policy of TLSv1.2 as a minimum
-            [FIX]: Provide a 'ViewerCertificate' configuration with 'MinimumProtocolVersion' set to TLSv1.2 or higher.
+        [FIX]: Provide a 'ViewerCertificate' configuration with 'MinimumProtocolVersion' set to TLSv1.2 or higher.
         >>
 }
 

@@ -6,6 +6,9 @@
             "Ids": [
                 "AC-4",
                 "AC-4(21)",
+                "CA-9(1)",
+                "CM-2",
+                "CM-2(2)",
                 "CM-7",
                 "SC-7",
                 "SC-7(11)",
@@ -29,11 +32,12 @@
             ]
         }
     ],
+    "ConfigRuleIdentifier": "VPC_SG_RESTRICTED_COMMON_PORTS",
     "ControlOwner": "AWS Control Tower",
     "DeploymentMechanism": "AWS CloudFormation Hook",
     "DeploymentOwner": "AWS Control Tower",
-    "Description": "This control checks whether Amazon EC2 security groups allow unrestricted incoming TCP or UDP traffic to ports '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.",
-    "DisplayName": "Require that an Amazon EC2 security group does not allow incoming traffic for high-risk ports",
+    "Description": "This control checks whether an Amazon EC2 security group rule that contains the strings '0.0.0.0/0' or '::/0' as a source IP range does not allow incoming TCP, UDP, ICMP, ICMPv6 traffic to the following ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.",
+    "DisplayName": "Require that any Amazon EC2 security group rule does not use the source IP range 0.0.0.0/0 or ::/0 for specific high-risk ports",
     "DocumentationReferences": [
         {
             "DisplayName": "Instructions for configuring VPC Security Groups",
@@ -67,9 +71,33 @@
         }
     ],
     "ReleaseDate": "2022-11-28",
-    "RemediationMessage": "Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'.",
+    "RemediationMessage": "Remove Amazon EC2 security group ingress rules that allow traffic from '0.0.0.0/0' or '::/0' to high risk ports: '3389', '20', '23', '110', '143', '3306', '8080', '1433', '9200', '9300', '25', '445', '135', '21', '1434', '4333', '5432', '5500', '5601', '22', '3000', '5000', '8088', '8888'. The use of managed prefix lists is not supported.",
     "Severity": "CRITICAL",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
     "TargetOuType": "CUSTOM",
-    "Version": "1",
+    "Version": "2",
     "Visibility": "PUBLIC"
 }

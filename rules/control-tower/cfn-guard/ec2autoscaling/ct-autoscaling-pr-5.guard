@@ -1,0 +1,101 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   autoscaling_launch_config_public_ip_disabled_check
+# 
+# Description:
+#   This control checks whether Amazon EC2 Auto Scaling groups have public IP addresses configured through launch configurations.
+# 
+# Reports on:
+#   AWS::AutoScaling::LaunchConfiguration
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Auto Scaling Launch Configuration resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Auto Scaling Launch Configuration Resource
+#       And: 'AssociatePublicIpAddress' is not present on the Auto Scaling Launch Configuration resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Auto Scaling Launch Configuration Resource
+#       And: 'AssociatePublicIpAddress' is present on the Auto Scaling Launch Configuration resource
+#            and is set to bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Auto Scaling Launch Configuration Resource
+#       And: 'AssociatePublicIpAddress' is present on the Auto Scaling Launch Configuration resource
+#            and is set to bool(false)
+#      Then: PASS
+
+#
+# Constants
+#
+let AUTOSCALING_LAUNCH_CONFIGURATION_TYPE = 'AWS::AutoScaling::LaunchConfiguration'
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let autoscaling_launch_configurations = Resources.*[ Type == %AUTOSCALING_LAUNCH_CONFIGURATION_TYPE ]
+
+#
+# Primary Rules
+#
+rule autoscaling_launch_config_public_ip_disabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                             %autoscaling_launch_configurations not empty {
+
+    check(%autoscaling_launch_configurations.Properties)
+        <<
+        [CT.AUTOSCALING.PR.5]: Require that an Amazon EC2 Auto Scaling group launch configuration does not have Amazon EC2 instances with public IP addresses
+        [FIX]: Set the value of 'AssociatePublicIpAddress' to false on Auto Scaling Launch Configurations.
+        >>
+
+}
+
+rule autoscaling_launch_config_public_ip_disabled_check when is_cfn_hook(%INPUT_DOCUMENT, %AUTOSCALING_LAUNCH_CONFIGURATION_TYPE) {
+
+    check(%INPUT_DOCUMENT.%AUTOSCALING_LAUNCH_CONFIGURATION_TYPE.resourceProperties)
+        <<
+        [CT.AUTOSCALING.PR.5]: Require that an Amazon EC2 Auto Scaling group launch configuration does not have Amazon EC2 instances with public IP addresses
+        [FIX]: Set the value of 'AssociatePublicIpAddress' to false on Auto Scaling Launch Configurations.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(launch_configuration) {
+    %launch_configuration {
+        # Scenario 2
+        AssociatePublicIpAddress exists
+        # Scenarios 3 and 4
+        AssociatePublicIpAddress == false
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

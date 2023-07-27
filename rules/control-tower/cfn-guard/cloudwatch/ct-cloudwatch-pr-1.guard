@@ -1,0 +1,97 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudwatch_alarm_action_check
+# 
+# Description:
+#   This control checks whether an Amazon CloudWatch alarm has at least one action configured for the alarm state.
+# 
+# Reports on:
+#   AWS::CloudWatch::Alarm
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudWatch alarm resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudWatch alarm resource
+#       And: 'AlarmActions' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudWatch alarm resource
+#       And: 'AlarmActions' has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation Hook Document
+#       And: The input document contains a CloudWatch alarm resource
+#       And: 'AlarmActions' has been provided as a non-empty list
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDWATCH_ALARM_TYPE = "AWS::CloudWatch::Alarm"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudwatch_alarms = Resources.*[ Type == %CLOUDWATCH_ALARM_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudwatch_alarm_action_check when is_cfn_template(%INPUT_DOCUMENT)
+                                        %cloudwatch_alarms not empty {
+    check(%cloudwatch_alarms.Properties)
+        <<
+        [CT.CLOUDWATCH.PR.1]: Require an Amazon CloudWatch alarm to have an action configured for the alarm state
+        [FIX]: Set 'AlarmActions' to a list with one or more alarm action values.
+        >>
+}
+
+rule cloudwatch_alarm_action_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDWATCH_ALARM_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDWATCH_ALARM_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDWATCH.PR.1]: Require an Amazon CloudWatch alarm to have an action configured for the alarm state
+        [FIX]: Set 'AlarmActions' to a list with one or more alarm action values.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudwatch_alarm){
+    %cloudwatch_alarm {
+        # Scenario 2
+        AlarmActions exists
+        # Scenarios 3 and 4
+        AlarmActions is_list
+        AlarmActions not empty
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

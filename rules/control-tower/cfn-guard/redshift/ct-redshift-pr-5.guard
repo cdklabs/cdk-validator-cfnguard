@@ -59,7 +59,7 @@ rule redshift_enhanced_vpc_routing_enabled_check when is_cfn_template(%INPUT_DOC
     check(%redshift_clusters.Properties)
         <<
         [CT.REDSHIFT.PR.5]: Require an Amazon Redshift cluster to have enhanced VPC routing
-            [FIX]: Set 'EnhancedVpcRouting' to 'true'.
+        [FIX]: Set 'EnhancedVpcRouting' to 'true'.
         >>
 }
 
@@ -67,7 +67,7 @@ rule redshift_enhanced_vpc_routing_enabled_check when is_cfn_hook(%INPUT_DOCUMEN
     check(%INPUT_DOCUMENT.%REDSHIFT_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.REDSHIFT.PR.5]: Require an Amazon Redshift cluster to have enhanced VPC routing
-            [FIX]: Set 'EnhancedVpcRouting' to 'true'.
+        [FIX]: Set 'EnhancedVpcRouting' to 'true'.
         >>
 }
 

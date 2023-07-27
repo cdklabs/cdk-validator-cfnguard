@@ -60,7 +60,7 @@ rule efs_access_point_enforce_user_identity_check when is_cfn_template(this)
     check(%efs_access_points.Properties)
         <<
         [CT.ELASTICFILESYSYSTEM.PR.4]: Require Amazon EFS access points to enforce a user identity
-            [FIX]: Provide a 'PosixUser' configuration with a POSIX user ID ('Uid') and POSIX group ID ('Gid').
+        [FIX]: Provide a 'PosixUser' configuration with a POSIX user ID ('Uid') and POSIX group ID ('Gid').
         >>
 }
 
@@ -68,7 +68,7 @@ rule efs_access_point_enforce_user_identity_check when is_cfn_hook(%INPUT_DOCUME
     check(%INPUT_DOCUMENT.%EFS_ACCESS_POINT_TYPE.resourceProperties)
         <<
         [CT.ELASTICFILESYSYSTEM.PR.4]: Require Amazon EFS access points to enforce a user identity
-            [FIX]: Provide a 'PosixUser' configuration with a POSIX user ID ('Uid') and POSIX group ID ('Gid').
+        [FIX]: Provide a 'PosixUser' configuration with a POSIX user ID ('Uid') and POSIX group ID ('Gid').
         >>
 }
 

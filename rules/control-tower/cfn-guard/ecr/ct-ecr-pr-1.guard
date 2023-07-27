@@ -60,7 +60,7 @@ rule ecr_private_lifecycle_policy_configured_check when is_cfn_template(%INPUT_D
     check(%ecr_repositories.Properties)
         <<
         [CT.ECR.PR.1]: Require Amazon ECR repositories to have a lifecycle policy configured
-            [FIX]: Provide a 'LifecyclePolicy' configuration and set 'LifecyclePolicyText' to an Amazon ECR repository lifecycle policy.
+        [FIX]: Provide a 'LifecyclePolicy' configuration and set 'LifecyclePolicyText' to an Amazon ECR repository lifecycle policy.
         >>
 }
 
@@ -68,7 +68,7 @@ rule ecr_private_lifecycle_policy_configured_check when is_cfn_hook(%INPUT_DOCUM
     check(%INPUT_DOCUMENT.%ECR_REPOSITORY_TYPE.resourceProperties)
         <<
         [CT.ECR.PR.1]: Require Amazon ECR repositories to have a lifecycle policy configured
-            [FIX]: Provide a 'LifecyclePolicy' configuration and set 'LifecyclePolicyText' to an Amazon ECR repository lifecycle policy.
+        [FIX]: Provide a 'LifecyclePolicy' configuration and set 'LifecyclePolicyText' to an Amazon ECR repository lifecycle policy.
         >>
 }
 

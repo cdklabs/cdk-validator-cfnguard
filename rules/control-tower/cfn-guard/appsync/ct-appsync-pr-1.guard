@@ -1,0 +1,157 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   appsync_logging_enabled_check
+# 
+# Description:
+#   This control checks whether an AWS AppSync GraphQL API has been configured to send request-level and field-level logs to Amazon CloudWatch Logs.
+# 
+# Reports on:
+#   AWS::AppSync::GraphQLApi
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any AppSync GraphQL API resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'LogConfig' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'LogConfig' has been provided
+#       And: 'FieldLogLevel' in 'LogConfig' has not been provided or provided and set to a value other
+#            than 'ERROR' or 'ALL'
+#       And: 'CloudWatchLogsRoleArn' in 'LogConfig' has not been provided or provided and set to an empty
+#            string or invalid local reference
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'LogConfig' has been provided
+#       And: 'FieldLogLevel' in 'LogConfig' has been provided and set to 'ERROR' or 'ALL'
+#       And: 'CloudWatchLogsRoleArn' in 'LogConfig' has not been provided or provided and set to an empty
+#            string or invalid local reference
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'LogConfig' has been provided
+#       And: 'FieldLogLevel' in 'LogConfig' has not been provided or provided and set to a value other
+#            than 'ERROR' or 'ALL'
+#       And: 'CloudWatchLogsRoleArn' in 'LogConfig' has been provided and set to a non-empty string or valid
+#            local reference
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'LogConfig' has been provided
+#       And: 'FieldLogLevel' in 'LogConfig' has been provided and set to 'ERROR' or 'ALL'
+#       And: 'CloudWatchLogsRoleArn' in 'LogConfig' has been provided and set to a non-empty string or valid
+#            local reference
+#      Then: PASS
+
+#
+# Constants
+#
+let APPSYNC_GRAPHQL_API_TYPE = "AWS::AppSync::GraphQLApi"
+let ALLOWED_APPSYNC_LOG_LEVELS = [ "ERROR", "ALL" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let appsync_graphql_apis = Resources.*[ Type == %APPSYNC_GRAPHQL_API_TYPE ]
+
+#
+# Primary Rules
+#
+rule appsync_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                        %appsync_graphql_apis not empty {
+    check(%appsync_graphql_apis.Properties)
+        <<
+        [CT.APPSYNC.PR.1]: Require an AWS AppSync GraphQL API to have logging enabled
+        [FIX]: Within 'LogConfig', set 'FieldLogLevel' to 'ALL' or 'ERROR' and set 'CloudWatchLogsRoleArn' to the ARN of an AWS IAM role configured to allow AWS AppSync to send logs to Amazon CloudWatch Logs.
+        >>
+}
+
+rule appsync_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %APPSYNC_GRAPHQL_API_TYPE) {
+    check(%INPUT_DOCUMENT.%APPSYNC_GRAPHQL_API_TYPE.resourceProperties)
+        <<
+        [CT.APPSYNC.PR.1]: Require an AWS AppSync GraphQL API to have logging enabled
+        [FIX]: Within 'LogConfig', set 'FieldLogLevel' to 'ALL' or 'ERROR' and set 'CloudWatchLogsRoleArn' to the ARN of an AWS IAM role configured to allow AWS AppSync to send logs to Amazon CloudWatch Logs.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(appsync_graphql_api) {
+    %appsync_graphql_api {
+        # Scenario 2
+        LogConfig exists
+        LogConfig is_struct
+
+        LogConfig {
+            # Scenarios 3, 4, 5 and 6
+            FieldLogLevel exists
+            FieldLogLevel in %ALLOWED_APPSYNC_LOG_LEVELS
+
+            CloudWatchLogsRoleArn exists
+            check_is_string_and_not_empty(CloudWatchLogsRoleArn) or
+            check_local_references(%INPUT_DOCUMENT, CloudWatchLogsRoleArn, "AWS::IAM::Role")
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

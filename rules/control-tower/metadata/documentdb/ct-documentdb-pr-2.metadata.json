@@ -1,0 +1,76 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "SI-12"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "3.1"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "DOCDB_CLUSTER_BACKUP_RETENTION_CHECK",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon DocumentDB cluster retention period is set to seven or more days (>=7).",
+    "DisplayName": "Require an Amazon DocumentDB cluster to have automatic backups enabled",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Backing Up and Restoring in Amazon DocumentDB",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/documentdb/latest/developerguide/backup_restore.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::DocDB::DBCluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon DocumentDB"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.DOCUMENTDB.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-07-24",
+    "RemediationMessage": "Set the value of the 'BackupRetentionPeriod' parameter to an integer value between 7 and 35 days (inclusive).",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

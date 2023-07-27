@@ -73,7 +73,7 @@ rule s3_bucket_default_encryption_enabled_check when is_cfn_template(%INPUT_DOCU
     check(%s3_buckets.Properties)
         <<
         [CT.S3.PR.7]: Require an Amazon S3 bucket to have server-side encryption configured
-            [FIX]: Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'AES256' or 'aws:kms'.
+        [FIX]: Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'AES256' or 'aws:kms'.
         >>
 }
 
@@ -81,7 +81,7 @@ rule s3_bucket_default_encryption_enabled_check when is_cfn_hook(%INPUT_DOCUMENT
     check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
         <<
         [CT.S3.PR.7]: Require an Amazon S3 bucket to have server-side encryption configured
-            [FIX]: Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'AES256' or 'aws:kms'.
+        [FIX]: Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'AES256' or 'aws:kms'.
         >>
 }
 

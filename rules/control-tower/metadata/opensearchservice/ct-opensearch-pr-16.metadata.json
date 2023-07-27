@@ -1,0 +1,96 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-17(2)",
+                "AC-4",
+                "IA-5(1)",
+                "SC-12(3)",
+                "SC-13",
+                "SC-23",
+                "SC-23(3)",
+                "SC-7(4)",
+                "SC-8",
+                "SC-8(1)",
+                "SC-8(2)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.3",
+                "4.1"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "OPENSEARCH_HTTPS_REQUIRED",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon OpenSearch Service domains are configured to require HTTPS with a minimum TLS version of TLSv1.2.",
+    "DisplayName": "Require an Amazon OpenSearch Service domain to use TLSv1.2",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Data protection in Amazon OpenSearch Service",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/data-protection.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::OpenSearchService::Domain"
+    ],
+    "EvaluatedServices": [
+        "Amazon OpenSearch Service"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.OPENSEARCH.PR.16",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.3",
+            "Name": "Encrypt data in transit"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.Opensearch.8",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2023-05-19",
+    "RemediationMessage": "Within 'DomainEndpointOptions', set 'EnforceHTTPS' to 'true' and set 'TLSSecurityPolicy' to 'Policy-Min-TLS-1-2-2019-07'.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

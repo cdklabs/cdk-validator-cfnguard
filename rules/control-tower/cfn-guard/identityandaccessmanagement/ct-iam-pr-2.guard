@@ -71,7 +71,7 @@ rule iam_managed_policy_no_statements_with_admin_access_check when is_cfn_templa
     check(%iam_managed_policies.Properties)
         <<
         [CT.IAM.PR.2]: Require that AWS Identity and Access Management (IAM) customer-managed policies do not contain a statement that includes "*" in the Action and Resource elements
-            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
         >>
 }
 
@@ -79,7 +79,7 @@ rule iam_managed_policy_no_statements_with_admin_access_check when is_cfn_hook(%
     check(%INPUT_DOCUMENT.%AWS_IAM_MANAGED_POLICY_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.2]: Require that AWS Identity and Access Management (IAM) customer-managed policies do not contain a statement that includes "*" in the Action and Resource elements
-            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
         >>
 }
 

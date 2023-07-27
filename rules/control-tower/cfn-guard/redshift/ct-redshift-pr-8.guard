@@ -1,0 +1,97 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   redshift_cluster_encrypted_check
+# 
+# Description:
+#   This control checks whether an Amazon Redshift cluster is encrypted.
+# 
+# Reports on:
+#   AWS::Redshift::Cluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon Redshift cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon Redshift cluster resource
+#       And: 'Encrypted' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon Redshift cluster resource
+#       And: 'Encrypted' has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon Redshift cluster resource
+#       And: 'Encrypted' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let RESOURCE_TYPE = "AWS::Redshift::Cluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let redshift_clusters = Resources.*[ Type == %RESOURCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule redshift_cluster_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                                           %redshift_clusters not empty {
+    check(%redshift_clusters.Properties)
+        <<
+        [CT.REDSHIFT.PR.8]: Require an Amazon Redshift cluster to be encrypted
+        [FIX]: Set the value of the 'Encrypted' property to true.
+        >>
+}
+
+rule redshift_cluster_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %RESOURCE_TYPE) {
+    check(%INPUT_DOCUMENT.%RESOURCE_TYPE.resourceProperties)
+        <<
+        [CT.REDSHIFT.PR.8]: Require an Amazon Redshift cluster to be encrypted
+        [FIX]: Set the value of the 'Encrypted' property to true.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(redshift_cluster) {
+    %redshift_cluster {
+        # Scenario 2
+        Encrypted exists
+
+        # Scenario 3 and 4
+        Encrypted == true
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

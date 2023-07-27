@@ -1,0 +1,74 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "SC-36",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "ELASTICACHE_REPL_GRP_AUTO_FAILOVER_ENABLED",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon ElastiCache Redis replication group has automatic failover enabled.",
+    "DisplayName": "Require an Amazon ElastiCache for Redis replication group to have automatic failover activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Testing automatic failover",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/AutoFailover.html#auto-failover-test"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ElastiCache::ReplicationGroup"
+    ],
+    "EvaluatedServices": [
+        "Amazon ElastiCache"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICACHE.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-07-24",
+    "RemediationMessage": "Set the value of the 'AutomaticFailoverEnabled' parameter to true.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -64,7 +64,7 @@ rule s3_bucket_policy_ssl_requests_only_check when is_cfn_template(%INPUT_DOCUME
     check(%s3_bucket_policies.Properties)
         <<
         [CT.S3.PR.8]: Require that Amazon S3 bucket requests use Secure Sockets Layer
-            [FIX]: Configure an Amazon S3 bucket policy statement that denies access to all principals and actions for the S3 bucket and bucket objects when a secure transport protocol is not in use.
+        [FIX]: Configure an Amazon S3 bucket policy statement that denies access to all principals and actions for the S3 bucket and bucket objects when a secure transport protocol is not in use.
         >>
 }
 
@@ -72,7 +72,7 @@ rule s3_bucket_policy_ssl_requests_only_check when is_cfn_hook(%INPUT_DOCUMENT, 
     check(%INPUT_DOCUMENT.%S3_BUCKET_POLICY_TYPE.resourceProperties)
         <<
         [CT.S3.PR.8]: Require that Amazon S3 bucket requests use Secure Sockets Layer
-            [FIX]: Configure an Amazon S3 bucket policy statement that denies access to all principals and actions for the S3 bucket and bucket objects when a secure transport protocol is not in use.
+        [FIX]: Configure an Amazon S3 bucket policy statement that denies access to all principals and actions for the S3 bucket and bucket objects when a secure transport protocol is not in use.
         >>
 }
 

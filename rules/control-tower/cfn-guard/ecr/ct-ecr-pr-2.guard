@@ -57,7 +57,7 @@ rule ecr_private_image_scanning_enabled_check when is_cfn_template(%INPUT_DOCUME
     check(%ecr_repositories.Properties)
         <<
         [CT.ECR.PR.2]: Require Amazon ECR private repositories to have image scanning enabled
-            [FIX]: Set 'ScanOnPush' in 'ImageScanningConfiguration' to 'true'.
+        [FIX]: Set 'ScanOnPush' in 'ImageScanningConfiguration' to 'true'.
         >>
 }
 
@@ -65,7 +65,7 @@ rule ecr_private_image_scanning_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, 
     check(%INPUT_DOCUMENT.%ECR_REPOSITORY_TYPE.resourceProperties)
         <<
         [CT.ECR.PR.2]: Require Amazon ECR private repositories to have image scanning enabled
-            [FIX]: Set 'ScanOnPush' in 'ImageScanningConfiguration' to 'true'.
+        [FIX]: Set 'ScanOnPush' in 'ImageScanningConfiguration' to 'true'.
         >>
 }
 

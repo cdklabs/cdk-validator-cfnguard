@@ -66,7 +66,7 @@ rule ecs_containers_readonly_access_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%ecs_task_definitions.Properties)
         <<
         [CT.ECS.PR.6]: Require Amazon ECS containers to allow read-only access to the root filesystem
-            [FIX]: Set the 'ReadonlyRootFilesystem' property to 'true' for all 'ContainerDefinitions'.
+        [FIX]: Set the 'ReadonlyRootFilesystem' property to 'true' for all 'ContainerDefinitions'.
         >>
 }
 
@@ -74,7 +74,7 @@ rule ecs_containers_readonly_access_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS
     check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.6]: Require Amazon ECS containers to allow read-only access to the root filesystem
-            [FIX]: Set the 'ReadonlyRootFilesystem' property to 'true' for all 'ContainerDefinitions'.
+        [FIX]: Set the 'ReadonlyRootFilesystem' property to 'true' for all 'ContainerDefinitions'.
         >>
 }
 

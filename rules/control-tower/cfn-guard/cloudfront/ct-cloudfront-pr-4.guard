@@ -67,7 +67,7 @@ rule cloudfront_origin_failover_enabled_check when is_cfn_template(%INPUT_DOCUME
     check(%cloudfront_distributions.Properties)
         <<
         [CT.CLOUDFRONT.PR.4]: Require an Amazon CloudFront distribution to have origin failover configured
-            [FIX]: Configure an origin group on the Amazon CloudFront Distribution with two origin group members.
+        [FIX]: Configure an origin group on the Amazon CloudFront Distribution with two origin group members.
         >>
 }
 
@@ -75,7 +75,7 @@ rule cloudfront_origin_failover_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, 
     check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
         <<
         [CT.CLOUDFRONT.PR.4]: Require an Amazon CloudFront distribution to have origin failover configured
-            [FIX]: Configure an origin group on the Amazon CloudFront Distribution with two origin group members.
+        [FIX]: Configure an origin group on the Amazon CloudFront Distribution with two origin group members.
         >>
 }
 

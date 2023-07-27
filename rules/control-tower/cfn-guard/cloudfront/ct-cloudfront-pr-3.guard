@@ -74,7 +74,7 @@ rule cloudfront_viewer_policy_https_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%cloudfront_distributions.Properties)
         <<
         [CT.CLOUDFRONT.PR.3]: Require an Amazon CloudFront distribution to have encryption in transit configured
-            [FIX]: Set 'ViewerProtocolPolicy' in 'DefaultCacheBehavior' and 'CacheBehavior' to 'https-only' or 'redirect-to-https'.
+        [FIX]: Set 'ViewerProtocolPolicy' in 'DefaultCacheBehavior' and 'CacheBehavior' to 'https-only' or 'redirect-to-https'.
         >>
 }
 
@@ -82,7 +82,7 @@ rule cloudfront_viewer_policy_https_check when is_cfn_hook(%INPUT_DOCUMENT, %CLO
     check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
         <<
         [CT.CLOUDFRONT.PR.3]: Require an Amazon CloudFront distribution to have encryption in transit configured
-            [FIX]: Set 'ViewerProtocolPolicy' in 'DefaultCacheBehavior' and 'CacheBehavior' to 'https-only' or 'redirect-to-https'.
+        [FIX]: Set 'ViewerProtocolPolicy' in 'DefaultCacheBehavior' and 'CacheBehavior' to 'https-only' or 'redirect-to-https'.
         >>
 }
 

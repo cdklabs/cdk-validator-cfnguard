@@ -1,0 +1,159 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   sagemaker_notebook_no_direct_internet_access_check
+# 
+# Description:
+#   This control checks that direct internet access is not allowed for an Amazon SageMaker notebook instance.
+# 
+# Reports on:
+#   AWS::SageMaker::NotebookInstance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any SageMaker notebook instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' has not been provided on the SageMaker notebook instance resource
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' has been provided on the SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' is set to 'Enabled'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' has been provided on the SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' is set to 'Disabled'
+#       And: 'SecurityGroupIds' have been provided as a non-empty list with non-empty strings or valid local references
+#       And: 'SubnetId' has been provided as an empty string or non-valid local reference
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' has been provided on the SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' is set to 'Disabled'
+#       And: 'SubnetId' has been provided as a non-empty string or valid local reference
+#       And: 'SecurityGroupIds' have been provided as an empty list or a list that contains empty string values or
+#            non-valid local references
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' has been provided on the SageMaker notebook instance resource
+#       And: 'DirectInternetAccess' is set to 'Disabled'
+#       And: 'SecurityGroupIds' have been provided as a non-empty list with non-empty strings or valid local references
+#       And: 'SubnetId' has been provided as a non-empty string or valid local reference
+#      Then: PASS
+
+#
+# Constants
+#
+let SAGEMAKER_NOTEBOOK_INSTANCE_TYPE = "AWS::SageMaker::NotebookInstance"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let sagemaker_notebook_instances = Resources.*[ Type == %SAGEMAKER_NOTEBOOK_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule sagemaker_notebook_no_direct_internet_access_check when is_cfn_template(this)
+                                                             %sagemaker_notebook_instances not empty {
+    check(%sagemaker_notebook_instances.Properties)
+        <<
+        [CT.SAGEMAKER.PR.1]: Require an Amazon SageMaker notebook instance to prevent direct internet access
+        [FIX]: Set the value of 'DirectInternetAccess' to 'Disabled' and provide a 'SubnetId' and one or more 'SecurityGroupIds'.
+        >>
+}
+
+rule sagemaker_notebook_no_direct_internet_access_check when is_cfn_hook(%INPUT_DOCUMENT, %SAGEMAKER_NOTEBOOK_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%SAGEMAKER_NOTEBOOK_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.SAGEMAKER.PR.1]: Require an Amazon SageMaker notebook instance to prevent direct internet access
+        [FIX]: Set the value of 'DirectInternetAccess' to 'Disabled' and provide a 'SubnetId' and one or more 'SecurityGroupIds'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(sagemaker_notebook_instances) {
+    %sagemaker_notebook_instances {
+        # Scenario 2
+        DirectInternetAccess exists
+
+        # Scenario 3
+        DirectInternetAccess is_string
+        DirectInternetAccess == "Disabled"
+
+        # Scenario 4,5 and 6
+        check_is_string_and_not_empty(SubnetId) or
+        check_local_references(%INPUT_DOCUMENT, SubnetId, "AWS::EC2::Subnet")
+
+        SecurityGroupIds exists
+        SecurityGroupIds is_list
+        SecurityGroupIds not empty
+
+        SecurityGroupIds[*] {
+            check_is_string_and_not_empty(this) or
+            check_local_references(%INPUT_DOCUMENT, this, "AWS::EC2::SecurityGroup")
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, SAGEMAKER_NOTEBOOK_INSTANCE_TYPE) {
+    %doc.%SAGEMAKER_NOTEBOOK_INSTANCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

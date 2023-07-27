@@ -1,0 +1,172 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   opensearch_application_logging_enabled_check
+# 
+# Description:
+#   This control checks whether Amazon OpenSearch Service domains are configured to send error logs to an Amazon CloudWatch Logs log group.
+# 
+# Reports on:
+#   AWS::OpenSearchService::Domain
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any OpenSearch Service domain resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service domain resource
+#       And: 'LogPublishingOptions' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service domain resource
+#       And: 'LogPublishingOptions' has been provided
+#       And: 'ES_APPLICATION_LOGS' in 'LogPublishingOptions' has not been provided
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service domain resource
+#       And: 'LogPublishingOptions' has been specified
+#       And: 'ES_APPLICATION_LOGS' in 'LogPublishingOptions' has been provided
+#       And: 'Enabled' in 'ES_APPLICATION_LOGS' has not been provided or provided and set to
+#            a value other than bool(true)
+#       And: 'CloudWatchLogsLogGroupArn' in 'ES_APPLICATION_LOGS' has not been provided or provided
+#            as an empty string or invalid local reference
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service Domain resource
+#       And: 'LogPublishingOptions' has been specified
+#       And: 'ES_APPLICATION_LOGS' in 'LogPublishingOptions' has been provided
+#       And: 'Enabled' in 'ES_APPLICATION_LOGS' has been provided and set to bool(true)
+#       And: 'CloudWatchLogsLogGroupArn' in 'ES_APPLICATION_LOGS' has not been provided or provided
+#            as an empty string or invalid local reference
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service Domain resource
+#       And: 'LogPublishingOptions' has been specified
+#       And: 'ES_APPLICATION_LOGS' in 'LogPublishingOptions' has been provided
+#       And: 'Enabled' in 'ES_APPLICATION_LOGS' has not been provided or provided and set to
+#            a value other than bool(true)
+#       And: 'CloudWatchLogsLogGroupArn' in 'ES_APPLICATION_LOGS' has been provided as a non-empty string
+#            or valid local reference
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an OpenSearch Service Domain resource
+#       And: 'LogPublishingOptions' has been specified
+#       And: 'ES_APPLICATION_LOGS' in 'LogPublishingOptions' has been provided
+#       And: 'Enabled' in 'ES_APPLICATION_LOGS' has been provided and set to bool(true)
+#       And: 'CloudWatchLogsLogGroupArn' in 'ES_APPLICATION_LOGS' has been provided as a non-empty string
+#            or valid local reference
+#      Then: PASS
+
+#
+# Constants
+#
+let OPENSEARCH_SERVICE_DOMAIN_TYPE = "AWS::OpenSearchService::Domain"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let opensearch_service_domains = Resources.*[ Type == %OPENSEARCH_SERVICE_DOMAIN_TYPE ]
+
+#
+# Primary Rules
+#
+rule opensearch_application_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                       %opensearch_service_domains not empty {
+    check(%opensearch_service_domains.Properties)
+        <<
+        [CT.OPENSEARCH.PR.12]: Require an Amazon OpenSearch Service domain to send error logs to Amazon CloudWatch Logs
+        [FIX]: Within 'LogPublishingOptions', provide an 'ES_APPLICATION_LOGS' configuration, set 'Enabled' to 'true', and set 'CloudWatchLogsLogGroupArn' to the ARN of a valid Amazon CloudWatch Logs log group.
+        >>
+}
+
+rule opensearch_application_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %OPENSEARCH_SERVICE_DOMAIN_TYPE) {
+    check(%INPUT_DOCUMENT.%OPENSEARCH_SERVICE_DOMAIN_TYPE.resourceProperties)
+        <<
+        [CT.OPENSEARCH.PR.12]: Require an Amazon OpenSearch Service domain to send error logs to Amazon CloudWatch Logs
+        [FIX]: Within 'LogPublishingOptions', provide an 'ES_APPLICATION_LOGS' configuration, set 'Enabled' to 'true', and set 'CloudWatchLogsLogGroupArn' to the ARN of a valid Amazon CloudWatch Logs log group.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(opensearch_service_domain) {
+    %opensearch_service_domain {
+        # Scenario 2
+        LogPublishingOptions exists
+        LogPublishingOptions is_struct
+
+        LogPublishingOptions {
+            # Scenario 3
+            ES_APPLICATION_LOGS exists
+            ES_APPLICATION_LOGS is_struct
+
+            ES_APPLICATION_LOGS {
+                # Scenarios 4, 5, 6 and 7
+                Enabled exists
+                Enabled == true
+
+                CloudWatchLogsLogGroupArn exists
+                check_is_string_and_not_empty(CloudWatchLogsLogGroupArn) or
+                check_local_references(%INPUT_DOCUMENT, CloudWatchLogsLogGroupArn, "AWS::Logs::LogGroup")
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

@@ -76,7 +76,7 @@ rule rds_pg_event_notifications_configured_check when is_cfn_template(%INPUT_DOC
     check(%rds_event_subscriptions.Properties)
         <<
         [CT.RDS.PR.18]: Require an Amazon RDS event notification subscription to have critical database parameter group events configured
-            [FIX]: When 'SourceType' is set to 'db-parameter-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'configuration change' as a value.
+        [FIX]: When 'SourceType' is set to 'db-parameter-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'configuration change' as a value.
         >>
 }
 
@@ -84,7 +84,7 @@ rule rds_pg_event_notifications_configured_check when is_cfn_hook(%INPUT_DOCUMEN
     check(%INPUT_DOCUMENT.%RDS_EVENTSUBSCRIPTION_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.18]: Require an Amazon RDS event notification subscription to have critical database parameter group events configured
-            [FIX]: When 'SourceType' is set to 'db-parameter-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'configuration change' as a value.
+        [FIX]: When 'SourceType' is set to 'db-parameter-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'configuration change' as a value.
         >>
 }
 

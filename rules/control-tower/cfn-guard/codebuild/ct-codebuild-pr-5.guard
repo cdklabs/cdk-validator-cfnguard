@@ -73,7 +73,7 @@ rule codebuild_project_artifact_encryption_check when is_cfn_template(%INPUT_DOC
     check(%codebuild_project.Properties)
         <<
         [CT.CODEBUILD.PR.5]: Require encryption on all AWS CodeBuild project artifacts
-            [FIX]: Set the 'EncryptionDisabled' property in 'Artifacts' and any 'SecondaryArtifacts' to 'false', or omit the 'EncryptionDisabled' property.
+        [FIX]: Set the 'EncryptionDisabled' property in 'Artifacts' and any 'SecondaryArtifacts' to 'false', or omit the 'EncryptionDisabled' property.
         >>
 }
 
@@ -81,7 +81,7 @@ rule codebuild_project_artifact_encryption_check when is_cfn_hook(%INPUT_DOCUMEN
     check(%INPUT_DOCUMENT.%CODEBUILD_PROJECT_TYPE.resourceProperties)
         <<
         [CT.CODEBUILD.PR.5]: Require encryption on all AWS CodeBuild project artifacts
-            [FIX]: Set the 'EncryptionDisabled' property in 'Artifacts' and any 'SecondaryArtifacts' to 'false', or omit the 'EncryptionDisabled' property.
+        [FIX]: Set the 'EncryptionDisabled' property in 'Artifacts' and any 'SecondaryArtifacts' to 'false', or omit the 'EncryptionDisabled' property.
         >>
 }
 

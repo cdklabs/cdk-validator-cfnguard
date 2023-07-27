@@ -1,0 +1,96 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   docdb_cluster_backup_retention_check
+# 
+# Description:
+#   This control checks whether an Amazon DocumentDB cluster retention period is set to seven or more days (>=7).
+# 
+# Reports on:
+#   AWS::DocDB::DBCluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Document DB cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Document DB cluster resource
+#       And: 'BackupRetentionPeriod' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Document DB cluster resource
+#       And: 'BackupRetentionPeriod' has been provided and set to an integer value less than seven (<7)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Document DB cluster resource
+#       And: 'BackupRetentionPeriod' has been provided and set to an integer value greater than or equal to seven (>=7)
+#      Then: PASS
+
+#
+# Constants
+#
+let DOCUMENT_DB_CLUSTER_TYPE = "AWS::DocDB::DBCluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let document_db_clusters = Resources.*[ Type == %DOCUMENT_DB_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule docdb_cluster_backup_retention_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %document_db_clusters not empty {
+    check(%document_db_clusters.Properties)
+        <<
+        [CT.DOCUMENTDB.PR.2]: Require an Amazon DocumentDB cluster to have automatic backups enabled
+        [FIX]: Set the value of the 'BackupRetentionPeriod' parameter to an integer value between 7 and 35 days (inclusive).
+        >>
+}
+
+rule docdb_cluster_backup_retention_check when is_cfn_hook(%INPUT_DOCUMENT, %DOCUMENT_DB_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%DOCUMENT_DB_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.DOCUMENTDB.PR.2]: Require an Amazon DocumentDB cluster to have automatic backups enabled
+        [FIX]: Set the value of the 'BackupRetentionPeriod' parameter to an integer value between 7 and 35 days (inclusive).
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(document_db_cluster) {
+    %document_db_cluster {
+        # Scenario 2
+        BackupRetentionPeriod exists
+        # Scenarios 3 and 4
+        BackupRetentionPeriod >= 7
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -59,7 +59,7 @@ rule dynamodb_table_pitr_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%dynamodb_tables.Properties)
         <<
         [CT.DYNAMODB.PR.1]: Require that point-in-time recovery for an Amazon DynamoDB table is activated
-            [FIX]: Provide a 'PointInTimeRecoverySpecification' configuration and set 'PointInTimeRecoveryEnabled' to 'true'.
+        [FIX]: Provide a 'PointInTimeRecoverySpecification' configuration and set 'PointInTimeRecoveryEnabled' to 'true'.
         >>
 }
 
@@ -67,7 +67,7 @@ rule dynamodb_table_pitr_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %DYNAMO
     check(%INPUT_DOCUMENT.%DYNAMODB_TABLE_TYPE.resourceProperties)
         <<
         [CT.DYNAMODB.PR.1]: Require that point-in-time recovery for an Amazon DynamoDB table is activated
-            [FIX]: Provide a 'PointInTimeRecoverySpecification' configuration and set 'PointInTimeRecoveryEnabled' to 'true'.
+        [FIX]: Provide a 'PointInTimeRecoverySpecification' configuration and set 'PointInTimeRecoveryEnabled' to 'true'.
         >>
 }
 

@@ -106,7 +106,7 @@ rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_templat
     check_policy(%iam_policies.Properties)
         <<
         [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
-            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
         >>
 }
 
@@ -114,7 +114,7 @@ rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_hook(%I
     check_policy(%INPUT_DOCUMENT.%AWS_IAM_POLICY_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
-            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
         >>
 }
 
@@ -123,7 +123,7 @@ rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_templat
     check_principal(%iam_principals.Properties)
         <<
         [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
-            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
         >>
 }
 
@@ -131,7 +131,7 @@ rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_hook(%I
     check_principal(%INPUT_DOCUMENT.%AWS_IAM_ROLE_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
-            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
         >>
 }
 
@@ -139,7 +139,7 @@ rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_hook(%I
     check_principal(%INPUT_DOCUMENT.%AWS_IAM_USER_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
-            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
         >>
 }
 
@@ -147,7 +147,7 @@ rule iam_inline_policy_no_statements_with_admin_access_check when is_cfn_hook(%I
     check_principal(%INPUT_DOCUMENT.%AWS_IAM_GROUP_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.1]: Require that an AWS Identity and Access Management (IAM) inline policy does not have a statement that includes "*" in the Action and Resource elements
-            [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
+        [FIX]: Remove AWS IAM inline policy statements with "Effect": "Allow" that permit "Action": "*" over "Resource": "*".
         >>
 }
 

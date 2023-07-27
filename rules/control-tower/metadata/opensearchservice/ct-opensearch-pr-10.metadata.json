@@ -1,0 +1,102 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-21",
+                "AC-3",
+                "AC-3(7)",
+                "AC-4",
+                "AC-4(21)",
+                "AC-6",
+                "SC-7",
+                "SC-7(11)",
+                "SC-7(16)",
+                "SC-7(20)",
+                "SC-7(21)",
+                "SC-7(3)",
+                "SC-7(4)",
+                "SC-7(9)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "1.2.1",
+                "1.3",
+                "1.3.1",
+                "1.3.2",
+                "1.3.4",
+                "1.3.6"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "OPENSEARCH_IN_VPC_ONLY",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon OpenSearch Service domains are configured with VPC option settings that specify a target Amazon VPC.",
+    "DisplayName": "Require an Amazon OpenSearch Service domain to be created in a user-specified Amazon VPC",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Launching your Amazon OpenSearch Service domains within a VPC",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::OpenSearchService::Domain"
+    ],
+    "EvaluatedServices": [
+        "Amazon OpenSearch Service"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.OPENSEARCH.PR.10",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.6",
+            "Name": "Limit network access"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.Opensearch.2",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2023-05-19",
+    "RemediationMessage": "Within 'VPCOptions', set 'SubnetIds' to a list with one or more Amazon EC2 subnet IDs.",
+    "Severity": "CRITICAL",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

@@ -72,7 +72,7 @@ rule netfw_policy_rule_group_associated_check when is_cfn_template(%INPUT_DOCUME
     check(%netfw_firewall_policies.Properties)
         <<
         [CT.NETWORK-FIREWALL.PR.1]: Require any AWS Network Firewall firewall policy to have an associated rule group
-            [FIX]: Within the 'FirewallPolicy' definition, refer to one or more rule groups in 'StatefulRuleGroupReferences' or 'StatelessRuleGroupReferences'.
+        [FIX]: Within the 'FirewallPolicy' definition, refer to one or more rule groups in 'StatefulRuleGroupReferences' or 'StatelessRuleGroupReferences'.
         >>
 }
 
@@ -80,7 +80,7 @@ rule netfw_policy_rule_group_associated_check when is_cfn_hook(%INPUT_DOCUMENT, 
     check(%INPUT_DOCUMENT.%NETFW_FIREWALL_POLICY_TYPE.resourceProperties)
         <<
         [CT.NETWORK-FIREWALL.PR.1]: Require any AWS Network Firewall firewall policy to have an associated rule group
-            [FIX]: Within the 'FirewallPolicy' definition, refer to one or more rule groups in 'StatefulRuleGroupReferences' or 'StatelessRuleGroupReferences'.
+        [FIX]: Within the 'FirewallPolicy' definition, refer to one or more rule groups in 'StatefulRuleGroupReferences' or 'StatelessRuleGroupReferences'.
         >>
 }
 

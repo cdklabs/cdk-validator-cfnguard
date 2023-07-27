@@ -76,7 +76,7 @@ rule rds_instance_event_notifications_configured_check when is_cfn_template(%INP
     check(%rds_event_subscriptions.Properties)
         <<
         [CT.RDS.PR.17]: Require an Amazon RDS event notification subscription to have critical database instance events configured
-            [FIX]: When 'SourceType' is set to 'db-instance', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'maintenance', 'failure', and 'configuration change' values.
+        [FIX]: When 'SourceType' is set to 'db-instance', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'maintenance', 'failure', and 'configuration change' values.
         >>
 }
 
@@ -84,7 +84,7 @@ rule rds_instance_event_notifications_configured_check when is_cfn_hook(%INPUT_D
     check(%INPUT_DOCUMENT.%RDS_EVENTSUBSCRIPTION_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.17]: Require an Amazon RDS event notification subscription to have critical database instance events configured
-            [FIX]: When 'SourceType' is set to 'db-instance', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'maintenance', 'failure', and 'configuration change' values.
+        [FIX]: When 'SourceType' is set to 'db-instance', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains 'maintenance', 'failure', and 'configuration change' values.
         >>
 }
 

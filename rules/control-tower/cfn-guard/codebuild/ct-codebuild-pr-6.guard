@@ -70,7 +70,7 @@ rule codebuild_project_s3_logs_encrypted_check when is_cfn_template(%INPUT_DOCUM
     check(%codebuild_project.Properties)
         <<
         [CT.CODEBUILD.PR.6]: Require encryption on all Amazon S3 logs for AWS CodeBuild projects
-            [FIX]: Set 'EncryptionDisabled' in 'S3Logs' to 'false', or do not specify the 'EncryptionDisabled' property.
+        [FIX]: Set 'EncryptionDisabled' in 'S3Logs' to 'false', or do not specify the 'EncryptionDisabled' property.
         >>
 }
 
@@ -78,7 +78,7 @@ rule codebuild_project_s3_logs_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT,
     check(%INPUT_DOCUMENT.%CODEBUILD_PROJECT_TYPE.resourceProperties)
         <<
         [CT.CODEBUILD.PR.6]: Require encryption on all Amazon S3 logs for AWS CodeBuild projects
-            [FIX]: Set 'EncryptionDisabled' in 'S3Logs' to 'false', or do not specify the 'EncryptionDisabled' property.
+        [FIX]: Set 'EncryptionDisabled' in 'S3Logs' to 'false', or do not specify the 'EncryptionDisabled' property.
         >>
 }
 

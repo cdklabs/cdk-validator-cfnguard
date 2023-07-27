@@ -57,7 +57,7 @@ rule elb_cross_zone_load_balancing_enabled_check when is_cfn_template(%INPUT_DOC
     check(%classic_load_balancers.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.13]: Require any ELB classic load balancer to have cross-zone load balancing activated
-            [FIX]: Set 'CrossZone' to 'true' on classic load balancers.
+        [FIX]: Set 'CrossZone' to 'true' on classic load balancers.
         >>
 }
 
@@ -65,7 +65,7 @@ rule elb_cross_zone_load_balancing_enabled_check when is_cfn_hook(%INPUT_DOCUMEN
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.13]: Require any ELB classic load balancer to have cross-zone load balancing activated
-            [FIX]: Set 'CrossZone' to 'true' on classic load balancers.
+        [FIX]: Set 'CrossZone' to 'true' on classic load balancers.
         >>
 }
 

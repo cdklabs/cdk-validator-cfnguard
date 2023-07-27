@@ -75,7 +75,7 @@ rule kinesis_stream_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%kinesis_streams.Properties)
         <<
         [CT.KINESIS.PR.1]: Require any Amazon Kinesis data stream to have encryption at rest configured
-            [FIX]: Specify a 'StreamEncryption' configuration, with 'EncryptionType' set to 'KMS' and 'KeyId' set to an AWS KMS key identifier.
+        [FIX]: Specify a 'StreamEncryption' configuration, with 'EncryptionType' set to 'KMS' and 'KeyId' set to an AWS KMS key identifier.
         >>
 }
 
@@ -83,7 +83,7 @@ rule kinesis_stream_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %KINESIS_S
     check(%INPUT_DOCUMENT.%KINESIS_STREAM_TYPE.resourceProperties)
         <<
         [CT.KINESIS.PR.1]: Require any Amazon Kinesis data stream to have encryption at rest configured
-            [FIX]: Specify a 'StreamEncryption' configuration, with 'EncryptionType' set to 'KMS' and 'KeyId' set to an AWS KMS key identifier.
+        [FIX]: Specify a 'StreamEncryption' configuration, with 'EncryptionType' set to 'KMS' and 'KeyId' set to an AWS KMS key identifier.
         >>
 }
 

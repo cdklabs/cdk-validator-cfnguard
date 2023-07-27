@@ -6,7 +6,7 @@
 #   ec2_instance_no_public_ip_check
 # 
 # Description:
-#   This control checks whether your Amazon EC2 instance is configured to associate a public IP address.
+#   This control checks whether your Amazon EC2 instance is configured NOT to associate a public IP address by default, and it requires configuring the AssociatePublicIpAddress parameter to false on a new network interface created by means of the NetworkInterfaces property.
 # 
 # Reports on:
 #   AWS::EC2::Instance
@@ -86,16 +86,16 @@ rule ec2_instance_no_public_ip_check when is_cfn_template(%INPUT_DOCUMENT)
                                           %ec2_instances not empty {
     check(%ec2_instances.Properties)
         <<
-        [CT.EC2.PR.8]: Require any Amazon EC2 instance to have a non-public IP address
-            [FIX]: Specify network interfaces using the 'NetworkInterfaces' property instead of the root level 'SubnetId' property. Set 'AssociatePublicIpAddress' to false within each 'NetworkInterfaces' configuration.
+        [CT.EC2.PR.8]: Require an Amazon EC2 instance to set AssociatePublicIpAddress to false on a new network interface created by means of the NetworkInterfaces property in the AWS::EC2::Instance resource
+        [FIX]: Specify network interfaces using the 'NetworkInterfaces' property instead of the root level 'SubnetId' property. Set 'AssociatePublicIpAddress' to false within each 'NetworkInterfaces' configuration.
         >>
 }
 
 rule ec2_instance_no_public_ip_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_INSTANCE_TYPE) {
     check(%INPUT_DOCUMENT.%EC2_INSTANCE_TYPE.resourceProperties)
         <<
-        [CT.EC2.PR.8]: Require any Amazon EC2 instance to have a non-public IP address
-            [FIX]: Specify network interfaces using the 'NetworkInterfaces' property instead of the root level 'SubnetId' property. Set 'AssociatePublicIpAddress' to false within each 'NetworkInterfaces' configuration.
+        [CT.EC2.PR.8]: Require an Amazon EC2 instance to set AssociatePublicIpAddress to false on a new network interface created by means of the NetworkInterfaces property in the AWS::EC2::Instance resource
+        [FIX]: Specify network interfaces using the 'NetworkInterfaces' property instead of the root level 'SubnetId' property. Set 'AssociatePublicIpAddress' to false within each 'NetworkInterfaces' configuration.
         >>
 }
 

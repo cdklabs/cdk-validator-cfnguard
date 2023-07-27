@@ -59,7 +59,7 @@ rule dax_cluster_encryption_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%dax_clusters.Properties)
         <<
         [CT.DAX.PR.1]: Require encryption at rest for all Amazon DynamoDB Accelerator (DAX) clusters
-            [FIX]: Provide an 'SSESpecification' configuration with 'SSEEnabled' set to 'true'.
+        [FIX]: Provide an 'SSESpecification' configuration with 'SSEEnabled' set to 'true'.
         >>
 }
 
@@ -67,7 +67,7 @@ rule dax_cluster_encryption_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %DAX
     check(%INPUT_DOCUMENT.%DAX_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.DAX.PR.1]: Require encryption at rest for all Amazon DynamoDB Accelerator (DAX) clusters
-            [FIX]: Provide an 'SSESpecification' configuration with 'SSEEnabled' set to 'true'.
+        [FIX]: Provide an 'SSESpecification' configuration with 'SSEEnabled' set to 'true'.
         >>
 }
 

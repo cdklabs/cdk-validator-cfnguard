@@ -6,7 +6,7 @@
 #   ec2_encrypted_volumes_check
 # 
 # Description:
-#   This control checks whether your standalone Amazon EC2 EBS volumes and new EC2 EBS volumes created through EC2 instance block device mappings are encrypted at rest.
+#   This control checks whether your standalone Amazon EC2 EBS volume and Amazon EBS volume created through an EC2 instance Block Device Mapping are encrypted at rest. Specifically, it checks that the Encrypted property is set to true in either the EBS volume resource definition or an EC2 instance resource definition's BlockDeviceMappings property.
 # 
 # Reports on:
 #   AWS::EC2::Instance, AWS::EC2::Volume
@@ -84,16 +84,16 @@ rule ec2_encrypted_volumes_check when is_cfn_template(%INPUT_DOCUMENT)
                                       %ec2_volumes not empty {
     check_volume(%ec2_volumes.Properties)
         <<
-        [CT.EC2.PR.7]: Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest
-            [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
+        [CT.EC2.PR.7]: Require an Amazon EBS volume resource to be encrypted at rest when defined by means of the AWS::EC2::Instance BlockDeviceMappings property or AWS::EC2::Volume resource type
+        [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
         >>
 }
 
 rule ec2_encrypted_volumes_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_VOLUME_TYPE) {
     check_volume(%INPUT_DOCUMENT.%EC2_VOLUME_TYPE.resourceProperties)
         <<
-        [CT.EC2.PR.7]: Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest
-            [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
+        [CT.EC2.PR.7]: Require an Amazon EBS volume resource to be encrypted at rest when defined by means of the AWS::EC2::Instance BlockDeviceMappings property or AWS::EC2::Volume resource type
+        [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
         >>
 }
 
@@ -101,16 +101,16 @@ rule ec2_encrypted_volumes_check when is_cfn_template(%INPUT_DOCUMENT)
                                       %ec2_instances not empty {
     check_instance(%ec2_instances.Properties)
         <<
-        [CT.EC2.PR.7]: Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest
-            [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
+        [CT.EC2.PR.7]: Require an Amazon EBS volume resource to be encrypted at rest when defined by means of the AWS::EC2::Instance BlockDeviceMappings property or AWS::EC2::Volume resource type
+        [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
         >>
 }
 
 rule ec2_encrypted_volumes_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_INSTANCE_TYPE) {
     check_instance(%INPUT_DOCUMENT.%EC2_INSTANCE_TYPE.resourceProperties)
         <<
-        [CT.EC2.PR.7]: Require that an Amazon EBS volume attached to an Amazon EC2 instance is encrypted at rest
-            [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
+        [CT.EC2.PR.7]: Require an Amazon EBS volume resource to be encrypted at rest when defined by means of the AWS::EC2::Instance BlockDeviceMappings property or AWS::EC2::Volume resource type
+        [FIX]: Set 'Encryption' to true on EC2 EBS Volumes.
         >>
 }
 

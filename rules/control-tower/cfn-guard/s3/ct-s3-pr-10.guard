@@ -1,0 +1,133 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   s3_bucket_default_encryption_kms_check
+# 
+# Description:
+#   This control checks whether default server-side encryption is enabled on an Amazon S3 bucket using AWS KMS.
+# 
+# Reports on:
+#   AWS::S3::Bucket
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any S3 bucket resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: 'ServerSideEncryptionConfiguration' in 'BucketEncryption' has not been provided
+#            or provided as an empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: 'ServerSideEncryptionConfiguration' in 'BucketEncryption' has been provided as
+#            a non empty list
+#       And: 'ServerSideEncryptionConfiguration' in 'BucketEncryption' does not contain an
+#            encryption rule with a 'ServerSideEncryptionByDefault' configuration
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: 'ServerSideEncryptionConfiguration' in 'BucketEncryption' has been provided as
+#            a non empty list
+#       And: 'ServerSideEncryptionConfiguration' in 'BucketEncryption' contains an encryption
+#            rule with a 'ServerSideEncryptionByDefault' configuration
+#       And: For an encryption rule, 'SSEAlgorithm' in 'ServerSideEncryptionByDefault' is not
+#            not provided or has been provided and set to an SSE Algorithm other than 'aws:kms' 
+#            or 'aws:kms:dsse'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: 'ServerSideEncryptionConfiguration' in 'BucketEncryption' has been provided as
+#            a non empty list
+#       And: 'ServerSideEncryptionConfiguration' in 'BucketEncryption' contains an encryption rule with
+#            a 'ServerSideEncryptionByDefault' configuration
+#       And: For all encryption rules, 'SSEAlgorithm' in 'ServerSideEncryptionByDefault' is provided
+#            and set to 'aws:kms' or 'aws:kms:dsse'
+#      Then: PASS
+
+#
+# Constants
+#
+let S3_BUCKET_TYPE = "AWS::S3::Bucket"
+let AUTHORIZED_SSE_ALGORITHMS = [ "aws:kms", "aws:kms:dsse" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let s3_buckets = Resources.*[ Type == %S3_BUCKET_TYPE ]
+
+#
+# Primary Rules
+#
+rule s3_bucket_default_encryption_kms_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                 %s3_buckets not empty {
+    check(%s3_buckets.Properties)
+        <<
+        [CT.S3.PR.10]: Require an Amazon S3 bucket to have server-side encryption configured using an AWS KMS key
+        [FIX]: Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'aws:kms' or 'aws:kms:dsse'
+        >>
+}
+
+rule s3_bucket_default_encryption_kms_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE) {
+    check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
+        <<
+        [CT.S3.PR.10]: Require an Amazon S3 bucket to have server-side encryption configured using an AWS KMS key
+        [FIX]: Set an encryption rule in 'BucketEncryption.ServerSideEncryptionConfiguration' with a 'ServerSideEncryptionByDefault.SSEAlgorithm' configuration of 'aws:kms' or 'aws:kms:dsse'
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(s3_bucket) {
+    %s3_bucket {
+        # Scenario 2
+        BucketEncryption exists
+        BucketEncryption is_struct
+
+        BucketEncryption {
+            ServerSideEncryptionConfiguration exists
+            ServerSideEncryptionConfiguration is_list
+            ServerSideEncryptionConfiguration not empty
+
+            # Scenario 3, 4 and 5
+            ServerSideEncryptionConfiguration[*] {
+                ServerSideEncryptionByDefault exists
+                ServerSideEncryptionByDefault is_struct
+
+                ServerSideEncryptionByDefault {
+                    SSEAlgorithm exists
+                    SSEAlgorithm in %AUTHORIZED_SSE_ALGORITHMS
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

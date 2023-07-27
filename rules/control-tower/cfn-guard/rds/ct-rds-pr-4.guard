@@ -68,7 +68,7 @@ rule rds_cluster_iam_authentication_enabled_check when is_cfn_template(%INPUT_DO
     check(%db_clusters.Properties)
         <<
         [CT.RDS.PR.4]: Require an Amazon RDS database cluster to have AWS IAM database authentication configured
-            [FIX]: Set 'EnableIAMDatabaseAuthentication' to 'true'.
+        [FIX]: Set 'EnableIAMDatabaseAuthentication' to 'true'.
         >>
 }
 
@@ -76,7 +76,7 @@ rule rds_cluster_iam_authentication_enabled_check when is_cfn_hook(%INPUT_DOCUME
     check(%INPUT_DOCUMENT.%RDS_DB_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.4]: Require an Amazon RDS database cluster to have AWS IAM database authentication configured
-            [FIX]: Set 'EnableIAMDatabaseAuthentication' to 'true'.
+        [FIX]: Set 'EnableIAMDatabaseAuthentication' to 'true'.
         >>
 }
 

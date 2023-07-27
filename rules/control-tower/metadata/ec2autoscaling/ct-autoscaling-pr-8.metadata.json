@@ -1,0 +1,86 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2",
+                "CM-2(2)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "AUTOSCALING_LAUNCH_TEMPLATE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon EC2 Auto Scaling group is configured to use an EC2 launch template.",
+    "DisplayName": "Require an Amazon EC2 Auto Scaling group to have EC2 launch templates configured",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Autoscaling Groups",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/auto-scaling-groups.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::AutoScaling::AutoScalingGroup"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2 Auto Scaling"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.AUTOSCALING.PR.8",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.12",
+            "Name": "Manage vulnerabilities"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.AutoScaling.9",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2023-05-19",
+    "RemediationMessage": "Provide a 'LaunchTemplate' or 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' configuration with a valid 'Version' and a 'LaunchTemplateId' or 'LaunchTemplateName'.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}
