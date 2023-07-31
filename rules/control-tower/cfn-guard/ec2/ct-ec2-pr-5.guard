@@ -95,7 +95,7 @@ rule nacl_no_unrestricted_ssh_rdp_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%nacl_entries.Properties)
         <<
         [CT.EC2.PR.5]: Require any Amazon EC2 network ACL to prevent ingress from 0.0.0.0/0 to port 22 or port 3389
-            [FIX]: For Amazon EC2 network ACL entries that allow inbound connectivity on port 22 or port 3389, provide a CIDR range in 'CidrBlock' or 'Ipv6CidrBlock' that does not allow traffic from all sources.
+        [FIX]: For Amazon EC2 network ACL entries that allow inbound connectivity on port 22 or port 3389, provide a CIDR range in 'CidrBlock' or 'Ipv6CidrBlock' that does not allow traffic from all sources.
         >>
 }
 
@@ -103,7 +103,7 @@ rule nacl_no_unrestricted_ssh_rdp_check when is_cfn_hook(%INPUT_DOCUMENT, %NETWO
     check(%INPUT_DOCUMENT.%NETWORK_ACL_TYPE.resourceProperties)
         <<
         [CT.EC2.PR.5]: Require any Amazon EC2 network ACL to prevent ingress from 0.0.0.0/0 to port 22 or port 3389
-            [FIX]: For Amazon EC2 network ACL entries that allow inbound connectivity on port 22 or port 3389, provide a CIDR range in 'CidrBlock' or 'Ipv6CidrBlock' that does not allow traffic from all sources.
+        [FIX]: For Amazon EC2 network ACL entries that allow inbound connectivity on port 22 or port 3389, provide a CIDR range in 'CidrBlock' or 'Ipv6CidrBlock' that does not allow traffic from all sources.
         >>
 }
 

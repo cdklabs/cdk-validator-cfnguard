@@ -33,11 +33,12 @@
             ]
         }
     ],
+    "ConfigRuleIdentifier": "EC2_INSTANCE_NO_PUBLIC_IP",
     "ControlOwner": "AWS Control Tower",
     "DeploymentMechanism": "AWS CloudFormation Hook",
     "DeploymentOwner": "AWS Control Tower",
-    "Description": "This control checks whether your Amazon EC2 instance is configured to associate a public IP address.",
-    "DisplayName": "Require any Amazon EC2 instance to have a non-public IP address",
+    "Description": "This control checks whether your Amazon EC2 instance is configured NOT to associate a public IP address by default, and it requires configuring the AssociatePublicIpAddress parameter to false on a new network interface created by means of the NetworkInterfaces property.",
+    "DisplayName": "Require an Amazon EC2 instance to set AssociatePublicIpAddress to false on a new network interface created by means of the NetworkInterfaces property in the AWS::EC2::Instance resource",
     "DocumentationReferences": [
         {
             "DisplayName": "Amazon EC2 instance IP addressing",
@@ -72,7 +73,31 @@
     "ReleaseDate": "2022-11-28",
     "RemediationMessage": "Specify network interfaces using the 'NetworkInterfaces' property instead of the root level 'SubnetId' property. Set 'AssociatePublicIpAddress' to false within each 'NetworkInterfaces' configuration.",
     "Severity": "HIGH",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
     "TargetOuType": "CUSTOM",
-    "Version": "1",
+    "Version": "2",
     "Visibility": "PUBLIC"
 }

@@ -1,0 +1,135 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   api_gw_v2_authorization_type_configured_check
+# 
+# Description:
+#   This control checks whether Amazon API Gateway V2 API routes have an authorization type set.
+# 
+# Reports on:
+#   AWS::ApiGatewayV2::Route, AWS::ApiGatewayV2::ApiGatewayManagedOverrides
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any API Gateway V2 route or managed route overrides resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway V2 managed route overrides resource
+#       And: In 'Route', 'AuthorizationType' has not been provided
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway V2 route resource
+#       And: 'AuthorizationType' has not been provided
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway V2 route or managed route overrides resource
+#       And: 'AuthorizationType' has been provided and set to a value other than 'AWS_IAM', 'JWT' or 'CUSTOM'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway V2 route or managed route overrides resource
+#       And: 'AuthorizationType' has been provided and set to a value of 'AWS_IAM', 'JWT' or 'CUSTOM'
+#      Then: PASS
+
+#
+# Constants
+#
+let API_GW_ROUTE_TYPE = "AWS::ApiGatewayV2::Route"
+let API_GW_MANAGED_OVERRIDE_TYPE = "AWS::ApiGatewayV2::ApiGatewayManagedOverrides"
+let ALLOWED_AUTHORIZATION_TYPES = ["AWS_IAM", "JWT", "CUSTOM"]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let api_route = Resources.*[ Type == %API_GW_ROUTE_TYPE ]
+let api_override = Resources.*[ Type == %API_GW_MANAGED_OVERRIDE_TYPE ]
+
+#
+# Primary Rules
+#
+rule api_gw_v2_authorization_type_configured_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                        %api_route not empty {
+    check_api_route(%api_route.Properties)
+         <<
+         [CT.APIGATEWAY.PR.5]: Require Amazon API Gateway V2 Websocket and HTTP routes to specify an authorization type
+        [FIX]: For Amazon API Gateway V2 routes, set 'AuthorizationType' to 'AWS_IAM', 'JWT' or 'CUSTOM'. For Amazon API Gateway V2 managed route overrides with 'AuthorizationType', set 'AuthorizationType' to 'AWS_IAM', 'JWT' or 'CUSTOM'.
+         >>
+}
+
+rule api_gw_v2_authorization_type_configured_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                        %api_override not empty {
+    check_api_override(%api_override.Properties)
+         <<
+         [CT.APIGATEWAY.PR.5]: Require Amazon API Gateway V2 Websocket and HTTP routes to specify an authorization type
+        [FIX]: For Amazon API Gateway V2 routes, set 'AuthorizationType' to 'AWS_IAM', 'JWT' or 'CUSTOM'. For Amazon API Gateway V2 managed route overrides with 'AuthorizationType', set 'AuthorizationType' to 'AWS_IAM', 'JWT' or 'CUSTOM'.
+         >>
+}
+
+rule api_gw_v2_authorization_type_configured_check when is_cfn_hook(%INPUT_DOCUMENT, %API_GW_ROUTE_TYPE) {
+    check_api_route(%INPUT_DOCUMENT.%API_GW_ROUTE_TYPE.resourceProperties)
+         <<
+         [CT.APIGATEWAY.PR.5]: Require Amazon API Gateway V2 Websocket and HTTP routes to specify an authorization type
+        [FIX]: For Amazon API Gateway V2 routes, set 'AuthorizationType' to 'AWS_IAM', 'JWT' or 'CUSTOM'. For Amazon API Gateway V2 managed route overrides with 'AuthorizationType', set 'AuthorizationType' to 'AWS_IAM', 'JWT' or 'CUSTOM'.
+         >>
+}
+
+rule api_gw_v2_authorization_type_configured_check when is_cfn_hook(%INPUT_DOCUMENT, %API_GW_MANAGED_OVERRIDE_TYPE) {
+    check_api_override(%INPUT_DOCUMENT.%API_GW_MANAGED_OVERRIDE_TYPE.resourceProperties)
+         <<
+         [CT.APIGATEWAY.PR.5]: Require Amazon API Gateway V2 Websocket and HTTP routes to specify an authorization type
+        [FIX]: For Amazon API Gateway V2 routes, set 'AuthorizationType' to 'AWS_IAM', 'JWT' or 'CUSTOM'. For Amazon API Gateway V2 managed route overrides with 'AuthorizationType', set 'AuthorizationType' to 'AWS_IAM', 'JWT' or 'CUSTOM'.
+         >>
+}
+
+#
+# Parameterized Rules
+#
+rule check_api_route(api_route) {
+    %api_route {
+        # Scenario 3
+        AuthorizationType exists
+
+        # Scenario 4 and 5
+        AuthorizationType in %ALLOWED_AUTHORIZATION_TYPES
+    }
+}
+
+rule check_api_override(api_override) {
+    %api_override [
+        # Scenario 2
+        Route exists
+        Route is_struct
+        Route {
+            AuthorizationType exists
+        }
+    ]{
+        check_api_route(Route)
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+     %doc.%RESOURCE_TYPE.resourceProperties exists
+ }

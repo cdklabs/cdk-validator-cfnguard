@@ -77,7 +77,7 @@ rule api_gw_cache_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%api_gateway_stages.Properties)
         <<
         [CT.APIGATEWAY.PR.3]: Require that an Amazon API Gateway REST API stage has encryption at rest configured for cache data
-            [FIX]: Configure encryption on Amazon API Gateway caches with a 'MethodSetting' that sets 'CacheDataEncrypted' to true for all methods ('HttpMethod' of '*' and 'ResourcePath' of '/*'). Ensure that you do not set 'CacheDataEncrypted' to false for any method setting.
+        [FIX]: Configure encryption on Amazon API Gateway caches with a 'MethodSetting' that sets 'CacheDataEncrypted' to true for all methods ('HttpMethod' of '*' and 'ResourcePath' of '/*'). Ensure that you do not set 'CacheDataEncrypted' to false for any method setting.
         >>
 }
 
@@ -85,7 +85,7 @@ rule api_gw_cache_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %API_GW_STAG
     check(%INPUT_DOCUMENT.%API_GW_STAGE_TYPE.resourceProperties)
         <<
         [CT.APIGATEWAY.PR.3]: Require that an Amazon API Gateway REST API stage has encryption at rest configured for cache data
-            [FIX]: Configure encryption on Amazon API Gateway caches with a 'MethodSetting' that sets 'CacheDataEncrypted' to true for all methods ('HttpMethod' of '*' and 'ResourcePath' of '/*'). Ensure that you do not set 'CacheDataEncrypted' to false for any method setting.
+        [FIX]: Configure encryption on Amazon API Gateway caches with a 'MethodSetting' that sets 'CacheDataEncrypted' to true for all methods ('HttpMethod' of '*' and 'ResourcePath' of '/*'). Ensure that you do not set 'CacheDataEncrypted' to false for any method setting.
         >>
 }
 

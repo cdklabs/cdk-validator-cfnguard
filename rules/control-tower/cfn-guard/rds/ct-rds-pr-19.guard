@@ -76,7 +76,7 @@ rule rds_sg_event_notifications_configured_check when is_cfn_template(%INPUT_DOC
     check(%rds_event_subscriptions.Properties)
         <<
         [CT.RDS.PR.19]: Require an Amazon RDS event notifications subscription to have critical database security group events configured
-            [FIX]: When 'SourceType' is set to 'db-security-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains both 'failure' and 'configuration change' values.
+        [FIX]: When 'SourceType' is set to 'db-security-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains both 'failure' and 'configuration change' values.
         >>
 }
 
@@ -84,7 +84,7 @@ rule rds_sg_event_notifications_configured_check when is_cfn_hook(%INPUT_DOCUMEN
     check(%INPUT_DOCUMENT.%RDS_EVENTSUBSCRIPTION_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.19]: Require an Amazon RDS event notifications subscription to have critical database security group events configured
-            [FIX]: When 'SourceType' is set to 'db-security-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains both 'failure' and 'configuration change' values.
+        [FIX]: When 'SourceType' is set to 'db-security-group', set 'Enabled' to true and ensure that the parameter 'EventCategories' contains both 'failure' and 'configuration change' values.
         >>
 }
 

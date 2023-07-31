@@ -65,7 +65,7 @@ rule rds_cluster_storage_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%rds_cluster.Properties)
         <<
         [CT.RDS.PR.16]: Require an Amazon RDS database cluster to have encryption at rest configured
-            [FIX]: Set 'StorageEncrypted' to 'true'.
+        [FIX]: Set 'StorageEncrypted' to 'true'.
         >>
 }
 
@@ -73,7 +73,7 @@ rule rds_cluster_storage_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_
     check(%INPUT_DOCUMENT.%RDS_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.16]: Require an Amazon RDS database cluster to have encryption at rest configured
-            [FIX]: Set 'StorageEncrypted' to 'true'.
+        [FIX]: Set 'StorageEncrypted' to 'true'.
         >>
 }
 

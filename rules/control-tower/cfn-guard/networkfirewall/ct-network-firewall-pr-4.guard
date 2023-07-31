@@ -68,7 +68,7 @@ rule netfw_stateless_rule_group_not_empty_check when is_cfn_template(%INPUT_DOCU
     check(%netfw_rule_group.Properties)
         <<
         [CT.NETWORK-FIREWALL.PR.4]: Require any AWS Network Firewall rule group to contain at least one rule
-            [FIX]: Provide one or more AWS Network Firewall stateless rules within the 'RuleGroup.RulesSource.StatelessRulesAndCustomActions.StatelessRules' property.
+        [FIX]: Provide one or more AWS Network Firewall stateless rules within the 'RuleGroup.RulesSource.StatelessRulesAndCustomActions.StatelessRules' property.
         >>
 }
 
@@ -76,7 +76,7 @@ rule netfw_stateless_rule_group_not_empty_check when is_cfn_hook(%INPUT_DOCUMENT
     check(%INPUT_DOCUMENT.%NETFW_RULE_GROUP_TYPE.resourceProperties)
         <<
         [CT.NETWORK-FIREWALL.PR.4]: Require any AWS Network Firewall rule group to contain at least one rule
-            [FIX]: Provide one or more AWS Network Firewall stateless rules within the 'RuleGroup.RulesSource.StatelessRulesAndCustomActions.StatelessRules' property.
+        [FIX]: Provide one or more AWS Network Firewall stateless rules within the 'RuleGroup.RulesSource.StatelessRulesAndCustomActions.StatelessRules' property.
         >>
 }
 

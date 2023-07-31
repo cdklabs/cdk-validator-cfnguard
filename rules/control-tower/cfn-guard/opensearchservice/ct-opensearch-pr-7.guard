@@ -1,0 +1,138 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elasticsearch_primary_node_fault_tolerance_check
+# 
+# Description:
+#   This control checks whether Elasticsearch domains are configured with at least three dedicated master nodes.
+# 
+# Reports on:
+#   AWS::Elasticsearch::Domain
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Elasticsearch domain resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'ElasticsearchClusterConfig' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'ElasticsearchClusterConfig' has been provided
+#       And: 'DedicatedMasterEnabled' in 'ElasticsearchClusterConfig' has not been provided
+#             or provided and set to a value other than bool(true)
+#       And: 'DedicatedMasterCount' in 'ElasticsearchClusterConfig' has not been provided or
+#             provided and set to an integer value less than three (< 3)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'ElasticsearchClusterConfig' has been provided
+#       And: 'DedicatedMasterEnabled' in 'ElasticsearchClusterConfig' has not been provided
+#             or provided and set to a value other than bool(true)
+#       And: 'DedicatedMasterCount' in 'ElasticsearchClusterConfig' has been provided and set to
+#             an integer value greater than or equal to three (>= 3)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'ElasticsearchClusterConfig' has been provided
+#       And: 'DedicatedMasterEnabled' in 'ElasticsearchClusterConfig' has been provided
+#             and set to bool(true)
+#       And: 'DedicatedMasterCount' in 'ElasticsearchClusterConfig' has been provided and set
+#            to an integer value less than three (< 3)
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'ElasticsearchClusterConfig' has been provided
+#       And: 'DedicatedMasterEnabled' in 'ElasticsearchClusterConfig' has been provided
+#             and set to bool(true)
+#       And: 'DedicatedMasterCount' in 'ElasticsearchClusterConfig' has not been provided
+#      Then: PASS
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'ElasticsearchClusterConfig' has been provided
+#       And: 'DedicatedMasterEnabled' in 'ElasticsearchClusterConfig' has been provided
+#             and set to bool(true)
+#       And: 'DedicatedMasterCount' in 'ElasticsearchClusterConfig' has been provided and set to
+#             an integer value greater than or equal to three (>= 3)
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTICSEARCH_DOMAIN_TYPE = "AWS::Elasticsearch::Domain"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elasticsearch_domains = Resources.*[ Type == %ELASTICSEARCH_DOMAIN_TYPE ]
+
+#
+# Primary Rules
+#
+rule elasticsearch_primary_node_fault_tolerance_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                           %elasticsearch_domains not empty {
+    check(%elasticsearch_domains.Properties)
+        <<
+        [CT.OPENSEARCH.PR.7]: Require an Elasticsearch domain to have at least three dedicated master nodes
+        [FIX]: Within 'ElasticsearchClusterConfig', set 'DedicatedMasterEnabled' to 'true', and set 'DedicatedMasterCount' to an integer value greater than or equal to three, or omit the 'DedicatedMasterCount' property to adopt the default value of three.
+        >>
+}
+
+rule elasticsearch_primary_node_fault_tolerance_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTICSEARCH_DOMAIN_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTICSEARCH_DOMAIN_TYPE.resourceProperties)
+        <<
+        [CT.OPENSEARCH.PR.7]: Require an Elasticsearch domain to have at least three dedicated master nodes
+        [FIX]: Within 'ElasticsearchClusterConfig', set 'DedicatedMasterEnabled' to 'true', and set 'DedicatedMasterCount' to an integer value greater than or equal to three, or omit the 'DedicatedMasterCount' property to adopt the default value of three.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elasticsearch_domain) {
+    %elasticsearch_domain {
+        # Scenario 2
+        ElasticsearchClusterConfig exists
+        ElasticsearchClusterConfig is_struct
+
+        ElasticsearchClusterConfig {
+            # Scenario 3, 4, 5 and 6
+            DedicatedMasterEnabled exists
+            DedicatedMasterEnabled == true
+
+            DedicatedMasterCount not exists or
+            DedicatedMasterCount >= 3
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

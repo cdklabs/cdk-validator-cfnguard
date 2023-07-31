@@ -61,7 +61,7 @@ rule rds_db_security_group_not_allowed_check when is_cfn_template(this)
     check_db_security_group(%db_security_groups)
         <<
         [CT.RDS.PR.15]: Require that an Amazon RDS instance does not create DB security groups
-            [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
+        [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
         >>
 }
 
@@ -70,7 +70,7 @@ rule rds_db_security_group_not_allowed_check when is_cfn_template(this)
     check_db_instance(%db_instances.Properties)
         <<
         [CT.RDS.PR.15]: Require that an Amazon RDS instance does not create DB security groups
-            [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
+        [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
         >>
 }
 
@@ -78,7 +78,7 @@ rule rds_db_security_group_not_allowed_check when is_cfn_hook(%INPUT_DOCUMENT, %
     check_db_security_group(%INPUT_DOCUMENT.%DB_SECURITY_GROUP_TYPE)
         <<
         [CT.RDS.PR.15]: Require that an Amazon RDS instance does not create DB security groups
-            [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
+        [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
         >>
 }
 
@@ -86,7 +86,7 @@ rule rds_db_security_group_not_allowed_check when is_cfn_hook(%INPUT_DOCUMENT, %
     check_db_instance(%INPUT_DOCUMENT.%DB_INSTANCE_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.15]: Require that an Amazon RDS instance does not create DB security groups
-            [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
+        [FIX]: Omit the 'DBSecurityGroups' property. Instead, configure Amazon VPC security groups by means of the 'VPCSecurityGroups' property.
         >>
 }
 

@@ -1,0 +1,96 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   docdb_cluster_encrypted_check
+# 
+# Description:
+#   This control checks whether storage encryption is enabled for an Amazon DocumentDB (with MongoDB compatibility) cluster.
+# 
+# Reports on:
+#   AWS::DocDB::DBCluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Document DB cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Document DB cluster resource
+#       And: 'StorageEncrypted' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Document DB cluster resource
+#       And: 'StorageEncrypted' has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Document DB cluster resource
+#       And: 'StorageEncrypted' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let DOCUMENT_DB_CLUSTER_TYPE = "AWS::DocDB::DBCluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let document_db_clusters = Resources.*[ Type == %DOCUMENT_DB_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule docdb_cluster_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                                        %document_db_clusters not empty {
+    check(%document_db_clusters.Properties)
+        <<
+        [CT.DOCUMENTDB.PR.1]: Require an Amazon DocumentDB cluster to be encrypted at rest
+        [FIX]: Set the value of the 'StorageEncrypted' parameter to true.
+        >>
+}
+
+rule docdb_cluster_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %DOCUMENT_DB_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%DOCUMENT_DB_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.DOCUMENTDB.PR.1]: Require an Amazon DocumentDB cluster to be encrypted at rest
+        [FIX]: Set the value of the 'StorageEncrypted' parameter to true.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(document_db_cluster) {
+    %document_db_cluster {
+        # Scenario 2
+        StorageEncrypted exists
+        # Scenarios 3 and 4
+        StorageEncrypted == true
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

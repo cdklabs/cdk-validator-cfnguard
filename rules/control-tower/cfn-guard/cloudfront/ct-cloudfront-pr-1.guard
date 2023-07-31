@@ -53,7 +53,7 @@ rule cloudfront_default_root_object_configured_check when is_cfn_template(%INPUT
     check(%cloudfront_distributions.Properties)
         <<
         [CT.CLOUDFRONT.PR.1]: Require an Amazon CloudFront distribution to have a default root object configured
-            [FIX]: Specify a default root object in the 'DefaultRootObject' property.
+        [FIX]: Specify a default root object in the 'DefaultRootObject' property.
         >>
 }
 
@@ -61,7 +61,7 @@ rule cloudfront_default_root_object_configured_check when is_cfn_hook(%INPUT_DOC
     check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
         <<
         [CT.CLOUDFRONT.PR.1]: Require an Amazon CloudFront distribution to have a default root object configured
-            [FIX]: Specify a default root object in the 'DefaultRootObject' property.
+        [FIX]: Specify a default root object in the 'DefaultRootObject' property.
         >>
 }
 

@@ -57,7 +57,7 @@ rule cloud_trail_log_file_validation_enabled_check when is_cfn_template(%INPUT_D
     check(%cloudtrail_trails.Properties)
         <<
         [CT.CLOUDTRAIL.PR.2]: Require an AWS CloudTrail trail to have log file validation activated
-            [FIX]: Set the CloudTrail resource 'EnableLogFileValidation' property to true.
+        [FIX]: Set the CloudTrail resource 'EnableLogFileValidation' property to true.
         >>
 }
 
@@ -65,7 +65,7 @@ rule cloud_trail_log_file_validation_enabled_check when is_cfn_hook(%INPUT_DOCUM
     check(%INPUT_DOCUMENT.%CLOUDTRAIL_TRAIL_TYPE.resourceProperties)
         <<
         [CT.CLOUDTRAIL.PR.2]: Require an AWS CloudTrail trail to have log file validation activated
-            [FIX]: Set the CloudTrail resource 'EnableLogFileValidation' property to true.
+        [FIX]: Set the CloudTrail resource 'EnableLogFileValidation' property to true.
         >>
 }
 

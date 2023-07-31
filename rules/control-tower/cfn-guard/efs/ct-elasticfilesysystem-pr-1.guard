@@ -56,7 +56,7 @@ rule efs_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%efs_file_systems.Properties)
         <<
         [CT.ELASTICFILESYSYSTEM.PR.1]: Require an Amazon EFS file system to encrypt file data at rest using AWS KMS
-            [FIX]: Set 'Encrypted' to 'true' and optionally set 'KmsKeyId' to a valid AWS KMS key identifier.
+        [FIX]: Set 'Encrypted' to 'true' and optionally set 'KmsKeyId' to a valid AWS KMS key identifier.
         >>
 }
 
@@ -64,7 +64,7 @@ rule efs_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %RESOURCE_TYPE) {
     check(%INPUT_DOCUMENT.%RESOURCE_TYPE.resourceProperties)
         <<
         [CT.ELASTICFILESYSYSTEM.PR.1]: Require an Amazon EFS file system to encrypt file data at rest using AWS KMS
-            [FIX]: Set 'Encrypted' to 'true' and optionally set 'KmsKeyId' to a valid AWS KMS key identifier.
+        [FIX]: Set 'Encrypted' to 'true' and optionally set 'KmsKeyId' to a valid AWS KMS key identifier.
         >>
 }
 

@@ -1,0 +1,167 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   step_functions_state_machine_logging_enabled_check
+# 
+# Description:
+#   This control checks whether an AWS Step Functions state machine has logging enabled.
+# 
+# Reports on:
+#   AWS::StepFunctions::StateMachine
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any StepFunctions state machine resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a StepFunctions state machine resource
+#       And: 'LoggingConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a StepFunctions state machine resource
+#       And: 'LoggingConfiguration' has been provided
+#       And: In 'LoggingConfiguration', 'Level' has not been provided or provided and set to a value other than
+#            'ERROR' or 'ALL'
+#       And: In 'LoggingConfiguration', 'Destinations' has not been provided or provided as an empty list or list
+#            containing empty strings or non-valid local references
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a StepFunctions state machine resource
+#       And: 'LoggingConfiguration' has been provided
+#       And: In 'LoggingConfiguration', 'Level' has not been provided or provided and set to a value other than
+#            'ERROR' or 'ALL'
+#       And: In 'LoggingConfiguration', 'Destinations' has not been provided or provided as an empty list or list
+#            containing empty strings or non-valid local references
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a StepFunctions state machine resource
+#       And: 'LoggingConfiguration' has been provided
+#       And: In 'LoggingConfiguration', 'Level' has not been provided or provided and set to a value other than
+#            'ERROR' or 'ALL'
+#       And: In 'LoggingConfiguration', 'Destinations' has been provided as a list containing non-empty strings or
+#            valid local references
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a StepFunctions state machine resource
+#       And: 'LoggingConfiguration' has been provided
+#       And: In 'LoggingConfiguration', 'Level' has been provided and set to 'ERROR' or 'ALL'
+#       And: In 'LoggingConfiguration', 'Destinations' has been provided as a list containing non-empty strings or
+#            valid local references
+#      Then: PASS
+
+#
+# Constants
+#
+let STEP_FUNCTIONS_STATE_MACHINE_TYPE = "AWS::StepFunctions::StateMachine"
+let ALLOWED_LOGGING_LEVELS = [ "ERROR", "ALL" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let step_functions_state_machines = Resources.*[ Type == %STEP_FUNCTIONS_STATE_MACHINE_TYPE ]
+
+#
+# Primary Rules
+#
+rule step_functions_state_machine_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                             %step_functions_state_machines not empty {
+    check(%step_functions_state_machines.Properties)
+        <<
+        [CT.STEPFUNCTIONS.PR.1]: Require an AWS Step Functions state machine to have logging activated
+        [FIX]: In 'LoggingConfiguration', set 'Level' to 'ERROR' or 'ALL', and set 'Destinations' to a list with one or more valid Amazon CloudWatch Logs log group ARNs.
+        >>
+}
+
+rule step_functions_state_machine_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %STEP_FUNCTIONS_STATE_MACHINE_TYPE) {
+    check(%INPUT_DOCUMENT.%STEP_FUNCTIONS_STATE_MACHINE_TYPE.resourceProperties)
+        <<
+        [CT.STEPFUNCTIONS.PR.1]: Require an AWS Step Functions state machine to have logging activated
+        [FIX]: In 'LoggingConfiguration', set 'Level' to 'ERROR' or 'ALL', and set 'Destinations' to a list with one or more valid Amazon CloudWatch Logs log group ARNs.
+        >>
+}
+
+rule check(step_functions_state_machine) {
+    %step_functions_state_machine {
+        # Scenario 2
+        LoggingConfiguration exists
+        LoggingConfiguration is_struct
+
+        LoggingConfiguration {
+            # Scenarios 3, 4, 5 and 6
+            Level exists
+            Level in %ALLOWED_LOGGING_LEVELS
+
+            Destinations exists
+            Destinations is_list
+            Destinations not empty
+
+            Destinations[*] {
+                CloudWatchLogsLogGroup exists
+                CloudWatchLogsLogGroup is_struct
+
+                CloudWatchLogsLogGroup {
+                    LogGroupArn exists
+
+                    check_is_string_and_not_empty(LogGroupArn) or
+                    check_local_references(%INPUT_DOCUMENT, LogGroupArn, "AWS::Logs::LogGroup")
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

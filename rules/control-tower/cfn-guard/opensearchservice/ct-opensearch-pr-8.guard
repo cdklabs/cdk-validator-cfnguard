@@ -1,0 +1,129 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elasticsearch_https_required_check
+# 
+# Description:
+#   This control checks whether Elasticsearch Service domains are configured to require HTTPS with a minimum TLS version of TLSv1.2.
+# 
+# Reports on:
+#   AWS::Elasticsearch::Domain
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Elasticsearch domain resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'DomainEndpointOptions' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'DomainEndpointOptions' has been provided
+#       And: 'EnforceHTTPS' in 'DomainEndpointOptions' has not been provided or
+#            has been provided and set to a value other than bool(true)
+#       And: 'TLSSecurityPolicy' in 'DomainEndpointOptions' has not been provided or
+#            has been provided and set to a value other than 'Policy-Min-TLS-1-2-2019-07'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'DomainEndpointOptions' has been provided
+#       And: 'EnforceHTTPS' in 'DomainEndpointOptions' has been provided and set to bool(true)
+#       And: 'TLSSecurityPolicy' in 'DomainEndpointOptions' has not been provided or
+#            has been provided and set to a value other than 'Policy-Min-TLS-1-2-2019-07'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'DomainEndpointOptions' has been provided
+#       And: 'EnforceHTTPS' in 'DomainEndpointOptions' has not been provided or
+#            has been provided and set to a value other than bool(true)
+#       And: 'TLSSecurityPolicy' in 'DomainEndpointOptions' has been provided and set
+#            to 'Policy-Min-TLS-1-2-2019-07'
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Elasticsearch domain resource
+#       And: 'DomainEndpointOptions' has been provided
+#       And: 'EnforceHTTPS' in 'DomainEndpointOptions' has been provided and set to bool(true)
+#       And: 'TLSSecurityPolicy' in 'DomainEndpointOptions' has been provided and set
+#            to 'Policy-Min-TLS-1-2-2019-07'
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTICSEARCH_DOMAIN_TYPE = "AWS::Elasticsearch::Domain"
+let ALLOWED_TLS_POLICIES = [ "Policy-Min-TLS-1-2-2019-07" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elasticsearch_domains = Resources.*[ Type == %ELASTICSEARCH_DOMAIN_TYPE ]
+
+#
+# Primary Rules
+#
+rule elasticsearch_https_required_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %elasticsearch_domains not empty {
+    check(%elasticsearch_domains.Properties)
+        <<
+        [CT.OPENSEARCH.PR.8]: Require an Elasticsearch Service domain to use TLSv1.2
+        [FIX]: Within 'DomainEndpointOptions', set 'EnforceHTTPS' to 'true' and set 'TLSSecurityPolicy' to 'Policy-Min-TLS-1-2-2019-07'.
+        >>
+}
+
+rule elasticsearch_https_required_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTICSEARCH_DOMAIN_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTICSEARCH_DOMAIN_TYPE.resourceProperties)
+        <<
+        [CT.OPENSEARCH.PR.8]: Require an Elasticsearch Service domain to use TLSv1.2
+        [FIX]: Within 'DomainEndpointOptions', set 'EnforceHTTPS' to 'true' and set 'TLSSecurityPolicy' to 'Policy-Min-TLS-1-2-2019-07'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elasticsearch_domain) {
+    %elasticsearch_domain {
+        # Scenario 2
+        DomainEndpointOptions exists
+        DomainEndpointOptions is_struct
+
+        DomainEndpointOptions {
+            # Scenarios 3, 4, 5 and 6
+            EnforceHTTPS exists
+            EnforceHTTPS == true
+
+            TLSSecurityPolicy exists
+            TLSSecurityPolicy in %ALLOWED_TLS_POLICIES
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,96 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudwatch_alarm_action_enabled_check
+# 
+# Description:
+#   This control checks whether an Amazon CloudWatch alarm has actions enabled.
+# 
+# Reports on:
+#   AWS::CloudWatch::Alarm
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudWatch alarm resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudWatch alarm resource
+#       And: 'ActionsEnabled' has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudWatch alarm resource
+#       And: 'ActionsEnabled' has not been provided
+#      Then: PASS
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation Hook Document
+#       And: The input document contains a CloudWatch alarm resource
+#       And: 'ActionsEnabled' has been provided with a value of bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let CLOUDWATCH_ALARM_TYPE = "AWS::CloudWatch::Alarm"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudwatch_alarms = Resources.*[ Type == %CLOUDWATCH_ALARM_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudwatch_alarm_action_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                %cloudwatch_alarms not empty {
+    check(%cloudwatch_alarms.Properties)
+        <<
+        [CT.CLOUDWATCH.PR.4]: Require an Amazon CloudWatch alarm to have actions activated
+        [FIX]: Set 'ActionsEnabled' to 'true' or do not provide the 'ActionsEnabled' property.
+        >>
+}
+
+rule cloudwatch_alarm_action_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDWATCH_ALARM_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDWATCH_ALARM_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDWATCH.PR.4]: Require an Amazon CloudWatch alarm to have actions activated
+        [FIX]: Set 'ActionsEnabled' to 'true' or do not provide the 'ActionsEnabled' property.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudwatch_alarm){
+    %cloudwatch_alarm {
+        # Scenario 3
+        ActionsEnabled not exists or
+        # Scenarios 2 and 4
+        ActionsEnabled == true
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

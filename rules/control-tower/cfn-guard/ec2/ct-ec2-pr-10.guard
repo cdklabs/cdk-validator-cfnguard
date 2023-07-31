@@ -59,7 +59,7 @@ rule ec2_launch_template_monitoring_enabled_check when is_cfn_template(this)
     check(%ec2_launch_templates.Properties)
         <<
         [CT.EC2.PR.10]: Require Amazon EC2 launch templates to have Amazon CloudWatch detailed monitoring activated
-            [FIX]: In 'LaunchTemplateData', provide a 'Monitoring' configuration with 'Enabled' set to 'true'.
+        [FIX]: In 'LaunchTemplateData', provide a 'Monitoring' configuration with 'Enabled' set to 'true'.
         >>
 }
 
@@ -67,7 +67,7 @@ rule ec2_launch_template_monitoring_enabled_check when is_cfn_hook(%INPUT_DOCUME
     check(%INPUT_DOCUMENT.%EC2_LAUNCH_TEMPLATE_TYPE.resourceProperties)
         <<
         [CT.EC2.PR.10]: Require Amazon EC2 launch templates to have Amazon CloudWatch detailed monitoring activated
-            [FIX]: In 'LaunchTemplateData', provide a 'Monitoring' configuration with 'Enabled' set to 'true'.
+        [FIX]: In 'LaunchTemplateData', provide a 'Monitoring' configuration with 'Enabled' set to 'true'.
         >>
 }
 

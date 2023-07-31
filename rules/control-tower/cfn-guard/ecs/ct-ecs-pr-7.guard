@@ -67,7 +67,7 @@ rule ecs_task_definition_memory_hard_limit_check when is_cfn_template(%INPUT_DOC
     check(%ecs_task_definitions.Properties)
         <<
         [CT.ECS.PR.7]: Require an Amazon ECS task definition to have a specific memory usage limit
-            [FIX]: Set the 'Memory' property in 'ContainerDefinitions' for Amazon ECS task definitions.
+        [FIX]: Set the 'Memory' property in 'ContainerDefinitions' for Amazon ECS task definitions.
         >>
 }
 
@@ -75,7 +75,7 @@ rule ecs_task_definition_memory_hard_limit_check when is_cfn_hook(%INPUT_DOCUMEN
     check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.7]: Require an Amazon ECS task definition to have a specific memory usage limit
-            [FIX]: Set the 'Memory' property in 'ContainerDefinitions' for Amazon ECS task definitions.
+        [FIX]: Set the 'Memory' property in 'ContainerDefinitions' for Amazon ECS task definitions.
         >>
 }
 

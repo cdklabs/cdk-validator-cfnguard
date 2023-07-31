@@ -1,0 +1,113 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   eks_endpoint_no_public_access_check
+# 
+# Description:
+#   This control checks whether an Amazon Elastic Kubernetes Service (EKS) cluster endpoint disallows public access to the cluster Kubernetes API server endpoint.
+# 
+# Reports on:
+#   AWS::EKS::Cluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon EKS cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EKS cluster resource
+#       And: 'EndpointPublicAccess' in 'ResourcesVpcConfig' has not been provided
+#       And: 'EndpointPrivateAccess' in 'ResourcesVpcConfig' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EKS cluster resource
+#       And: 'EndpointPrivateAccess' in 'ResourcesVpcConfig' has not been provided
+#       And: 'EndpointPublicAccess' in 'ResourcesVpcConfig' has not been provided or has been provided and set to a
+#            value other than bool(false)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EKS cluster resource
+#       And: 'EndpointPublicAccess' in 'ResourcesVpcConfig' has not been provided or has been provided and set to a
+#            value other than bool(false)
+#       And: 'EndpointPrivateAccess' in 'ResourcesVpcConfig' has been provided and set a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EKS cluster resource
+#       And: 'EndpointPublicAccess' in 'ResourcesVpcConfig' has been provided and set to bool(false)
+#       And: 'EndpointPrivateAccess' in 'ResourcesVpcConfig' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let EKS_CLUSTER_TYPE = "AWS::EKS::Cluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let eks_clusters = Resources.*[ Type == %EKS_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule eks_endpoint_no_public_access_check when is_cfn_template(%INPUT_DOCUMENT)
+                                              %eks_clusters not empty {
+    check(%eks_clusters.Properties)
+        <<
+        [CT.EKS.PR.1]: Require an Amazon EKS cluster to be configured with public access disabled to the cluster Kubernetes API server endpoint.
+        [FIX]: Set the value of the 'EndpointPublicAccess' parameter to false and the value of the 'EndpointPrivateAccess' parameter to true.
+        >>
+}
+
+rule eks_endpoint_no_public_access_check when is_cfn_hook(%INPUT_DOCUMENT, %EKS_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%EKS_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.EKS.PR.1]: Require an Amazon EKS cluster to be configured with public access disabled to the cluster Kubernetes API server endpoint.
+        [FIX]: Set the value of the 'EndpointPublicAccess' parameter to false and the value of the 'EndpointPrivateAccess' parameter to true.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(eks_cluster) {
+    %eks_cluster {
+        ResourcesVpcConfig exists
+        ResourcesVpcConfig is_struct
+        ResourcesVpcConfig {
+            # Scenarios 2, 3, 4 and 5
+            EndpointPublicAccess exists
+            EndpointPublicAccess == false
+
+            EndpointPrivateAccess exists
+            EndpointPrivateAccess == true
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

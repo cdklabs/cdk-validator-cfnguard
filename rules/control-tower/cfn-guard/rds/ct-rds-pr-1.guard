@@ -76,7 +76,7 @@ rule rds_instance_multi_az_support_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%rds_db_instances.Properties)
         <<
         [CT.RDS.PR.1]: Require that an Amazon RDS database instance is configured with multiple Availability Zones
-            [FIX]: Set 'MultiAZ' to 'true'.
+        [FIX]: Set 'MultiAZ' to 'true'.
         >>
 }
 
@@ -84,7 +84,7 @@ rule rds_instance_multi_az_support_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_
     check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.1]: Require that an Amazon RDS database instance is configured with multiple Availability Zones
-            [FIX]: Set 'MultiAZ' to 'true'.
+        [FIX]: Set 'MultiAZ' to 'true'.
         >>
 }
 

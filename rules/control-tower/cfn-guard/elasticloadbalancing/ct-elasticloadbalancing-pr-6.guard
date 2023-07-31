@@ -84,7 +84,7 @@ rule elbv2_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%elastic_load_balancers.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.6]: Require that application and network load balancer access logging is activated
-            [FIX]: Set the load balancer attribute 'access_logs.s3.enabled' to 'true', and set 'access_logs.s3.bucket' to reach an Amazon S3 bucket that's configured to receive application load balancer or network load balancer access logs.
+        [FIX]: Set the load balancer attribute 'access_logs.s3.enabled' to 'true', and set 'access_logs.s3.bucket' to reach an Amazon S3 bucket that's configured to receive application load balancer or network load balancer access logs.
         >>
 }
 
@@ -93,7 +93,7 @@ rule elbv2_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.6]: Require that application and network load balancer access logging is activated
-            [FIX]: Set the load balancer attribute 'access_logs.s3.enabled' to 'true', and set 'access_logs.s3.bucket' to reach an Amazon S3 bucket that's configured to receive application load balancer or network load balancer access logs.
+        [FIX]: Set the load balancer attribute 'access_logs.s3.enabled' to 'true', and set 'access_logs.s3.bucket' to reach an Amazon S3 bucket that's configured to receive application load balancer or network load balancer access logs.
         >>
 }
 

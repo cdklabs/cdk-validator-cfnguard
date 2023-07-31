@@ -58,7 +58,7 @@ rule redshift_default_db_name_check when is_cfn_template(%INPUT_DOCUMENT)
     check_db_name(%redshift_clusters.Properties)
         <<
         [CT.REDSHIFT.PR.7]: Require an Amazon Redshift cluster to have a unique database name
-            [FIX]: Set 'DBName' to a database name that is different from the default value of 'dev'.
+        [FIX]: Set 'DBName' to a database name that is different from the default value of 'dev'.
         >>
 }
 
@@ -66,7 +66,7 @@ rule redshift_default_db_name_check when is_cfn_hook(%INPUT_DOCUMENT, %RESOURCE_
     check_db_name(%INPUT_DOCUMENT.%RESOURCE_TYPE.resourceProperties)
         <<
         [CT.REDSHIFT.PR.7]: Require an Amazon Redshift cluster to have a unique database name
-            [FIX]: Set 'DBName' to a database name that is different from the default value of 'dev'.
+        [FIX]: Set 'DBName' to a database name that is different from the default value of 'dev'.
         >>
 }
 

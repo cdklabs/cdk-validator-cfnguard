@@ -57,7 +57,7 @@ rule ecr_private_tag_immutability_enabled_check when is_cfn_template(%INPUT_DOCU
     check(%ecr_repositories.Properties)
         <<
         [CT.ECR.PR.3]: Require Amazon ECR private repositories to have tag immutability enabled
-            [FIX]: Set 'ImageTagMutability' to 'IMMUTABLE'.
+        [FIX]: Set 'ImageTagMutability' to 'IMMUTABLE'.
         >>
 }
 
@@ -65,7 +65,7 @@ rule ecr_private_tag_immutability_enabled_check when is_cfn_hook(%INPUT_DOCUMENT
     check(%INPUT_DOCUMENT.%ECR_REPOSITORY_TYPE.resourceProperties)
         <<
         [CT.ECR.PR.3]: Require Amazon ECR private repositories to have tag immutability enabled
-            [FIX]: Set 'ImageTagMutability' to 'IMMUTABLE'.
+        [FIX]: Set 'ImageTagMutability' to 'IMMUTABLE'.
         >>
 }
 

@@ -77,7 +77,7 @@ rule alb_http_drop_invalid_header_enabled_check when is_cfn_template(%INPUT_DOCU
     check(%elastic_load_balancers.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.4]: Require that any application load balancer must be configured to drop HTTP headers
-            [FIX]: Set the load balancer attribute 'routing.http.drop_invalid_header_fields.enabled' to 'true'.
+        [FIX]: Set the load balancer attribute 'routing.http.drop_invalid_header_fields.enabled' to 'true'.
         >>
 }
 
@@ -86,7 +86,7 @@ rule alb_http_drop_invalid_header_enabled_check when is_cfn_hook(%INPUT_DOCUMENT
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.4]: Require that any application load balancer must be configured to drop HTTP headers
-            [FIX]: Set the load balancer attribute 'routing.http.drop_invalid_header_fields.enabled' to 'true'.
+        [FIX]: Set the load balancer attribute 'routing.http.drop_invalid_header_fields.enabled' to 'true'.
         >>
 }
 

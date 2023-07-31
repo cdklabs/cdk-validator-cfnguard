@@ -58,7 +58,7 @@ rule subnet_auto_assign_public_ip_disabled_check when is_cfn_template(%INPUT_DOC
     check(%ec2_subnets.Properties)
         <<
         [CT.EC2.PR.11]: Require that an Amazon EC2 subnet does not automatically assign public IP addresses
-            [FIX]: Omit the 'MapPublicIpOnLaunch' property to use the default configuration, or set the 'MapPublicIpOnLaunch' property to 'false'.
+        [FIX]: Omit the 'MapPublicIpOnLaunch' property to use the default configuration, or set the 'MapPublicIpOnLaunch' property to 'false'.
         >>
 }
 
@@ -66,7 +66,7 @@ rule subnet_auto_assign_public_ip_disabled_check when is_cfn_hook(%INPUT_DOCUMEN
     check(%INPUT_DOCUMENT.%EC2_SUBNET_TYPE.resourceProperties)
         <<
         [CT.EC2.PR.11]: Require that an Amazon EC2 subnet does not automatically assign public IP addresses
-            [FIX]: Omit the 'MapPublicIpOnLaunch' property to use the default configuration, or set the 'MapPublicIpOnLaunch' property to 'false'.
+        [FIX]: Omit the 'MapPublicIpOnLaunch' property to use the default configuration, or set the 'MapPublicIpOnLaunch' property to 'false'.
         >>
 }
 

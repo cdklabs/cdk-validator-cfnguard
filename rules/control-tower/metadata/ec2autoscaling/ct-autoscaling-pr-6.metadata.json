@@ -1,0 +1,83 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "CP-2(2)",
+                "CP-6(2)",
+                "SC-36",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "AUTOSCALING_MULTIPLE_INSTANCE_TYPES",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon EC2 Auto Scaling group uses multiple instance types, by means of a mixed instance policy and explicit instance type overrides.",
+    "DisplayName": "Require any Amazon EC2 Auto Scaling groups to use multiple instance types",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Auto Scaling groups with multiple instance types and purchase options",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/ec2-auto-scaling-mixed-instances-groups.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::AutoScaling::AutoScalingGroup"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2 Auto Scaling"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.AUTOSCALING.PR.6",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.AutoScaling.6",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2023-05-19",
+    "RemediationMessage": "Within a 'MixedInstancePolicy' configuration, provide a 'LaunchTemplate' configuration with two entries in the 'Overrides' property. Within each override, set the 'InstanceType' property to a different Amazon EC2 instance type.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

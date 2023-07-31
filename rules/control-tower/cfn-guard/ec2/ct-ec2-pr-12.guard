@@ -6,7 +6,7 @@
 #   ec2_instance_multiple_eni_check
 # 
 # Description:
-#   This control checks whether your Amazon Elastic Compute Cloud (Amazon EC2) instance uses multiple ENIs (Elastic Network Interfaces).
+#   This control checks whether an AWS::EC2::Instance resource specifies multiple ENIs (Elastic Network Interfaces) in the NetworkInterfaces property.
 # 
 # Reports on:
 #   AWS::EC2::Instance
@@ -57,8 +57,8 @@ rule ec2_instance_multiple_eni_check when is_cfn_template(%INPUT_DOCUMENT)
                                           %ec2_instances not empty {
     check(%ec2_instances.Properties)
         <<
-        [CT.EC2.PR.12]: Require an Amazon EC2 instance to configure one ENI only
-            [FIX]: Configure Amazon EC2 instances with only one ENI.
+        [CT.EC2.PR.12]: Require an Amazon EC2 instance to specify at most one network interface by means of the NetworkInterfaces property in the AWS::EC2::Instance resource
+        [FIX]: Configure Amazon EC2 instances with only one ENI.
         >>
 
 }
@@ -67,8 +67,8 @@ rule ec2_instance_multiple_eni_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_INST
 
     check(%INPUT_DOCUMENT.%EC2_INSTANCE_TYPE.resourceProperties)
         <<
-        [CT.EC2.PR.12]: Require an Amazon EC2 instance to configure one ENI only
-            [FIX]: Configure Amazon EC2 instances with only one ENI.
+        [CT.EC2.PR.12]: Require an Amazon EC2 instance to specify at most one network interface by means of the NetworkInterfaces property in the AWS::EC2::Instance resource
+        [FIX]: Configure Amazon EC2 instances with only one ENI.
         >>
 }
 

@@ -65,7 +65,7 @@ rule efs_access_point_enforce_root_directory_check when is_cfn_template(%INPUT_D
     check(%efs_access_points.Properties)
         <<
         [CT.ELASTICFILESYSYSTEM.PR.3]: Require Amazon EFS access points to have a root directory
-            [FIX]: Provide a 'RootDirectory.Path' configuration with a value for 'Path' that does not equal '/'.
+        [FIX]: Provide a 'RootDirectory.Path' configuration with a value for 'Path' that does not equal '/'.
         >>
 }
 
@@ -73,7 +73,7 @@ rule efs_access_point_enforce_root_directory_check when is_cfn_hook(%INPUT_DOCUM
     check(%INPUT_DOCUMENT.%EFS_ACCESS_POINT_TYPE.resourceProperties)
         <<
         [CT.ELASTICFILESYSYSTEM.PR.3]: Require Amazon EFS access points to have a root directory
-            [FIX]: Provide a 'RootDirectory.Path' configuration with a value for 'Path' that does not equal '/'.
+        [FIX]: Provide a 'RootDirectory.Path' configuration with a value for 'Path' that does not equal '/'.
         >>
 }
 

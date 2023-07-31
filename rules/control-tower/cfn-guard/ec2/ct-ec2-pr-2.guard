@@ -79,7 +79,7 @@ rule ec2_launch_template_token_hop_limit_check when is_cfn_template(this)
     check(%ec2_launch_templates.Properties)
         <<
         [CT.EC2.PR.2]: Require that Amazon EC2 launch templates restrict the token hop limit to a maximum of one
-            [FIX]: Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration with the value of 'HttpPutResponseLimit' set to '1', or omit the 'HttpPutResponseLimit' property to adopt the AWS CloudFormation default value of '1'.
+        [FIX]: Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration with the value of 'HttpPutResponseLimit' set to '1', or omit the 'HttpPutResponseLimit' property to adopt the AWS CloudFormation default value of '1'.
         >>
 }
 
@@ -87,7 +87,7 @@ rule ec2_launch_template_token_hop_limit_check when is_cfn_hook(%INPUT_DOCUMENT,
     check(%INPUT_DOCUMENT.%EC2_LAUNCH_TEMPLATE_TYPE.resourceProperties)
         <<
         [CT.EC2.PR.2]: Require that Amazon EC2 launch templates restrict the token hop limit to a maximum of one
-            [FIX]: Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration with the value of 'HttpPutResponseLimit' set to '1', or omit the 'HttpPutResponseLimit' property to adopt the AWS CloudFormation default value of '1'.
+        [FIX]: Within the 'LaunchTemplateData' property, provide a 'MetadataOptions' configuration with the value of 'HttpPutResponseLimit' set to '1', or omit the 'HttpPutResponseLimit' property to adopt the AWS CloudFormation default value of '1'.
         >>
 }
 

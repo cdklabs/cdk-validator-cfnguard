@@ -67,7 +67,7 @@ rule guardduty_s3_protection_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%guardduty_detectors.Properties)
         <<
         [CT.GUARDDUTY.PR.1]: Require an Amazon GuardDuty detector to have Amazon S3 protection activated
-            [FIX]: Set 'DataSources.S3Logs' to true.
+        [FIX]: Set 'DataSources.S3Logs' to true.
         >>
 }
 
@@ -75,7 +75,7 @@ rule guardduty_s3_protection_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %GU
     check(%INPUT_DOCUMENT.%GUARDDUTY_DETECTOR_TYPE.resourceProperties)
         <<
         [CT.GUARDDUTY.PR.1]: Require an Amazon GuardDuty detector to have Amazon S3 protection activated
-            [FIX]: Set 'DataSources.S3Logs' to true.
+        [FIX]: Set 'DataSources.S3Logs' to true.
         >>
 }
 

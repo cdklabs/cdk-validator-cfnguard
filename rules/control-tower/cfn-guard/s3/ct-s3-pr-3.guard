@@ -62,7 +62,7 @@ rule s3_version_lifecycle_policy_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%s3_buckets.Properties)
         <<
         [CT.S3.PR.3]: Require an Amazon S3 buckets to have versioning configured and a lifecycle policy
-            [FIX]: Configure versioning-enabled buckets with at least one active lifecycle rule.
+        [FIX]: Configure versioning-enabled buckets with at least one active lifecycle rule.
         >>
 }
 
@@ -70,7 +70,7 @@ rule s3_version_lifecycle_policy_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUC
     check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
         <<
         [CT.S3.PR.3]: Require an Amazon S3 buckets to have versioning configured and a lifecycle policy
-            [FIX]: Configure versioning-enabled buckets with at least one active lifecycle rule.
+        [FIX]: Configure versioning-enabled buckets with at least one active lifecycle rule.
         >>
 }
 

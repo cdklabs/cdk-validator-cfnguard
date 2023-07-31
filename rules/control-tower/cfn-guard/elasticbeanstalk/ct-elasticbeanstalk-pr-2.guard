@@ -92,7 +92,7 @@ rule elastic_beanstalk_managed_updates_enabled_check when is_cfn_template(%INPUT
     check_elastic_beanstalk_environments(%elastic_beanstalk_environments.Properties)
         <<
         [CT.ELASTICBEANSTALK.PR.2]: Require an AWS Elastic Beanstalk environment to have managed platform updates configured
-            [FIX]: For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.
+        [FIX]: For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.
         >>
 }
 
@@ -101,7 +101,7 @@ rule elastic_beanstalk_managed_updates_enabled_check when is_cfn_template(%INPUT
     check_elastic_beanstalk_configuration_templates(%elastic_beanstalk_configuration_templates.Properties)
         <<
         [CT.ELASTICBEANSTALK.PR.2]: Require an AWS Elastic Beanstalk environment to have managed platform updates configured
-            [FIX]: For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.
+        [FIX]: For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.
         >>
 }
 
@@ -109,7 +109,7 @@ rule elastic_beanstalk_managed_updates_enabled_check when is_cfn_hook(%INPUT_DOC
     check_elastic_beanstalk_environments(%INPUT_DOCUMENT.%ELASTIC_BEANSTALK_ENVIRONMENT_TYPE.resourceProperties)
         <<
         [CT.ELASTICBEANSTALK.PR.2]: Require an AWS Elastic Beanstalk environment to have managed platform updates configured
-            [FIX]: For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.
+        [FIX]: For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.
         >>
 }
 
@@ -117,7 +117,7 @@ rule elastic_beanstalk_managed_updates_enabled_check when is_cfn_hook(%INPUT_DOC
     check_elastic_beanstalk_configuration_templates(%INPUT_DOCUMENT.%ELASTIC_BEANSTALK_CONFIGURATION_TEMPLATE_TYPE.resourceProperties)
         <<
         [CT.ELASTICBEANSTALK.PR.2]: Require an AWS Elastic Beanstalk environment to have managed platform updates configured
-            [FIX]: For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.
+        [FIX]: For AWS Elastic Beanstalk environments, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true'. For Elastic Beanstalk configuration templates, create an 'OptionSetting' with a 'Namespace' value set to  'aws:elasticbeanstalk:managedactions', 'OptionName' set to 'ManagedActionsEnabled', and 'Value' set to 'true', or omit this setting to adopt the default value of 'true'.
         >>
 }
 

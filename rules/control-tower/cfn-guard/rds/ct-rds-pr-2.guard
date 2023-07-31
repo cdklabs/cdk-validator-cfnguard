@@ -102,7 +102,7 @@ rule rds_instance_enhanced_monitoring_enabled_check when is_cfn_template(%INPUT_
     check(%rds_db_instances.Properties)
         <<
         [CT.RDS.PR.2]: Require an Amazon RDS database instance or cluster to have enhanced monitoring configured
-            [FIX]: Set 'MonitoringInterval' to a supported value (1, 5, 10, 15, 30, 60), and set 'MonitoringRoleArn' to the ARN of an AWS IAM role.
+        [FIX]: Set 'MonitoringInterval' to a supported value (1, 5, 10, 15, 30, 60), and set 'MonitoringRoleArn' to the ARN of an AWS IAM role.
         >>
 }
 
@@ -110,7 +110,7 @@ rule rds_instance_enhanced_monitoring_enabled_check when is_cfn_hook(%INPUT_DOCU
     check(%INPUT_DOCUMENT.%RDS_DB_INSTANCE_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.2]: Require an Amazon RDS database instance or cluster to have enhanced monitoring configured
-            [FIX]: Set 'MonitoringInterval' to a supported value (1, 5, 10, 15, 30, 60), and set 'MonitoringRoleArn' to the ARN of an AWS IAM role.
+        [FIX]: Set 'MonitoringInterval' to a supported value (1, 5, 10, 15, 30, 60), and set 'MonitoringRoleArn' to the ARN of an AWS IAM role.
         >>
 }
 

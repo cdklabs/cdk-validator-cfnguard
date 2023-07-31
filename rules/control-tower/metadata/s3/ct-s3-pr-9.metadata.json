@@ -1,0 +1,71 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-6(2)"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "S3_BUCKET_DEFAULT_LOCK_ENABLED",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon Simple Storage Service (Amazon S3) bucket has been configured to use S3 Object Lock.",
+    "DisplayName": "Require that an Amazon S3 bucket has S3 Object Lock activated",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "How S3 Object Lock works",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock-overview.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::S3::Bucket"
+    ],
+    "EvaluatedServices": [
+        "Amazon S3"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.S3.PR.9",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.4",
+            "Name": "Protect data integrity"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-07-24",
+    "RemediationMessage": "Set 'ObjectLockEnabled' to 'true'.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

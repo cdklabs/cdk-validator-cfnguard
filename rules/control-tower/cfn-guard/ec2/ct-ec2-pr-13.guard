@@ -1,0 +1,97 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_instance_detailed_monitoring_enabled_check
+# 
+# Description:
+#   This control checks whether an Amazon EC2 instance has detailed monitoring enabled.
+# 
+# Reports on:
+#   AWS::EC2::Instance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EC2 instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'Monitoring' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'Monitoring' has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation Hook Document
+#       And: The input document contains an EC2 instance resource
+#       And: 'Monitoring' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let EC2_INSTANCE_TYPE = "AWS::EC2::Instance"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let ec2_instances = Resources.*[ Type == %EC2_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_instance_detailed_monitoring_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                         %ec2_instances not empty {
+    check(%ec2_instances.Properties)
+        <<
+        [CT.EC2.PR.13]: Require an Amazon EC2 instance to have detailed monitoring enabled
+        [FIX]: Set 'Monitoring' to 'true'.
+        >>
+
+}
+
+rule ec2_instance_detailed_monitoring_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%EC2_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.13]: Require an Amazon EC2 instance to have detailed monitoring enabled
+        [FIX]: Set 'Monitoring' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ec2_instance) {
+    %ec2_instance {
+        # Scenario 2
+        Monitoring exists
+        # Scenarios 3 and 4
+        Monitoring == true
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

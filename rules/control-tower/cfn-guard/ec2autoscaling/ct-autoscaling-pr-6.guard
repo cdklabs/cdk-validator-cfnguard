@@ -1,0 +1,252 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   autoscaling_mixed_instances_policy_multiple_instance_types_check
+# 
+# Description:
+#   This control checks whether an Amazon EC2 Auto Scaling group uses multiple instance types, by means of a mixed instance policy and explicit instance type overrides.
+# 
+# Reports on:
+#   AWS::AutoScaling::AutoscalingGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#  Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Auto Scaling Group resources
+#      Then: SKIP
+#  Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling Group resources
+#       And: 'MixedInstancesPolicy.LaunchTemplate.Overrides' has been provided as a list
+#       And: There exists any 'Overrides' entry where 'InstanceRequirements' is present
+#       And: There exists no 'Overrides' entry where 'InstanceType' is present
+#      Then: SKIP
+#  Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling Group resources
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.Overrides' has not been provided
+#      Then: FAIL
+#  Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling Group resources
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.Overrides' has been provided as a list
+#       And: 'InstanceType' is not present or is present as an empty string in 'MixedInstancesPolicy.LaunchTemplate.Overrides'
+#      Then: FAIL
+#  Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling Group resources
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.Overrides' has been provided as a list
+#       And: There exists any 'Overrides' entry where 'InstanceRequirements' is present
+#       And: There exists any 'Overrides' entry where 'InstanceType' is present
+#      Then: FAIL
+#  Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling Group resources
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.Overrides' has been provided as a list
+#       And: 'InstanceType' is present in 'MixedInstancesPolicy.LaunchTemplate.Overrides' as a non-empty string
+#       And: Length of 'MixedInstancesPolicy.LaunchTemplate.Overrides' is less than or equal to 1
+#      Then: FAIL
+#  Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling Group resources
+#       And: 'MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification' has been provided
+#       And: 'MixedInstancesPolicy.LaunchTemplate.Overrides' has been provided as a list
+#       And: 'InstanceType' is present in 'MixedInstancesPolicy.LaunchTemplate.Overrides' as a non-empty string
+#       And: Length of 'MixedInstancesPolicy.LaunchTemplate.Overrides' is greater than 1
+#      Then: PASS
+
+#
+# Constants
+#
+let AUTOSCALING_GROUP_TYPE = "AWS::AutoScaling::AutoScalingGroup"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let autoscaling_groups = Resources.*[ Type == %AUTOSCALING_GROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule autoscaling_mixed_instances_policy_multiple_instance_types_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                                           %autoscaling_groups not empty {
+    check(%autoscaling_groups.Properties)
+        <<
+        [CT.AUTOSCALING.PR.6]: Require any Amazon EC2 Auto Scaling groups to use multiple instance types
+        [FIX]: Within a 'MixedInstancePolicy' configuration, provide a 'LaunchTemplate' configuration with two entries in the 'Overrides' property. Within each override, set the 'InstanceType' property to a different Amazon EC2 instance type.
+        >>
+}
+
+rule autoscaling_mixed_instances_policy_multiple_instance_types_check when is_cfn_hook(%INPUT_DOCUMENT, %AUTOSCALING_GROUP_TYPE) {
+    check(%INPUT_DOCUMENT.%AUTOSCALING_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.AUTOSCALING.PR.6]: Require any Amazon EC2 Auto Scaling groups to use multiple instance types
+        [FIX]: Within a 'MixedInstancePolicy' configuration, provide a 'LaunchTemplate' configuration with two entries in the 'Overrides' property. Within each override, set the 'InstanceType' property to a different Amazon EC2 instance type.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(autoscaling_group) {
+    %autoscaling_group [
+        # Scenario 2
+        filter_asg_no_instance_requirement_overrides(this)
+    ] {
+        # Scenario 4, 5, 6
+        MixedInstancesPolicy exists
+        MixedInstancesPolicy is_struct
+
+        MixedInstancesPolicy {
+            LaunchTemplate exists
+            LaunchTemplate is_struct
+
+            LaunchTemplate {
+                LaunchTemplateSpecification exists
+                LaunchTemplateSpecification is_struct
+
+                Overrides exists
+                Overrides is_list
+                Overrides not empty
+
+                Overrides[0] exists
+                Overrides[1] exists
+
+                Overrides[*] {
+                    InstanceType exists
+                    check_is_string_and_not_empty(InstanceType)
+                }
+
+                Overrides[0].InstanceType not in Overrides[1].InstanceType
+            }
+        }
+    }
+
+    %autoscaling_group [
+        # Scenario 2
+        filter_asg_conflicting_overrides(this)
+    ] {
+        MixedInstancesPolicy {
+            LaunchTemplate {
+                Overrides[*] {
+                    check_mutually_exclusive_property_combination(InstanceType, InstanceRequirements) or
+                    check_mutually_exclusive_property_combination(InstanceRequirements, InstanceType)
+                }
+            }
+        }
+    }
+}
+
+rule filter_asg_no_instance_requirement_overrides(autoscaling_group) {
+    %autoscaling_group {
+        MixedInstancesPolicy not exists or
+        filter_mixed_instances_policy_no_instance_requirement_overrides(this)
+    }
+}
+
+rule filter_mixed_instances_policy_no_instance_requirement_overrides(autoscaling_group) {
+    %autoscaling_group {
+        MixedInstancesPolicy is_struct
+        MixedInstancesPolicy {
+            LaunchTemplate not exists or
+            filter_launch_templates_no_instance_requirement_overrides(this)
+        }
+    }
+}
+
+rule filter_launch_templates_no_instance_requirement_overrides(launch_template) {
+    %launch_template {
+        LaunchTemplate is_struct
+        LaunchTemplate {
+            Overrides not exists or
+            filter_overrides_no_instance_requirement_overrides(this)
+        }
+    }
+}
+
+rule filter_overrides_no_instance_requirement_overrides(overrides) {
+    %overrides {
+        Overrides is_list
+        Overrides empty or
+        Overrides[*] {
+            InstanceRequirements not exists
+        }
+    }
+}
+
+rule filter_asg_conflicting_overrides(autoscaling_group) {
+    %autoscaling_group {
+        MixedInstancesPolicy not exists or
+        filter_mixed_instances_policy_conflicting_overrides(this)
+    }
+}
+
+rule filter_mixed_instances_policy_conflicting_overrides(autoscaling_group) {
+    %autoscaling_group {
+        MixedInstancesPolicy is_struct
+        MixedInstancesPolicy {
+            LaunchTemplate not exists or
+            filter_launch_templates_conflicting_overrides(this)
+        }
+    }
+}
+
+rule filter_launch_templates_conflicting_overrides(launch_template) {
+    %launch_template {
+        LaunchTemplate is_struct
+        LaunchTemplate {
+            Overrides not exists or
+            filter_overrides_conflicting_overrides(this)
+        }
+    }
+}
+
+rule filter_overrides_conflicting_overrides(overrides) {
+    %overrides {
+        Overrides is_list
+        Overrides empty or
+        some Overrides[*] {
+            InstanceRequirements exists
+            InstanceType exists
+        }
+    }
+}
+
+rule check_mutually_exclusive_property_combination(property1, property2) {
+    %property1 not exists
+    %property2 exists
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}

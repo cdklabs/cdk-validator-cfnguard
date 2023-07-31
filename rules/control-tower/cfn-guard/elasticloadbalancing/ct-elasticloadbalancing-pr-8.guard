@@ -62,7 +62,7 @@ rule elb_acm_certificate_required_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%classic_load_balancers.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.8]: Require any classic load balancer SSL/HTTPS listener to have a certificate provided by AWS Certificate Manager
-            [FIX]: Configure classic load balancers to use certificates provided by AWS Certificate Manager (ACM).
+        [FIX]: Configure classic load balancers to use certificates provided by AWS Certificate Manager (ACM).
         >>
 }
 
@@ -71,7 +71,7 @@ rule elb_acm_certificate_required_check when is_cfn_hook(%INPUT_DOCUMENT, %ELAST
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.8]: Require any classic load balancer SSL/HTTPS listener to have a certificate provided by AWS Certificate Manager
-            [FIX]: Configure classic load balancers to use certificates provided by AWS Certificate Manager (ACM).
+        [FIX]: Configure classic load balancers to use certificates provided by AWS Certificate Manager (ACM).
         >>
 }
 

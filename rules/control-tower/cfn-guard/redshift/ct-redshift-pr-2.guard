@@ -65,7 +65,7 @@ rule redshift_backup_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%redshift_clusters.Properties)
         <<
         [CT.REDSHIFT.PR.2]: Require an Amazon Redshift cluster to have automatic snapshots configured
-            [FIX]: Set 'AutomatedSnapshotRetentionPeriod' to an integer value greater than or equal to 7 days.
+        [FIX]: Set 'AutomatedSnapshotRetentionPeriod' to an integer value greater than or equal to 7 days.
         >>
 }
 
@@ -73,7 +73,7 @@ rule redshift_backup_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %REDSHIFT_C
     check(%INPUT_DOCUMENT.%REDSHIFT_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.REDSHIFT.PR.2]: Require an Amazon Redshift cluster to have automatic snapshots configured
-            [FIX]: Set 'AutomatedSnapshotRetentionPeriod' to an integer value greater than or equal to 7 days.
+        [FIX]: Set 'AutomatedSnapshotRetentionPeriod' to an integer value greater than or equal to 7 days.
         >>
 }
 

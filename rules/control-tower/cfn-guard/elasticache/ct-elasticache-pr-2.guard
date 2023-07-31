@@ -1,0 +1,130 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elasticache_auto_minor_version_upgrade_check
+# 
+# Description:
+#   This control checks whether an Amazon ElastiCache for Redis cluster has automatic minor version upgrades enabled.
+# 
+# Reports on:
+#   AWS::ElastiCache::CacheCluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElastiCache cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'Engine' has not been provided or has been provided and is not set to 'redis'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'Engine' has been provided and is set to 'redis'
+#       And: 'EngineVersion' has been provided and set to a version less than 6
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'Engine' has been provided and is set to 'redis'
+#       And: 'EngineVersion' has not been provided or 'EngineVersion' has been provided and set
+#            to a version greater than or equal to 6
+#       And: 'AutoMinorVersionUpgrade' has not been provided
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'Engine' has been provided and is set to 'redis'
+#       And: 'EngineVersion' has not been provided or 'EngineVersion' has been provided and set
+#            to a version greater than or equal to 6
+#       And: 'AutoMinorVersionUpgrade' has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache cluster resource
+#       And: 'Engine' has been provided and is set to 'redis'
+#       And: 'EngineVersion' has not been provided or 'EngineVersion' has been provided and set
+#            to a version greater than or equal to 6
+#       And: 'AutoMinorVersionUpgrade' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTICACHE_CLUSTER_TYPE = "AWS::ElastiCache::CacheCluster"
+let INPUT_DOCUMENT = this
+let REDIS_ENGINE_TYPE = "redis"
+let UNSUPPORTED_REDIS_ENGINE_VERSIONS_FOR_AUTO_UPGRADE = [
+    /^2\./,
+    /^3\./,
+    /^4\./,
+    /^5\./
+]
+
+#
+# Assignments
+#
+let elasticache_clusters = Resources.*[ Type == %ELASTICACHE_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule elasticache_auto_minor_version_upgrade_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                       %elasticache_clusters not empty {
+    check(%elasticache_clusters.Properties)
+        <<
+        [CT.ELASTICACHE.PR.2]: Require an Amazon ElastiCache for Redis cluster to have automatic minor version upgrades activated
+        [FIX]: Set the value of the 'AutoMinorVersionUpgrade' parameter to true.
+        >>
+}
+
+rule elasticache_auto_minor_version_upgrade_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTICACHE_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTICACHE_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICACHE.PR.2]: Require an Amazon ElastiCache for Redis cluster to have automatic minor version upgrades activated
+        [FIX]: Set the value of the 'AutoMinorVersionUpgrade' parameter to true.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elasticache_clusters) {
+    %elasticache_clusters [
+        # Scenario 2
+        Engine exists
+        Engine == %REDIS_ENGINE_TYPE
+
+        # Scenario 3
+        EngineVersion not exists or
+        EngineVersion not in %UNSUPPORTED_REDIS_ENGINE_VERSIONS_FOR_AUTO_UPGRADE
+    ] {
+        # Scenario 4, 5 and 6
+        AutoMinorVersionUpgrade exists
+        AutoMinorVersionUpgrade == true
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

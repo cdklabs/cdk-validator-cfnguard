@@ -84,7 +84,7 @@ rule acm_certificate_domain_name_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%acm_certificates.Properties)
         <<
         [CT.ACM.PR.1]: Require an AWS Private CA certificate to have a single domain name
-            [FIX]: Set 'DomainName' and each entry within 'SubjectAlternativeNames' to a fully qualified domain name (FQDN) that does not contain a wildcard (*).
+        [FIX]: Set 'DomainName' and each entry within 'SubjectAlternativeNames' to a fully qualified domain name (FQDN) that does not contain a wildcard (*).
         >>
 }
 
@@ -92,7 +92,7 @@ rule acm_certificate_domain_name_check when is_cfn_hook(%INPUT_DOCUMENT, %ACM_CE
     check(%INPUT_DOCUMENT.%ACM_CERTIFICATE_TYPE.resourceProperties)
         <<
         [CT.ACM.PR.1]: Require an AWS Private CA certificate to have a single domain name
-            [FIX]: Set 'DomainName' and each entry within 'SubjectAlternativeNames' to a fully qualified domain name (FQDN) that does not contain a wildcard (*).
+        [FIX]: Set 'DomainName' and each entry within 'SubjectAlternativeNames' to a fully qualified domain name (FQDN) that does not contain a wildcard (*).
         >>
 }
 

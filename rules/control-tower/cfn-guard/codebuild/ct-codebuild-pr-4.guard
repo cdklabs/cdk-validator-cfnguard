@@ -65,7 +65,7 @@ rule codebuild_project_environment_privileged_check when is_cfn_template(%INPUT_
     check(%codebuild_projects.Properties)
         <<
         [CT.CODEBUILD.PR.4]: Require any AWS CodeBuild project to deactivate privileged mode when running
-            [FIX]: Within 'Environment', set 'PrivilegedMode' to 'false' or omit the 'PrivilegedMode' property.
+        [FIX]: Within 'Environment', set 'PrivilegedMode' to 'false' or omit the 'PrivilegedMode' property.
         >>
 }
 
@@ -73,7 +73,7 @@ rule codebuild_project_environment_privileged_check when is_cfn_hook(%INPUT_DOCU
     check(%INPUT_DOCUMENT.%CODEBUILD_PROJECT_TYPE.resourceProperties)
         <<
         [CT.CODEBUILD.PR.4]: Require any AWS CodeBuild project to deactivate privileged mode when running
-            [FIX]: Within 'Environment', set 'PrivilegedMode' to 'false' or omit the 'PrivilegedMode' property.
+        [FIX]: Within 'Environment', set 'PrivilegedMode' to 'false' or omit the 'PrivilegedMode' property.
         >>
 }
 

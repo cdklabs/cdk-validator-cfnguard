@@ -1,0 +1,96 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   s3_bucket_object_lock_enabled_check
+# 
+# Description:
+#   This control checks whether an Amazon Simple Storage Service (Amazon S3) bucket has been configured to use S3 Object Lock.
+# 
+# Reports on:
+#   AWS::S3::Bucket
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any S3 bucket resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: 'ObjectLockEnabled' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: 'ObjectLockEnabled' has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an S3 bucket resource
+#       And: 'ObjectLockEnabled' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let S3_BUCKET_TYPE = "AWS::S3::Bucket"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let s3_buckets = Resources.*[ Type == %S3_BUCKET_TYPE ]
+
+#
+# Primary Rules
+#
+rule s3_bucket_object_lock_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                              %s3_buckets not empty {
+    check(%s3_buckets.Properties)
+        <<
+        [CT.S3.PR.9]: Require that an Amazon S3 bucket has S3 Object Lock activated
+        [FIX]: Set 'ObjectLockEnabled' to 'true'.
+        >>
+}
+
+rule s3_bucket_object_lock_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE) {
+    check(this.%S3_BUCKET_TYPE.resourceProperties)
+        <<
+        [CT.S3.PR.9]: Require that an Amazon S3 bucket has S3 Object Lock activated
+        [FIX]: Set 'ObjectLockEnabled' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(s3_bucket) {
+    %s3_bucket {
+       # Scenario 2
+       ObjectLockEnabled exists
+       # Scenarios 3 and 4
+       ObjectLockEnabled == true
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

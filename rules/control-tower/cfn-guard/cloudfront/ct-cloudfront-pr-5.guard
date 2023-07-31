@@ -62,7 +62,7 @@ rule cloudfront_access_logs_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%cloudfront_distributions.Properties)
         <<
         [CT.CLOUDFRONT.PR.5]: Require any Amazon CloudFront distribution to have logging enabled
-            [FIX]: Set 'Bucket' in 'DistributionConfig.Logging' to an Amazon S3 bucket that has been configured to receive Amazon CloudFront distribution access logs.
+        [FIX]: Set 'Bucket' in 'DistributionConfig.Logging' to an Amazon S3 bucket that has been configured to receive Amazon CloudFront distribution access logs.
         >>
 }
 
@@ -70,7 +70,7 @@ rule cloudfront_access_logs_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %CLO
     check(%INPUT_DOCUMENT.%CLOUDFRONT_DISTRIBUTION_TYPE.resourceProperties)
         <<
         [CT.CLOUDFRONT.PR.5]: Require any Amazon CloudFront distribution to have logging enabled
-            [FIX]: Set 'Bucket' in 'DistributionConfig.Logging' to an Amazon S3 bucket that has been configured to receive Amazon CloudFront distribution access logs.
+        [FIX]: Set 'Bucket' in 'DistributionConfig.Logging' to an Amazon S3 bucket that has been configured to receive Amazon CloudFront distribution access logs.
         >>
 }
 

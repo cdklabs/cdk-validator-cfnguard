@@ -72,7 +72,7 @@ rule ecs_task_definition_user_for_host_mode_check when is_cfn_template(%INPUT_DO
     check(%ecs_task_definitions.Properties)
         <<
         [CT.ECS.PR.8]: Require Amazon ECS task definitions to have secure networking modes and user definitions
-            [FIX]: For Amazon ECS task definitions that use 'host' networking mode, your container definitions must set the 'User' property to a non-root user. Also, to opt into elevated privileges, configure containers to run in privileged mode by setting the  'Privileged' property to 'true'.
+        [FIX]: For Amazon ECS task definitions that use 'host' networking mode, your container definitions must set the 'User' property to a non-root user. Also, to opt into elevated privileges, configure containers to run in privileged mode by setting the  'Privileged' property to 'true'.
         >>
 }
 
@@ -80,7 +80,7 @@ rule ecs_task_definition_user_for_host_mode_check when is_cfn_hook(%INPUT_DOCUME
     check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.8]: Require Amazon ECS task definitions to have secure networking modes and user definitions
-            [FIX]: For Amazon ECS task definitions that use 'host' networking mode, your container definitions must set the 'User' property to a non-root user. Also, to opt into elevated privileges, configure containers to run in privileged mode by setting the  'Privileged' property to 'true'.
+        [FIX]: For Amazon ECS task definitions that use 'host' networking mode, your container definitions must set the 'User' property to a non-root user. Also, to opt into elevated privileges, configure containers to run in privileged mode by setting the  'Privileged' property to 'true'.
         >>
 }
 

@@ -59,7 +59,7 @@ rule redshift_default_admin_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%redshift_clusters.Properties)
         <<
         [CT.REDSHIFT.PR.6]: Require an Amazon Redshift cluster to have a unique administrator username
-            [FIX]: Set 'MasterUsername' to a value other than 'awsuser'.
+        [FIX]: Set 'MasterUsername' to a value other than 'awsuser'.
         >>
 }
 
@@ -67,7 +67,7 @@ rule redshift_default_admin_check when is_cfn_hook(%INPUT_DOCUMENT, %REDSHIFT_CL
     check(%INPUT_DOCUMENT.%REDSHIFT_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.REDSHIFT.PR.6]: Require an Amazon Redshift cluster to have a unique administrator username
-            [FIX]: Set 'MasterUsername' to a value other than 'awsuser'.
+        [FIX]: Set 'MasterUsername' to a value other than 'awsuser'.
         >>
 }
 

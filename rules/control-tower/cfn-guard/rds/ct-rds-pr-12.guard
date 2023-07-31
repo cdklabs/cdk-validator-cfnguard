@@ -76,7 +76,7 @@ rule rds_cluster_event_notifications_configured_check when is_cfn_template(%INPU
     check(%rds_event_subscriptions.Properties)
         <<
         [CT.RDS.PR.12]: Require an Amazon RDS event subscription to have critical cluster events configured
-            [FIX]: When 'SourceType' is set to 'db-cluster', set 'Enabled' to true and ensure that 'EventCategories' contains both 'maintenance' and 'failure' values.
+        [FIX]: When 'SourceType' is set to 'db-cluster', set 'Enabled' to true and ensure that 'EventCategories' contains both 'maintenance' and 'failure' values.
         >>
 }
 
@@ -84,7 +84,7 @@ rule rds_cluster_event_notifications_configured_check when is_cfn_hook(%INPUT_DO
     check(%INPUT_DOCUMENT.%RDS_EVENTSUBSCRIPTION_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.12]: Require an Amazon RDS event subscription to have critical cluster events configured
-            [FIX]: When 'SourceType' is set to 'db-cluster', set 'Enabled' to true and ensure that 'EventCategories' contains both 'maintenance' and 'failure' values.
+        [FIX]: When 'SourceType' is set to 'db-cluster', set 'Enabled' to true and ensure that 'EventCategories' contains both 'maintenance' and 'failure' values.
         >>
 }
 

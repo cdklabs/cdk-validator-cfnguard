@@ -1,0 +1,135 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   autoscaling_launch_config_hop_limit_check
+# 
+# Description:
+#   This control checks whether an Amazon EC2 Auto Scaling launch configuration has a metadata token hop limit set to '1'.
+# 
+# Reports on:
+#   AWS::AutoScaling::LaunchConfiguration
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Auto Scaling launch configuration resources
+#       Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling launch configuration resources
+#       And: 'MetadataOptions' has been provided
+#       And: 'MetadataOptions.HttpEndpoint' has been provided is equal to 'disabled'
+#       Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling launch configuration resources
+#       And: 'MetadataOptions' has been provided
+#       And: 'MetadataOptions.HttpEndpoint' has not been provided or has been provided and is equal to 'enabled'
+#       And: 'MetadataOptions.HttpPutResponseHopLimit' has been provided but is not equal to an integer of 1
+#       Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling launch configuration resources
+#       And: 'MetadataOptions' has not been provided
+#       Then: PASS
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling launch configuration resources
+#       And: 'MetadataOptions' has been provided
+#       And: 'MetadataOptions.HttpEndpoint' has not been provided or has been provided and is equal to 'enabled'
+#       And: 'MetadataOptions.HttpPutResponseHopLimit' has not been provided
+#       Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains Auto Scaling launch configuration resources
+#       And: 'MetadataOptions' has been provided
+#       And: 'MetadataOptions.HttpEndpoint' has not been provided or has been provided and is equal to 'enabled'
+#       And: 'MetadataOptions.HttpPutResponseHopLimit' has been provided and is equal to an integer of 1
+#       Then: PASS
+
+#
+# Constants
+#
+let AUTOSCALING_LAUNCH_CONFIG_TYPE = "AWS::AutoScaling::LaunchConfiguration"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let autoscaling_launch_configurations = Resources.*[ Type == %AUTOSCALING_LAUNCH_CONFIG_TYPE]
+
+#
+# Primary Rules
+#
+rule autoscaling_launch_config_hop_limit_check when is_cfn_template(this)
+                                                    %autoscaling_launch_configurations not empty {
+    check(%autoscaling_launch_configurations.Properties)
+        <<
+        [CT.AUTOSCALING.PR.3]: Require an Amazon EC2 Auto Scaling launch configuration to have a single-hop metadata response limit
+        [FIX]: Provide a 'MetadataOptions' configuration with 'HttpPutResponseLimit' set to '1', or omit the 'HttpPutResponseLimit' property to adopt the AWS CloudFormation default value of '1'.
+        >>
+}
+
+rule autoscaling_launch_config_hop_limit_check when is_cfn_hook(%INPUT_DOCUMENT, %AUTOSCALING_LAUNCH_CONFIG_TYPE) {
+    check(%INPUT_DOCUMENT.%AUTOSCALING_LAUNCH_CONFIG_TYPE.resourceProperties)
+        <<
+        [CT.AUTOSCALING.PR.3]: Require an Amazon EC2 Auto Scaling launch configuration to have a single-hop metadata response limit
+        [FIX]: Provide a 'MetadataOptions' configuration with 'HttpPutResponseLimit' set to '1', or omit the 'HttpPutResponseLimit' property to adopt the AWS CloudFormation default value of '1'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(autoscaling_launch_configurations) {
+    %autoscaling_launch_configurations [
+        # Scenarios 2, 3 and 4
+        filter_launch_configuration(this)
+    ] {
+        # Scenarios 5 and 6
+        MetadataOptions not exists or
+        MetadataOptions {
+            HttpPutResponseHopLimit not exists or
+            HttpPutResponseHopLimit == 1
+        }
+    }
+}
+
+rule filter_launch_configuration(autoscaling_launch_configurations) {
+    %autoscaling_launch_configurations {
+        MetadataOptions not exists or
+        filter_metadata_options_provided(this)
+    }
+}
+
+rule filter_metadata_options_provided(options) {
+    %options {
+        MetadataOptions is_struct
+        MetadataOptions {
+            HttpEndpoint not exists or
+            HttpEndpoint == "enabled"
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

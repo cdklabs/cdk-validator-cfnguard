@@ -67,7 +67,7 @@ rule iam_user_no_policies_check when is_cfn_template(%INPUT_DOCUMENT)
     check_user(%iam_users.Properties)
         <<
         [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
-            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
         >>
 }
 
@@ -76,7 +76,7 @@ rule iam_user_no_policies_check when is_cfn_template(%INPUT_DOCUMENT)
     check_policy(%iam_policies.Properties)
         <<
         [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
-            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
         >>
 }
 
@@ -85,7 +85,7 @@ rule iam_user_no_policies_check when is_cfn_template(%INPUT_DOCUMENT)
     check_policy(%iam_managed_policies.Properties)
         <<
         [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
-            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
         >>
 }
 
@@ -93,7 +93,7 @@ rule iam_user_no_policies_check when is_cfn_hook(%INPUT_DOCUMENT, %IAM_USER_TYPE
     check_user(%INPUT_DOCUMENT.%IAM_USER_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
-            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
         >>
 }
 
@@ -101,7 +101,7 @@ rule iam_user_no_policies_check when is_cfn_hook(%INPUT_DOCUMENT, %IAM_POLICY_TY
     check_policy(%INPUT_DOCUMENT.%IAM_POLICY_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
-            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
         >>
 }
 
@@ -109,7 +109,7 @@ rule iam_user_no_policies_check when is_cfn_hook(%INPUT_DOCUMENT, %IAM_MANAGED_P
     check_policy(%INPUT_DOCUMENT.%IAM_MANAGED_POLICY_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.4]: Require that an AWS Identity and Access Management (IAM) user does not have an inline or managed policy attached attached
-            [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
+        [FIX]: Configure AWS IAM users to inherit permissions from IAM groups.
         >>
 }
 

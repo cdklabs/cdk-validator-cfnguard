@@ -70,7 +70,7 @@ rule ecs_fargate_latest_platform_version_check when is_cfn_template(%INPUT_DOCUM
     check(%ecs_services.Properties)
         <<
         [CT.ECS.PR.1]: Require AWS ECS Fargate Services to run on the latest Fargate platform version
-            [FIX]: When 'LaunchType' is set to 'FARGATE', set the 'PlatformVersion' property to 'LATEST' or omit the 'PlatformVersion' property (default: 'LATEST').
+        [FIX]: When 'LaunchType' is set to 'FARGATE', set the 'PlatformVersion' property to 'LATEST' or omit the 'PlatformVersion' property (default: 'LATEST').
         >>
 }
 
@@ -78,7 +78,7 @@ rule ecs_fargate_latest_platform_version_check when is_cfn_hook(%INPUT_DOCUMENT,
     check(%INPUT_DOCUMENT.%ECS_SERVICE_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.1]: Require AWS ECS Fargate Services to run on the latest Fargate platform version
-            [FIX]: When 'LaunchType' is set to 'FARGATE', set the 'PlatformVersion' property to 'LATEST' or omit the 'PlatformVersion' property (default: 'LATEST').
+        [FIX]: When 'LaunchType' is set to 'FARGATE', set the 'PlatformVersion' property to 'LATEST' or omit the 'PlatformVersion' property (default: 'LATEST').
         >>
 }
 

@@ -57,7 +57,7 @@ rule api_gw_xray_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%api_gateway_stages.Properties)
         <<
         [CT.APIGATEWAY.PR.2]: Require an Amazon API Gateway REST API stage to have AWS X-Ray tracing activated
-            [FIX]: Set 'TracingEnabled' to 'true'.
+        [FIX]: Set 'TracingEnabled' to 'true'.
         >>
 }
 
@@ -65,7 +65,7 @@ rule api_gw_xray_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %API_GW_STAGE_T
     check(%INPUT_DOCUMENT.%API_GW_STAGE_TYPE.resourceProperties)
         <<
         [CT.APIGATEWAY.PR.2]: Require an Amazon API Gateway REST API stage to have AWS X-Ray tracing activated
-            [FIX]: Set 'TracingEnabled' to 'true'.
+        [FIX]: Set 'TracingEnabled' to 'true'.
         >>
 }
 

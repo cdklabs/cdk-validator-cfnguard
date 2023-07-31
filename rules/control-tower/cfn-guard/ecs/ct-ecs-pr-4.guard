@@ -72,7 +72,7 @@ rule ecs_awsvpc_networking_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%ecs_task_definitions.Properties)
         <<
         [CT.ECS.PR.4]: Require Amazon ECS tasks to use 'awsvpc' networking mode
-            [FIX]: Set 'NetworkMode' to 'awsvpc' for Amazon ECS tasks that deploy to Amazon EC2 or AWS Fargate.
+        [FIX]: Set 'NetworkMode' to 'awsvpc' for Amazon ECS tasks that deploy to Amazon EC2 or AWS Fargate.
         >>
 }
 
@@ -80,7 +80,7 @@ rule ecs_awsvpc_networking_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ECS_
     check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.4]: Require Amazon ECS tasks to use 'awsvpc' networking mode
-            [FIX]: Set 'NetworkMode' to 'awsvpc' for Amazon ECS tasks that deploy to Amazon EC2 or AWS Fargate.
+        [FIX]: Set 'NetworkMode' to 'awsvpc' for Amazon ECS tasks that deploy to Amazon EC2 or AWS Fargate.
         >>
 }
 

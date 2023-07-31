@@ -27,11 +27,12 @@
             ]
         }
     ],
+    "ConfigRuleIdentifier": "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
     "ControlOwner": "AWS Control Tower",
     "DeploymentMechanism": "AWS CloudFormation Hook",
     "DeploymentOwner": "AWS Control Tower",
-    "Description": "This control checks whether security groups that allow unrestricted incoming traffic ('0.0.0.0/0' or '::/0'), only allow inbound TCP or UDP connections on authorized ports.",
-    "DisplayName": "Require an Amazon EC2 security group to allow incoming traffic on authorized ports only",
+    "Description": "This control checks whether the Amazon EC2 security group rule contains the string '0.0.0.0/0' or '::/0' as a source IP range. This control is not triggered if a rule allows connection to port 80 or 443 with TCP, UDP, ICMP, or ICMPv6.",
+    "DisplayName": "Require that any Amazon EC2 security group rule does not use the source IP range 0.0.0.0/0 or ::/0 for ports other than 80 and 443",
     "DocumentationReferences": [
         {
             "DisplayName": "Instructions for configuring VPC Security Groups",
@@ -69,9 +70,33 @@
         }
     ],
     "ReleaseDate": "2022-11-28",
-    "RemediationMessage": "Ensure that security groups with ingress rules that allow TCP or UDP traffic from '0.0.0.0/0' or ' only allow traffic from ports 80 or 443.",
+    "RemediationMessage": "Ensure that security groups with ingress rules that allow TCP or UDP traffic from '0.0.0.0/0' or '::/0' only allow traffic to ports 80 or 443. The use of managed prefix lists is not supported.",
     "Severity": "HIGH",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
     "TargetOuType": "CUSTOM",
-    "Version": "1",
+    "Version": "2",
     "Visibility": "PUBLIC"
 }

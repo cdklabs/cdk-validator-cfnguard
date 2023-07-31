@@ -62,7 +62,7 @@ rule s3_lifecycle_policy_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%s3_buckets.Properties)
         <<
         [CT.S3.PR.6]: Require an Amazon S3 bucket to have lifecycle policies configured
-            [FIX]: Configure at least one active lifecycle rule in 'LifecycleConfiguration.Rules' by setting 'Status' on a rule to 'Enabled'.
+        [FIX]: Configure at least one active lifecycle rule in 'LifecycleConfiguration.Rules' by setting 'Status' on a rule to 'Enabled'.
         >>
 }
 
@@ -70,7 +70,7 @@ rule s3_lifecycle_policy_check when is_cfn_hook(%INPUT_DOCUMENT, %S3_BUCKET_TYPE
     check(%INPUT_DOCUMENT.%S3_BUCKET_TYPE.resourceProperties)
         <<
         [CT.S3.PR.6]: Require an Amazon S3 bucket to have lifecycle policies configured
-            [FIX]: Configure at least one active lifecycle rule in 'LifecycleConfiguration.Rules' by setting 'Status' on a rule to 'Enabled'.
+        [FIX]: Configure at least one active lifecycle rule in 'LifecycleConfiguration.Rules' by setting 'Status' on a rule to 'Enabled'.
         >>
 }
 

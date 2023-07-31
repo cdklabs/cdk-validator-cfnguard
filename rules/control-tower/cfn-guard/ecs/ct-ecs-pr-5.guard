@@ -68,7 +68,7 @@ rule ecs_task_definition_log_configuration_check when is_cfn_template(%INPUT_DOC
     check(%ecs_task_definitions.Properties)
         <<
         [CT.ECS.PR.5]: Require an active Amazon ECS task definition to have a logging configuration
-            [FIX]: For each container definition, within 'LogConfiguration' set the 'LogDriver' property to a supported log driver.
+        [FIX]: For each container definition, within 'LogConfiguration' set the 'LogDriver' property to a supported log driver.
         >>
 }
 
@@ -76,7 +76,7 @@ rule ecs_task_definition_log_configuration_check when is_cfn_hook(%INPUT_DOCUMEN
     check(%INPUT_DOCUMENT.%ECS_TASK_DEFINITION_TYPE.resourceProperties)
         <<
         [CT.ECS.PR.5]: Require an active Amazon ECS task definition to have a logging configuration
-            [FIX]: For each container definition, within 'LogConfiguration' set the 'LogDriver' property to a supported log driver.
+        [FIX]: For each container definition, within 'LogConfiguration' set the 'LogDriver' property to a supported log driver.
         >>
 }
 

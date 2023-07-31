@@ -1,0 +1,99 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   cloudwatch_log_group_retention_period_check
+# 
+# Description:
+#   This control checks whether an Amazon CloudWatch Log Group retention period is set to a value greater than or equal to 365 days.
+# 
+# Reports on:
+#   AWS::Logs::LogGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any CloudWatch log group resources
+#     Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudWatch log group resource
+#       And: 'RetentionInDays' has been provided and set to a non integer value or
+#            integer value less than 365
+#     Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a CloudWatch log group resource
+#       And: 'RetentionInDays' has not been provided
+#     Then: PASS
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation Hook Document
+#       And: The input document contains a CloudWatch log group resource
+#       And: 'RetentionInDays' has been provided and set to an integer value greater than or equal to 365
+#     Then: PASS
+
+#
+# Constants
+#
+let CLOUDWATCH_LOGS_TYPE = "AWS::Logs::LogGroup"
+let MINIMUM_RETENTION_IN_DAYS = 365
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let cloudwatch_log_groups = Resources.*[ Type == %CLOUDWATCH_LOGS_TYPE ]
+
+#
+# Primary Rules
+#
+rule cloudwatch_log_group_retention_period_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                      %cloudwatch_log_groups not empty {
+    check(%cloudwatch_log_groups.Properties)
+        <<
+        [CT.CLOUDWATCH.PR.2]: Require an Amazon CloudWatch log group to be retained for at least one year
+        [FIX]: Omit the field value of 'RetentionInDays' to adopt the default retention setting of 'Never expire', or set 'RetentionInDays' to an integer value greater than or equal to 365.
+        >>
+}
+
+rule cloudwatch_log_group_retention_period_check when is_cfn_hook(%INPUT_DOCUMENT, %CLOUDWATCH_LOGS_TYPE) {
+    check(%INPUT_DOCUMENT.%CLOUDWATCH_LOGS_TYPE.resourceProperties)
+        <<
+        [CT.CLOUDWATCH.PR.2]: Require an Amazon CloudWatch log group to be retained for at least one year
+        [FIX]: Omit the field value of 'RetentionInDays' to adopt the default retention setting of 'Never expire', or set 'RetentionInDays' to an integer value greater than or equal to 365.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(cloudwatch_log_group){
+    %cloudwatch_log_group {
+        # Scenario 3
+        RetentionInDays not exists or
+
+        # Scenarios 2 and 4
+        RetentionInDays >= %MINIMUM_RETENTION_IN_DAYS
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

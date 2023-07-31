@@ -107,7 +107,7 @@ rule iam_inline_policy_no_statements_with_full_access_check when is_cfn_template
     check_policy(%iam_policies.Properties)
         <<
         [CT.IAM.PR.5]: Require that AWS Identity and Access Management (IAM) inline policies do not have wildcard service actions
-            [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
+        [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
         >>
 }
 
@@ -115,7 +115,7 @@ rule iam_inline_policy_no_statements_with_full_access_check when is_cfn_hook(%IN
     check_policy(%INPUT_DOCUMENT.%AWS_IAM_POLICY_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.5]: Require that AWS Identity and Access Management (IAM) inline policies do not have wildcard service actions
-            [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
+        [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
         >>
 }
 
@@ -124,7 +124,7 @@ rule iam_inline_policy_no_statements_with_full_access_check when is_cfn_template
     check_principal(%iam_principals.Properties)
         <<
         [CT.IAM.PR.5]: Require that AWS Identity and Access Management (IAM) inline policies do not have wildcard service actions
-            [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
+        [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
         >>
 }
 
@@ -132,7 +132,7 @@ rule iam_inline_policy_no_statements_with_full_access_check when is_cfn_hook(%IN
     check_principal(%INPUT_DOCUMENT.%AWS_IAM_ROLE_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.5]: Require that AWS Identity and Access Management (IAM) inline policies do not have wildcard service actions
-            [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
+        [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
         >>
 }
 
@@ -140,7 +140,7 @@ rule iam_inline_policy_no_statements_with_full_access_check when is_cfn_hook(%IN
     check_principal(%INPUT_DOCUMENT.%AWS_IAM_USER_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.5]: Require that AWS Identity and Access Management (IAM) inline policies do not have wildcard service actions
-            [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
+        [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
         >>
 }
 
@@ -148,7 +148,7 @@ rule iam_inline_policy_no_statements_with_full_access_check when is_cfn_hook(%IN
     check_principal(%INPUT_DOCUMENT.%AWS_IAM_GROUP_TYPE.resourceProperties)
         <<
         [CT.IAM.PR.5]: Require that AWS Identity and Access Management (IAM) inline policies do not have wildcard service actions
-            [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
+        [FIX]: Remove statements from AWS IAM inline policies with "Effect": "Allow" and "Action": "service:*" or "Effect": "Allow" and "NotAction".
         >>
 }
 

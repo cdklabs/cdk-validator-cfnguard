@@ -58,7 +58,7 @@ rule rds_cluster_default_admin_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%db_clusters.Properties)
         <<
         [CT.RDS.PR.21]: Require an Amazon RDS DB cluster to have a unique administrator username
-            [FIX]: Set 'MasterUsername' to a value other than 'admin' or 'postgres'.
+        [FIX]: Set 'MasterUsername' to a value other than 'admin' or 'postgres'.
         >>
 }
 
@@ -66,7 +66,7 @@ rule rds_cluster_default_admin_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_C
     check(%INPUT_DOCUMENT.%RDS_DB_CLUSTER_TYPE.resourceProperties)
         <<
         [CT.RDS.PR.21]: Require an Amazon RDS DB cluster to have a unique administrator username
-            [FIX]: Set 'MasterUsername' to a value other than 'admin' or 'postgres'.
+        [FIX]: Set 'MasterUsername' to a value other than 'admin' or 'postgres'.
         >>
 }
 

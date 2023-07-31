@@ -79,7 +79,7 @@ rule alb_desync_mode_check when is_cfn_template(%INPUT_DOCUMENT)
     check(%elastic_load_balancers.Properties)
         <<
         [CT.ELASTICLOADBALANCING.PR.3]: Require any application load balancer to have defensive or strictest desync mitigation mode activated
-            [FIX]: Omit the load balancer attribute 'routing.http.desync_mitigation_mode' or set the attribute to one of 'defensive' or 'strictest'.
+        [FIX]: Omit the load balancer attribute 'routing.http.desync_mitigation_mode' or set the attribute to one of 'defensive' or 'strictest'.
         >>
 
 }
@@ -89,7 +89,7 @@ rule alb_desync_mode_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTIC_LOAD_BALAN
     check(%INPUT_DOCUMENT.%ELASTIC_LOAD_BALANCER_V2_TYPE.resourceProperties)
         <<
         [CT.ELASTICLOADBALANCING.PR.3]: Require any application load balancer to have defensive or strictest desync mitigation mode activated
-            [FIX]: Omit the load balancer attribute 'routing.http.desync_mitigation_mode' or set the attribute to one of 'defensive' or 'strictest'.
+        [FIX]: Omit the load balancer attribute 'routing.http.desync_mitigation_mode' or set the attribute to one of 'defensive' or 'strictest'.
         >>
 }
 

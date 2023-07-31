@@ -85,7 +85,7 @@ rule lambda_function_public_access_prohibited_check when is_cfn_template(%INPUT_
     check(%lambda_permissions.Properties)
         <<
         [CT.LAMBDA.PR.2]: Require AWS Lambda function policies to prohibit public access
-            [FIX]: When setting 'Principal' to '*', provide one of 'SourceAccount', 'SourceArn', or 'PrincipalOrgID'. When setting 'Principal' to a service principal (for example, s3.amazonaws.com), provide one of 'SourceAccount' or 'SourceArn'.
+        [FIX]: When setting 'Principal' to '*', provide one of 'SourceAccount', 'SourceArn', or 'PrincipalOrgID'. When setting 'Principal' to a service principal (for example, s3.amazonaws.com), provide one of 'SourceAccount' or 'SourceArn'.
         >>
 }
 
@@ -93,7 +93,7 @@ rule lambda_function_public_access_prohibited_check when is_cfn_hook(%INPUT_DOCU
     check(%INPUT_DOCUMENT.%LAMBDA_PERMISSION_TYPE.resourceProperties)
         <<
         [CT.LAMBDA.PR.2]: Require AWS Lambda function policies to prohibit public access
-            [FIX]: When setting 'Principal' to '*', provide one of 'SourceAccount', 'SourceArn', or 'PrincipalOrgID'. When setting 'Principal' to a service principal (for example, s3.amazonaws.com), provide one of 'SourceAccount' or 'SourceArn'.
+        [FIX]: When setting 'Principal' to '*', provide one of 'SourceAccount', 'SourceArn', or 'PrincipalOrgID'. When setting 'Principal' to a service principal (for example, s3.amazonaws.com), provide one of 'SourceAccount' or 'SourceArn'.
         >>
 }
 
