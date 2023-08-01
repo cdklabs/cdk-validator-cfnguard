@@ -156,9 +156,13 @@ describe('CfnGuardPlugin', () => {
     expect(execMock).toHaveBeenCalledTimes(1);
     expect(execMock).toHaveBeenCalledWith(expect.arrayContaining([
       '--rules',
-      path.join(__dirname, '../rules/control-tower/cfn-guard'),
+      path.join(__dirname, '../rules/control-tower/cfn-guard/efs'),
       '--data',
       'template.json',
+    ]), { json: true });
+    expect(execMock).toHaveBeenCalledWith(expect.arrayContaining([
+      '--rules',
+      expect.not.stringContaining('s3'),
     ]), { json: true });
   });
 

@@ -144,7 +144,7 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
   private execGuard(config: GuardExecutionConfig): Pick<PolicyValidationPluginReportBeta1, 'success' | 'violations'> {
     const flags = [
       'validate',
-      ...config.rulePaths.flatMap(rule => ['--rules', rule]),
+      ...this.getRules(config.rulePaths).flatMap(rule => ['--rules', rule]),
       ...config.templatePaths.flatMap(template => ['--data', template]),
       '--output-format', 'json',
       '--show-summary', 'none',
