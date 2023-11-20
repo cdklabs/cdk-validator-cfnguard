@@ -77,6 +77,7 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
     }
     this.rulesPaths.push(...props.rules ?? []);
     const osPlatform = os.platform();
+    const osArch = os.arch();
     // guard calls it ubuntu but seems to apply to all linux
     // https://github.com/aws-cloudformation/cloudformation-guard/blob/184002cdfc0ae9e29c61995aae41b7d1f1d3b26c/install-guard.sh#L43-L46
     const platform = osPlatform === 'linux'
@@ -86,7 +87,12 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
     if (!platform) {
       throw new Error(`${os.platform()} not supported, must be either 'darwin' or 'linux'`);
     }
-    this.guard = path.join(__dirname, '..', 'bin', platform, 'cfn-guard');
+
+    if (!['arm64', 'x64'].includes(osArch)) {
+      throw new Error(`${osArch} not supported, must be either 'arm64' or x86_64`);
+    }
+
+    this.guard = path.join(__dirname, '..', 'bin', platform, osArch, 'cfn-guard');
     this.ruleIds = this.rulesPaths.flatMap(rule => {
       const parsed = path.parse(rule);
       if (rule === defaultRulesPath || parsed.dir.startsWith(defaultRulesPath)) {

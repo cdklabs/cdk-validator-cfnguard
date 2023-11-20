@@ -63,7 +63,7 @@ describe('CfnGuardPlugin', () => {
     expect(validator.ruleIds).toEqual(['efsrule', 's3rule']);
     expect(execMock).toHaveBeenCalledTimes(1);
     expect(execMock).toHaveBeenNthCalledWith(1, expect.arrayContaining([
-      expect.stringMatching(/.*bin\/\w+\/cfn-guard$/),
+      expect.stringMatching(/.*bin\/\w+\/\w+\/cfn-guard$/),
       '--rules',
       path.join(__dirname, '../rules/control-tower/cfn-guard'),
       '--data',
