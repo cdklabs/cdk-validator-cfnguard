@@ -346,9 +346,6 @@
       },
       "steps": [
         {
-          "exec": "npx npm-check-updates@latest --upgrade --target=minor --peer --dep=prod,peer --filter=aws-cdk-lib"
-        },
-        {
           "exec": "yarn install --check-files"
         },
         {
@@ -369,9 +366,6 @@
         "CI": "0"
       },
       "steps": [
-        {
-          "exec": "npx npm-check-updates@latest --upgrade --target=latest --peer --dep=dev,peer,prod,optional --filter=cdklabs-projen-project-types,projen"
-        },
         {
           "exec": "yarn install --check-files"
         },
@@ -394,13 +388,10 @@
       },
       "steps": [
         {
-          "exec": "npx npm-check-updates@latest --upgrade --target=minor --peer --dep=dev --filter=@octokit/rest,@octokit/types,@types/jest,@types/mock-fs,@types/node,@typescript-eslint/eslint-plugin,@typescript-eslint/parser,aws-cdk-lib,cdklabs-projen-project-types,constructs,eslint-import-resolver-typescript,eslint-plugin-import,eslint,fs-extra,jest,jest-junit,jsii-diff,jsii-docgen,jsii-pacmak,klaw,mock-fs,npm-check-updates,projen,standard-version,ts-jest,ts-node,typescript"
-        },
-        {
           "exec": "yarn install --check-files"
         },
         {
-          "exec": "yarn upgrade @octokit/rest @octokit/types @types/jest @types/mock-fs @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser aws-cdk-lib cdklabs-projen-project-types constructs eslint-import-resolver-typescript eslint-plugin-import eslint fs-extra jest jest-junit jsii-diff jsii-docgen jsii-pacmak klaw mock-fs npm-check-updates projen standard-version ts-jest ts-node typescript"
+          "exec": "yarn upgrade @octokit/rest @octokit/types @types/jest @types/mock-fs @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser aws-cdk-lib cdklabs-projen-project-types constructs eslint-import-resolver-typescript eslint-plugin-import eslint fs-extra jest jest-junit jsii-diff jsii-docgen jsii-pacmak klaw mock-fs projen standard-version ts-jest ts-node typescript"
         },
         {
           "exec": "npx projen"
