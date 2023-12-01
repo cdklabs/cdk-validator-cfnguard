@@ -1,0 +1,198 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   rds_db_parameter_group_tls_check
+# 
+# Description:
+#   This control checks whether an RDS DB parameter group requires Transport Layer Security (TLS) connections, for supported engine types.
+# 
+# Reports on:
+#   AWS::RDS::DBParameterGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any RDS DB parameter group resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB parameter group resource
+#       And: 'Family' has not been provided or has been provided and set to an RDS DB
+#            parameter group family other than one with support for requiring TLS connections
+#            ('mariadb' - excluding mariadb families 10.0 to 10.4, 'mysql' - excluding mysql
+#            families 5.5 to 5.6, 'postgres' or 'sqlserver')
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB parameter group resource
+#       And: 'Family' has been provided and set to RDS parameter group families 'mariadb'
+#            (excluding families 10.0 to 10.4) or 'mysql' (excluding families 5.5 to 5.6)
+#       And: In 'Parameters', 'require_secure_transport' has not been provided, or
+#            has been provided and set to a value other than a boolean true value
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB parameter group resource
+#       And: 'Family' has been provided and set to RDS parameter group families 'sqlserver' or 'postgres'
+#       And: In 'Parameters', 'rds.force_ssl' has not been provided, or has been provided
+#            and set to a value other than a boolean true value
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB parameter group resource
+#       And: 'Family' has been provided and set to RDS parameter group families 'mariadb'
+#            (excluding families 10.0 to 10.4) or 'mysql' (excluding families 5.5 to 5.6)
+#       And: In 'Parameters', 'require_secure_transport' has been provided and set to
+#            a boolean true value
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an RDS DB parameter group resource
+#       And: 'Family' has been provided and set to RDS parameter group families 'sqlserver' or 'postgres'
+#       And: In 'Parameters', 'rds.force_ssl' has been provided and set to
+#            a boolean true value
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let RDS_DB_PARAMETER_GROUP_TYPE = "AWS::RDS::DBParameterGroup"
+
+let MYSQL_PG_FAMILY = /^mysql/
+let MARIADB_PG_FAMILY = /^mariadb/
+let POSTGRES_PG_FAMILY = /^postgres/
+let SQLSERVER_PG_FAMILY = /^sqlserver/
+
+let MYSQL_FAMILIES_WITH_NO_SECURE_TRANSPORT_SUPPORT = [
+    "mysql5.5",
+    "mysql5.6"
+]
+let MARIADB_FAMILIES_WITH_NO_SECURE_TRANSPORT_SUPPORT = [
+    "mariadb10.0",
+    "mariadb10.1",
+    "mariadb10.2",
+    "mariadb10.3",
+    "mariadb10.4"
+]
+let BOOLEAN_TRUE_VALUES = [
+    true,
+    1, "1",
+    "true", "True", "TRUE",
+    "on", "On", "ON"
+]
+
+#
+# Assignments
+#
+let rds_db_parameter_groups = Resources.*[ Type == %RDS_DB_PARAMETER_GROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule rds_db_parameter_group_tls_check when is_cfn_template(%INPUT_DOCUMENT)
+                                           %rds_db_parameter_groups not empty {
+    check(%rds_db_parameter_groups.Properties)
+        <<
+        [CT.RDS.PR.28]: Require an Amazon RDS DB parameter group to require Transport Layer Security (TLS) connections for supported engine types
+        [FIX]: For RDS DB instance parameter groups with 'mysql' and 'mariadb' families, in 'Parameters', set 'require_secure_transport' to 'true'. For RDS DB instance parameter groups with 'postgres' and 'sqlserver' families, in 'Parameters', set 'rds.force_ssl' to 'true'.
+        >>
+}
+
+rule rds_db_parameter_group_tls_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_PARAMETER_GROUP_TYPE) {
+    check(%INPUT_DOCUMENT.%RDS_DB_PARAMETER_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.RDS.PR.28]: Require an Amazon RDS DB parameter group to require Transport Layer Security (TLS) connections for supported engine types
+        [FIX]: For RDS DB instance parameter groups with 'mysql' and 'mariadb' families, in 'Parameters', set 'require_secure_transport' to 'true'. For RDS DB instance parameter groups with 'postgres' and 'sqlserver' families, in 'Parameters', set 'rds.force_ssl' to 'true'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(rds_parameter_group) {
+    %rds_parameter_group [
+        # Scenario 2
+        filter_pg_mysql_maria_families(this)
+    ] {
+        # Scenarios 3 and 5
+        Parameters exists
+        Parameters is_struct
+        Parameters {
+            require_secure_transport exists
+            require_secure_transport in %BOOLEAN_TRUE_VALUES
+        }
+    }
+
+    %rds_parameter_group [
+        # Scenario 2
+        filter_pg_postgres_sqlserver_families(this)
+    ] {
+        # Scenarios 4 and 6
+        Parameters exists
+        Parameters is_struct
+        Parameters {
+            "rds.force_ssl" exists
+            "rds.force_ssl" in %BOOLEAN_TRUE_VALUES
+        }
+    }
+}
+
+rule filter_pg_mysql_maria_families(parameter_group) {
+    %parameter_group {
+        Family exists
+        filter_mysql_family(this) or
+        filter_mariadb_family(this)
+    }
+}
+
+rule filter_mysql_family(parameter_group) {
+    %parameter_group {
+        Family in %MYSQL_PG_FAMILY
+        Family not in %MYSQL_FAMILIES_WITH_NO_SECURE_TRANSPORT_SUPPORT
+    }
+}
+
+rule filter_mariadb_family(parameter_group) {
+    %parameter_group {
+        Family in %MARIADB_PG_FAMILY
+        Family not in %MARIADB_FAMILIES_WITH_NO_SECURE_TRANSPORT_SUPPORT
+    }
+}
+
+rule filter_pg_postgres_sqlserver_families(parameter_group) {
+    %parameter_group {
+        Family exists
+        Family in %POSTGRES_PG_FAMILY or
+        Family in %SQLSERVER_PG_FAMILY
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_list_and_not_empty(value) {
+    %value {
+        this is_list
+        this not empty
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

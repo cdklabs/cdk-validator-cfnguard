@@ -1,0 +1,122 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Name:
+#   kms_asymmetric_rsa_keyspec_check
+# 
+# Description:
+#   This control checks whether an AWS KMS asymmetric key with RSA key material, which is used for encryption and decryption, to use a key spec with a key length greater than 2048 bits (that is, a key spec other than 'RSA_2048').
+# 
+# Reports on:
+#   AWS::KMS::Key
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any KMS Key resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS Key resource
+#       And: 'KeyUsage' has been provided and is a value other than 'ENCRYPT_DECRYPT'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS Key resource
+#       And: 'KeyUsage' has not been provided or has been provided and is set to 'ENCRYPT_DECRYPT'
+#       And: 'KeySpec' has not been provided or has been provided and is set to a
+#            key spec other than an RSA key spec (does not begin with 'RSA_')
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS Key resource
+#       And: 'KeyUsage' has not been provided or has been provided and is set to 'ENCRYPT_DECRYPT'
+#       And: 'KeySpec' has been provided and is set to an RSA key spec (begins with 'RSA_')
+#       And: 'KeySpec' has been set to a disallowed RSA key spec ('RSA_2048')
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS Key resource
+#       And: 'KeyUsage' has not been provided or has been provided and is set to 'ENCRYPT_DECRYPT'
+#       And: 'KeySpec' has been provided and is set to an RSA key spec (begins with 'RSA_')
+#       And: 'KeySpec' has not been set to a disallowed RSA key spec ('RSA_2048')
+#      Then: PASS
+
+#
+# Constants
+#
+let KMS_KEY_TYPE = "AWS::KMS::Key"
+let RSA_KEYSPEC_PATTERN = /^RSA_/
+let ENCRYPTION_KEY_USAGE = "ENCRYPT_DECRYPT"
+let DISALLOWED_RSA_KEYSPECS = [ "RSA_2048" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let kms_keys = Resources.*[ Type == %KMS_KEY_TYPE ]
+
+#
+# Primary Rules
+#
+rule kms_asymmetric_rsa_keyspec_check when is_cfn_template(%INPUT_DOCUMENT)
+                                           %kms_keys not empty {
+    check(%kms_keys.Properties)
+        <<
+        [CT.KMS.PR.2]: Require that an AWS KMS asymmetric key with RSA key material used for encryption has a key length greater than 2048 bits
+        [FIX]: For KMS keys with an RSA keyspec, which are configured for encryption and decryption ('KeyUsage' of 'ENCRYPT_DECRYPT'), set the 'KeySpec' parameter to a key spec other than 'RSA_2048'.
+        >>
+}
+
+rule kms_asymmetric_rsa_keyspec_check when is_cfn_hook(%INPUT_DOCUMENT, %KMS_KEY_TYPE) {
+    check(%INPUT_DOCUMENT.%KMS_KEY_TYPE.resourceProperties)
+        <<
+        [CT.KMS.PR.2]: Require that an AWS KMS asymmetric key with RSA key material used for encryption has a key length greater than 2048 bits
+        [FIX]: For KMS keys with an RSA keyspec, which are configured for encryption and decryption ('KeyUsage' of 'ENCRYPT_DECRYPT'), set the 'KeySpec' parameter to a key spec other than 'RSA_2048'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(kms_keys) {
+    %kms_keys[
+        # Scenarios 2 and 3
+        filter_is_kms_rsa_asymmetric_encryption_key(this)
+    ] {
+        # Scenario 4 and 5
+        KeySpec exists
+        KeySpec not in %DISALLOWED_RSA_KEYSPECS
+    }
+}
+
+rule filter_is_kms_rsa_asymmetric_encryption_key(kms_key) {
+    %kms_key {
+        KeyUsage not exists or
+        KeyUsage == %ENCRYPTION_KEY_USAGE
+
+        KeySpec exists
+        KeySpec == %RSA_KEYSPEC_PATTERN
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

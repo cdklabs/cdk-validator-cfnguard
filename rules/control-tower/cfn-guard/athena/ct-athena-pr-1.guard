@@ -1,0 +1,135 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   athena_workgroup_results_encrypted_at_rest_check
+# 
+# Description:
+#   This control checks whether an Amazon Athena workgroup requires query results to be encrypted at rest.
+# 
+# Reports on:
+#   AWS::Athena::WorkGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Athena workgroup resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Athena workgroup resource
+#       And: 'EnforceWorkGroupConfiguration' in 'WorkGroupConfiguration' has been provided and
+#            set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Athena workgroup resource
+#       And: 'EnforceWorkGroupConfiguration' in 'WorkGroupConfiguration' has not been provided or provided
+#            and set to bool(true)
+#       And: 'EncryptionConfiguration' in 'WorkGroupConfiguration.ResultConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Athena workgroup resource
+#       And: 'EnforceWorkGroupConfiguration' in 'WorkGroupConfiguration' has not been provided or provided
+#            and set to bool(true)
+#       And: 'EncryptionConfiguration' in 'WorkGroupConfiguration.ResultConfiguration' has been provided
+#       And: 'EncryptionOption' in 'EncryptionConfiguration' has not been provided or provided as an empty string
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Athena workgroup resource
+#       And: 'EnforceWorkGroupConfiguration' in 'WorkGroupConfiguration' has not been provided or provided
+#            and set to bool(true)
+#       And: 'EncryptionConfiguration' in 'WorkGroupConfiguration.ResultConfiguration' has been provided
+#       And: 'EncryptionOption' in 'EncryptionConfiguration' has been provided as a non-empty string
+#      Then: PASS
+
+#
+# Constants
+#
+let ATHENA_WORKGROUP_TYPE = "AWS::Athena::WorkGroup"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let athena_workgroups = Resources.*[ Type == %ATHENA_WORKGROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule athena_workgroup_results_encrypted_at_rest_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                           %athena_workgroups not empty {
+    check(%athena_workgroups.Properties)
+        <<
+        [CT.ATHENA.PR.1]: Require an Amazon Athena workgroup to encrypt Athena query results at rest
+        [FIX]: In the 'WorkGroupConfiguration.ResultConfiguration' parameter, provide an 'EncryptionConfiguration' configuration with an 'EncryptionOption' value set to one of 'CSE_KMS', 'SSE_KMS' or 'SSE_S3'.
+        >>
+}
+
+rule athena_workgroup_results_encrypted_at_rest_check when is_cfn_hook(%INPUT_DOCUMENT, %ATHENA_WORKGROUP_TYPE) {
+    check(%INPUT_DOCUMENT.%ATHENA_WORKGROUP_TYPE.resourceProperties)
+        <<
+        [CT.ATHENA.PR.1]: Require an Amazon Athena workgroup to encrypt Athena query results at rest
+        [FIX]: In the 'WorkGroupConfiguration.ResultConfiguration' parameter, provide an 'EncryptionConfiguration' configuration with an 'EncryptionOption' value set to one of 'CSE_KMS', 'SSE_KMS' or 'SSE_S3'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(athena_workgroup) {
+    %athena_workgroup {
+        WorkGroupConfiguration exists
+        WorkGroupConfiguration is_struct
+
+        WorkGroupConfiguration {
+            # Scenario 2
+            EnforceWorkGroupConfiguration not exists or
+            EnforceWorkGroupConfiguration == true
+
+            ResultConfiguration exists
+            ResultConfiguration is_struct
+            ResultConfiguration {
+                # Scenario 3
+                EncryptionConfiguration exists
+                EncryptionConfiguration is_struct
+
+                EncryptionConfiguration {
+                    # Scenarios 4 and 5
+                    EncryptionOption exists
+                    check_is_string_and_not_empty(EncryptionOption)
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}

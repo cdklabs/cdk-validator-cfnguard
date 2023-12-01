@@ -1,0 +1,183 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   emr_sec_config_encryption_at_rest_s3_kms_check
+# 
+# Description:
+#   This control checks whether an Amazon EMR security configuration is configured to encrypt EMR File System (EMRFS) objects at rest in Amazon S3 with an AWS KMS key.
+# 
+# Reports on:
+#   AWS::EMR::SecurityConfiguration
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EMR security configuration resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has not been provided
+#            or has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has been provided as a struct
+#       And: 'EncryptionMode' in 'AtRestEncryptionConfiguration.S3EncryptionConfiguration'
+#            has not been provided or has been provided and set to a value other than
+#            a KMS-based encryption mode ('SSE-KMS', 'CSE-KMS')
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has been provided as a struct
+#       And: 'EncryptionMode' in 'AtRestEncryptionConfiguration.S3EncryptionConfiguration'
+#            has been provided and set to a KMS-based encryption mode ('SSE-KMS', 'CSE-KMS')
+#       And: 'Overrides' in 'AtRestEncryptionConfiguration.S3EncryptionConfiguration' has been
+#            provided as a non-empty list where one or more entries does not contain 'EncryptionMode',
+#            or contains 'EncryptionMode' set to a value other than a KMS-based encryption mode
+#            ('SSE-KMS', 'CSE-KMS')
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has been provided as a struct
+#       And: 'EncryptionMode' in 'AtRestEncryptionConfiguration.S3EncryptionConfiguration'
+#            has been provided and set to a KMS-based encryption mode ('SSE-KMS', 'CSE-KMS')
+#       And: 'Overrides' in 'AtRestEncryptionConfiguration.S3EncryptionConfiguration' has not
+#            been provided, or has been provided as an empty list, or list where every entry
+#            contains 'EncryptionMode' set to a KMS-based encryption mode ('SSE-KMS', 'CSE-KMS')
+#      Then: PASS
+
+#
+# Constants
+#
+let EMR_SECURITY_CONFIGURATION_TYPE = "AWS::EMR::SecurityConfiguration"
+let S3_KMS_ENCRYPTION_MODES = [ "SSE-KMS", "CSE-KMS" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let emr_security_configurations = Resources.*[ Type == %EMR_SECURITY_CONFIGURATION_TYPE ]
+
+#
+# Primary Rules
+#
+rule emr_sec_config_encryption_at_rest_s3_kms_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                         %emr_security_configurations not empty {
+    check(%emr_security_configurations.Properties)
+        <<
+        [CT.EMR.PR.2]: Require that an Amazon Elastic MapReduce (EMR) security configuration is configured to encrypt data at rest in Amazon S3 with an AWS KMS key
+        [FIX]: In the 'EncryptionConfiguration' parameter, set 'EnableAtRestEncryption' to true, and provide an 'AtRestEncryptionConfiguration' configuration, with 'EncryptionMode' set to 'SSE-KMS' or 'CSE-KMS'.
+        >>
+}
+
+rule emr_sec_config_encryption_at_rest_s3_kms_check when is_cfn_hook(%INPUT_DOCUMENT, %EMR_SECURITY_CONFIGURATION_TYPE) {
+    check(%INPUT_DOCUMENT.%EMR_SECURITY_CONFIGURATION_TYPE.resourceProperties)
+        <<
+        [CT.EMR.PR.2]: Require that an Amazon Elastic MapReduce (EMR) security configuration is configured to encrypt data at rest in Amazon S3 with an AWS KMS key
+        [FIX]: In the 'EncryptionConfiguration' parameter, set 'EnableAtRestEncryption' to true, and provide an 'AtRestEncryptionConfiguration' configuration, with 'EncryptionMode' set to 'SSE-KMS' or 'CSE-KMS'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(emr_security_configuration) {
+    %emr_security_configuration {
+        SecurityConfiguration exists
+        SecurityConfiguration is_struct
+
+        SecurityConfiguration {
+            # Scenario 2
+            EncryptionConfiguration exists
+            EncryptionConfiguration is_struct
+
+            EncryptionConfiguration {
+                # Scenario 3
+                EnableAtRestEncryption exists
+                EnableAtRestEncryption == true
+
+                # Scenario 4
+                AtRestEncryptionConfiguration exists
+                AtRestEncryptionConfiguration is_struct
+
+                # Scenarios 5, 6 and 7
+                AtRestEncryptionConfiguration {
+                    S3EncryptionConfiguration exists
+                    S3EncryptionConfiguration is_struct
+
+                    let s3_encryption_configuration = S3EncryptionConfiguration
+
+                    %s3_encryption_configuration {
+                        check_kms_key_configuration(this)
+                    }
+
+                    %s3_encryption_configuration [
+                        Overrides exists
+                        Overrides is_list
+                        Overrides not empty
+                    ] {
+                        Overrides[*] {
+                            check_kms_key_configuration(this)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+rule check_kms_key_configuration(s3_encryption_config) {
+    %s3_encryption_config {
+        EncryptionMode exists
+        EncryptionMode in %S3_KMS_ENCRYPTION_MODES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

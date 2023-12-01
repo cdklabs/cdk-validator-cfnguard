@@ -1,0 +1,88 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "CP-2(2)",
+                "CP-6(2)",
+                "SC-36",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon DAX cluster is configured to deploy cluster nodes to at least three Availability Zones.",
+    "DisplayName": "Require an Amazon DAX cluster to deploy nodes to at least three Availability Zones",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Scaling a DAX cluster",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DAX.cluster-management.html#DAX.cluster-management.scaling"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::DAX::Cluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon DynamoDB"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.DAX.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        },
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-10-05",
+    "RemediationMessage": "Set the 'ReplicationFactor' parameter to an integer value greater than or equal to three (>= 3), and set the 'AvailabilityZones' parameter to a list containing three unique Availability Zone entries.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

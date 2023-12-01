@@ -1,0 +1,98 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   api_gw_domain_tls_check
+# 
+# Description:
+#   This control checks whether an Amazon API Gateway REST API domain name requires a minimum Transport Layer Security protocol version of TLSv1.2 by means of its security policy.
+# 
+# Reports on:
+#   AWS::ApiGateway::DomainName
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any API Gateway domain name resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway domain name resource
+#       And: 'SecurityPolicy' has been provided and set to a security policy that allows
+#            a minimum TLS protocol version earlier than TLSv1.2
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway domain name resource
+#       And: 'SecurityPolicy' has not been provided
+#      Then: PASS
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an API Gateway domain name resource
+#       And: 'SecurityPolicy' has been provided and set to a security policy that requires
+#            a minimum TLS protocol version of TLSv1.2
+#      Then: PASS
+
+#
+# Constants
+#
+let API_GW_DOMAIN_NAME_TYPE = "AWS::ApiGateway::DomainName"
+let ALLOWED_SECURITY_POLICIES = ["TLS_1_2"]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let api_gateway_domain_names = Resources.*[ Type == %API_GW_DOMAIN_NAME_TYPE ]
+
+#
+# Primary Rules
+#
+rule api_gw_domain_tls_check when is_cfn_template(%INPUT_DOCUMENT)
+                                  %api_gateway_domain_names not empty {
+    check(%api_gateway_domain_names.Properties)
+        <<
+        [CT.APIGATEWAY.PR.6]: Require an Amazon API Gateway REST domain to use a security policy that specifies a minimum TLS protocol version of TLSv1.2
+        [FIX]: Set the value of SecurityPolicy to TLS_1_2, or to adopt the default value, do not provide a value for SecurityPolicy.
+        >>
+}
+
+rule api_gw_domain_tls_check when is_cfn_hook(%INPUT_DOCUMENT, %API_GW_DOMAIN_NAME_TYPE) {
+    check(%INPUT_DOCUMENT.%API_GW_DOMAIN_NAME_TYPE.resourceProperties)
+        <<
+        [CT.APIGATEWAY.PR.6]: Require an Amazon API Gateway REST domain to use a security policy that specifies a minimum TLS protocol version of TLSv1.2
+        [FIX]: Set the value of SecurityPolicy to TLS_1_2, or to adopt the default value, do not provide a value for SecurityPolicy.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(api_gateway_stage) {
+    %api_gateway_stage {
+        # Scenario 2, 3, 4
+        SecurityPolicy not exists or
+        SecurityPolicy in %ALLOWED_SECURITY_POLICIES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

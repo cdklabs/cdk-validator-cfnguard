@@ -1,0 +1,99 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   neptune_cluster_backup_retention_check
+# 
+# Description:
+#   This control checks whether Amazon Neptune DB clusters have configured automatic backups with a retention period set to 7 or more days (>=7). The default retention period is one day.
+# 
+# Reports on:
+#   AWS::Neptune::DBCluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Neptune DB cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Neptune DB cluster resource
+#       And: 'BackupRetentionPeriod' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Neptune DB cluster resource
+#       And: 'BackupRetentionPeriod' has been provided and set to an integer value
+#            less than seven (<7)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Neptune DB cluster resource
+#       And: 'BackupRetentionPeriod' has been provided and set to an integer value
+#            greater than or equal to seven (>=7)
+#      Then: PASS
+
+#
+# Constants
+#
+let NEPTUNE_CLUSTER_TYPE = "AWS::Neptune::DBCluster"
+let MINIMUM_BACKUP_RETENTION_PERIOD = 7
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let neptune_db_clusters = Resources.*[ Type == %NEPTUNE_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule neptune_cluster_backup_retention_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                 %neptune_db_clusters not empty {
+    check(%neptune_db_clusters.Properties)
+        <<
+        [CT.NEPTUNE.PR.5]: Require an Amazon Neptune DB cluster to set a backup retention period greater than or equal to seven days
+        [FIX]: Set the 'BackupRetentionPeriod' parameter to an integer value between 7 and 35 days (inclusive).
+        >>
+}
+
+rule neptune_cluster_backup_retention_check when is_cfn_hook(%INPUT_DOCUMENT, %NEPTUNE_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%NEPTUNE_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.NEPTUNE.PR.5]: Require an Amazon Neptune DB cluster to set a backup retention period greater than or equal to seven days
+        [FIX]: Set the 'BackupRetentionPeriod' parameter to an integer value between 7 and 35 days (inclusive).
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(neptune_cluster) {
+    %neptune_cluster {
+        # Scenario 2
+        BackupRetentionPeriod exists
+        # Scenarios 3 and 4
+        BackupRetentionPeriod >= %MINIMUM_BACKUP_RETENTION_PERIOD
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

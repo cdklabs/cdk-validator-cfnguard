@@ -1,0 +1,98 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-17(2)",
+                "AC-4",
+                "IA-5(1)",
+                "SC-12(3)",
+                "SC-13",
+                "SC-23",
+                "SC-23(3)",
+                "SC-7(4)",
+                "SC-8",
+                "SC-8(1)",
+                "SC-8(2)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.3",
+                "4.1",
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an RDS DB Proxy is configured to require Transport Layer Security (TLS) for connections to the proxy.",
+    "DisplayName": "Require an Amazon RDS DB Proxy to require Transport Layer Security (TLS) connections",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "RDS Proxy security",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.howitworks.html#rds-proxy-security"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::RDS::DBProxy"
+    ],
+    "EvaluatedServices": [
+        "Amazon RDS"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.RDS.PR.26",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.3",
+            "Name": "Encrypt data in transit"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-11-27",
+    "RemediationMessage": "Set the value of the RequireTLS property to true.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

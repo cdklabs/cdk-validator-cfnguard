@@ -52,6 +52,9 @@
     "EvaluatedServices": [
         "Amazon EC2"
     ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
     "Guidance": "Elective",
     "Id": "CT.EC2.PR.9",
     "ImplementationType": "CloudFormation guard rule",
@@ -63,7 +66,13 @@
         }
     ],
     "RegionalPreference": "REGIONAL",
-    "Relationships": [],
+    "Relationships": [
+        {
+            "ControlId": "SH.EC2.25",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
     "ReleaseDate": "2022-11-28",
     "RemediationMessage": "Set 'AssociatePublicIpAddress' to 'false' within each 'NetworkInterfaces' configuration in 'LaunchTemplateData'.",
     "Severity": "HIGH",
@@ -74,16 +83,22 @@
         "ap-northeast-2",
         "ap-northeast-3",
         "ap-south-1",
+        "ap-south-2",
         "ap-southeast-1",
         "ap-southeast-2",
         "ap-southeast-3",
+        "ap-southeast-4",
         "ca-central-1",
         "eu-central-1",
+        "eu-central-2",
         "eu-north-1",
         "eu-south-1",
+        "eu-south-2",
         "eu-west-1",
         "eu-west-2",
         "eu-west-3",
+        "il-central-1",
+        "me-central-1",
         "me-south-1",
         "sa-east-1",
         "us-east-1",

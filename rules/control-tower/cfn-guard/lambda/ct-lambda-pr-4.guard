@@ -1,0 +1,113 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   lambda_layer_public_access_prohibited_check
+# 
+# Description:
+#   This control checks whether an AWS Lambda layer permission has been configured to grant access to an AWS organization or to a specific AWS account only, by ensuring that public access from all AWS accounts has not been granted to a layer.
+# 
+# Reports on:
+#   AWS::Lambda::LayerVersionPermission
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Lambda layer version permission resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda layer version permission resource
+#       And: 'OrganizationId' has not been provided
+#       And: 'Principal' has been provided and set to '*'
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda layer version permission resource
+#       And: 'OrganizationId' has not been provided
+#       And: 'Principal' has been provided and set to a non-empty string value other than '*'
+#      Then: PASS
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda layer version permission resource
+#       And: 'OrganizationId' has been provided as a non-empty string
+#      Then: PASS
+
+#
+# Constants
+#
+let LAMBDA_LAYER_PERMISSION_TYPE = "AWS::Lambda::LayerVersionPermission"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let lambda_layer_permissions = Resources.*[ Type == %LAMBDA_LAYER_PERMISSION_TYPE ]
+
+#
+# Primary Rules
+#
+rule lambda_layer_public_access_prohibited_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                      %lambda_layer_permissions not empty {
+    check(%lambda_layer_permissions.Properties)
+        <<
+        [CT.LAMBDA.PR.4]: Require an AWS Lambda layer permission to grant access to an AWS organization or specific AWS account
+        [FIX]: Set the 'OrganizationId' parameter to the ID of an AWS organization, or set the 'Principal' parameter to an AWS account ID.
+        >>
+}
+
+rule lambda_layer_public_access_prohibited_check when is_cfn_hook(%INPUT_DOCUMENT, %LAMBDA_LAYER_PERMISSION_TYPE) {
+    check(%INPUT_DOCUMENT.%LAMBDA_LAYER_PERMISSION_TYPE.resourceProperties)
+        <<
+        [CT.LAMBDA.PR.4]: Require an AWS Lambda layer permission to grant access to an AWS organization or specific AWS account
+        [FIX]: Set the 'OrganizationId' parameter to the ID of an AWS organization, or set the 'Principal' parameter to an AWS account ID.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(lambda_layer_permission) {
+    %lambda_layer_permission [
+        OrganizationId not exists
+    ] {
+        # Scenarios 2 and 3
+        Principal exists
+        check_is_string_and_not_empty(Principal)
+        Principal != "*"
+    }
+    %lambda_layer_permission [
+        OrganizationId exists
+    ] {
+        # Scenario 4
+        check_is_string_and_not_empty(OrganizationId)
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}

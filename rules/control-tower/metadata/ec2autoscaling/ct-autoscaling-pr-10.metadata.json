@@ -1,0 +1,99 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2",
+                "CM-2(2)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "AUTOSCALING_LAUNCH_TEMPLATE",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether, when using a MixedInstancesPolicy resource parameter override, an Amazon EC2 Auto Scaling group overrides launch templates by specifying AWS Nitro instance types only.",
+    "DisplayName": "Require an Amazon EC2 Auto Scaling group to use only AWS Nitro instance types when overriding a launch template",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Instances built on the Nitro System",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html#ec2-nitro-instances"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::AutoScaling::AutoScalingGroup"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2 Auto Scaling"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.AUTOSCALING.PR.10",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.4",
+            "Name": "Protect data integrity"
+        },
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "CT.EC2.PR.15",
+            "ControlOwner": "AWS Control Tower",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2023-11-27",
+    "RemediationMessage": "In the MixedInstancesPolicy.LaunchTemplate property, if it has one or more 'Overrides' fields that include 'InstanceType' or 'InstanceRequirements', set the value of 'InstanceType' to an EC2 instance type that is based on the AWS Nitro system, or set the value of 'AllowedInstanceTypes' in 'InstanceRequirements' to one or more EC2 instance types that are based on the AWS Nitro system.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

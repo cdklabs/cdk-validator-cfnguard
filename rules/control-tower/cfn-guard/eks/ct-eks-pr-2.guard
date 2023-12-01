@@ -1,0 +1,148 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   eks_secrets_encrypted_check
+# 
+# Description:
+#   This control checks whether Amazon Elastic Kubernetes Service (Amazon EKS) clusters are configured to use Kubernetes secrets encrypted with AWS Key Management Service (KMS) keys.
+# 
+# Reports on:
+#   AWS::EKS::Cluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon EKS cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EKS cluster resource
+#       And: 'EncryptionConfig' has not been provided or provided as an empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EKS cluster resource
+#       And: 'EncryptionConfig' has been provided as a non-empty list
+#       And: There are no entries in 'EncryptionConfig' where 'Resources' has been provided
+#            as a non-empty list with at least one value equal to 'secrets'
+#       And: For the same entry in 'EncryptionConfig', where 'KeyArn' in 'Provider' has been
+#            provided as a non-empty string or valid local reference to a KMS key or key alias
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon EKS cluster resource
+#       And: 'EncryptionConfig' has been provided as a non-empty list
+#       And: For at least one entry in 'EncryptionConfig', 'Resources' has been provided as a
+#            non-empty list with at least one value equal to 'secrets'
+#       And: For the same entry in 'EncryptionConfig', 'KeyArn' in 'Provider' has been provided
+#            as a non-empty string or valid local reference to a KMS key or key alias
+#      Then: PASS
+
+#
+# Constants
+#
+let EKS_CLUSTER_TYPE = "AWS::EKS::Cluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let eks_clusters = Resources.*[ Type == %EKS_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule eks_secrets_encrypted_check when is_cfn_template(%INPUT_DOCUMENT)
+                                      %eks_clusters not empty {
+    check(%eks_clusters.Properties)
+        <<
+        [CT.EKS.PR.2]: Require an Amazon EKS cluster to be configured with secret encryption using AWS Key Management Service (KMS) keys
+        [FIX]: Provide an 'EncryptionConfig' configuration with a list of 'Resources' that contains 'secrets' and a 'Provider' configuration containing a 'KeyArn'.
+        >>
+}
+
+rule eks_secrets_encrypted_check when is_cfn_hook(%INPUT_DOCUMENT, %EKS_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%EKS_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.EKS.PR.2]: Require an Amazon EKS cluster to be configured with secret encryption using AWS Key Management Service (KMS) keys
+        [FIX]: Provide an 'EncryptionConfig' configuration with a list of 'Resources' that contains 'secrets' and a 'Provider' configuration containing a 'KeyArn'.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(eks_cluster) {
+    %eks_cluster {
+        # Scenario 2
+        EncryptionConfig exists
+        EncryptionConfig is_list
+        EncryptionConfig not empty
+
+        # Scenario 3 and 4
+        some EncryptionConfig[*] {
+            Resources exists
+            Resources is_list
+            Resources not empty
+            some Resources[*] == "secrets"
+
+            Provider exists
+            Provider is_struct
+            Provider {
+                KeyArn exists
+                check_is_string_and_not_empty(KeyArn) or
+                check_local_references(%INPUT_DOCUMENT, KeyArn, "AWS::KMS::Key") or
+                check_local_references(%INPUT_DOCUMENT, KeyArn, "AWS::KMS::Alias")
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

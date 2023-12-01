@@ -1,0 +1,153 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   emr_sec_config_encryption_at_rest_s3_check
+# 
+# Description:
+#   This control checks whether an Amazon EMR security configuration is configured to encrypt EMR File System (EMRFS) objects at rest in Amazon S3.
+# 
+# Reports on:
+#   AWS::EMR::SecurityConfiguration
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1`
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EMR security configuration resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has not been provided
+#            or has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has been provided as a struct
+#       And: 'EncryptionMode' in 'AtRestEncryptionConfiguration.S3EncryptionConfiguration'
+#            has not been provided or has been provided as an empty string
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has been provided as a struct
+#       And: 'EncryptionMode' in 'AtRestEncryptionConfiguration.S3EncryptionConfiguration'
+#            has been provided as a non-empty string
+#      Then: PASS
+
+#
+# Constants
+#
+let EMR_SECURITY_CONFIGURATION_TYPE = "AWS::EMR::SecurityConfiguration"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let emr_security_configurations = Resources.*[ Type == %EMR_SECURITY_CONFIGURATION_TYPE ]
+
+#
+# Primary Rules
+#
+rule emr_sec_config_encryption_at_rest_s3_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                     %emr_security_configurations not empty {
+    check(%emr_security_configurations.Properties)
+        <<
+        [CT.EMR.PR.1]: Require that an Amazon Elastic MapReduce (EMR) security configuration is configured to encrypt data at rest in Amazon S3
+        [FIX]: In the 'EncryptionConfiguration' parameter, set the value of 'EnableAtRestEncryption' to true, and provide an 'AtRestEncryptionConfiguration' configuration.
+        >>
+}
+
+rule emr_sec_config_encryption_at_rest_s3_check when is_cfn_hook(%INPUT_DOCUMENT, %EMR_SECURITY_CONFIGURATION_TYPE) {
+    check(%INPUT_DOCUMENT.%EMR_SECURITY_CONFIGURATION_TYPE.resourceProperties)
+        <<
+        [CT.EMR.PR.1]: Require that an Amazon Elastic MapReduce (EMR) security configuration is configured to encrypt data at rest in Amazon S3
+        [FIX]: In the 'EncryptionConfiguration' parameter, set the value of 'EnableAtRestEncryption' to true, and provide an 'AtRestEncryptionConfiguration' configuration.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(emr_security_configuration) {
+    %emr_security_configuration {
+        SecurityConfiguration exists
+        SecurityConfiguration is_struct
+
+        SecurityConfiguration {
+            # Scenario 2
+            EncryptionConfiguration exists
+            EncryptionConfiguration is_struct
+
+            EncryptionConfiguration {
+                # Scenario 3
+                EnableAtRestEncryption exists
+                EnableAtRestEncryption == true
+
+                # Scenario 4
+                AtRestEncryptionConfiguration exists
+                AtRestEncryptionConfiguration is_struct
+
+                # Scenarios 5 and 6
+                AtRestEncryptionConfiguration {
+                    S3EncryptionConfiguration exists
+                    S3EncryptionConfiguration is_struct
+
+                    S3EncryptionConfiguration {
+                        EncryptionMode exists
+                        check_is_string_and_not_empty(EncryptionMode)
+                    }
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}

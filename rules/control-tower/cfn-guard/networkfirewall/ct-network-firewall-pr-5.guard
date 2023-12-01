@@ -1,0 +1,102 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   netfw_multi_az_enabled_check
+# 
+# Description:
+#   This control checks whether an AWS Network Firewall firewall is deployed across multiple Availability Zones (AZs), to permit automatic failover between AZs.
+# 
+# Reports on:
+#   AWS::NetworkFirewall::Firewall
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Network Firewall firewall resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Network Firewall firewall resource
+#       And: 'SubnetMappings' has not been specified or specified as an empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Network Firewall firewall resource
+#       And: 'SubnetMappings' has been specified
+#       And: The number of entries in 'SubnetMappings' is less than two (< 2)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Network Firewall firewall resource
+#       And: 'SubnetMappings' has been specified
+#       And: The number of entries in 'SubnetMappings' is greater than or equal to two (>= 2)
+#      Then: PASS
+
+#
+# Constants
+#
+let NETFW_FIREWALL_FIREWALL_TYPE = "AWS::NetworkFirewall::Firewall"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let netfw_firewalls = Resources.*[ Type == %NETFW_FIREWALL_FIREWALL_TYPE ]
+
+#
+# Primary Rules
+#
+rule netfw_multi_az_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                       %netfw_firewalls not empty {
+    check(%netfw_firewalls.Properties)
+        <<
+        [CT.NETWORK-FIREWALL.PR.5]: Require an AWS Network Firewall firewall to be deployed across multiple Availability Zones
+        [FIX]: In the SubnetMappings parameter, provide at least two entries that refer to subnets in different Availability Zones.
+        >>
+}
+
+rule netfw_multi_az_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %NETFW_FIREWALL_FIREWALL_TYPE) {
+    check(%INPUT_DOCUMENT.%NETFW_FIREWALL_FIREWALL_TYPE.resourceProperties)
+        <<
+        [CT.NETWORK-FIREWALL.PR.5]: Require an AWS Network Firewall firewall to be deployed across multiple Availability Zones
+        [FIX]: In the SubnetMappings parameter, provide at least two entries that refer to subnets in different Availability Zones.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(netfw_firewall) {
+    %netfw_firewall {
+        # Scenario 2
+        SubnetMappings exists
+        SubnetMappings is_list
+        SubnetMappings not empty
+
+        # Scenarios 3 and 4
+        SubnetMappings[0] exists
+        SubnetMappings[1] exists
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

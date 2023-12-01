@@ -1,0 +1,193 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   autoscaling_group_nitro_encryption_in_transit_override_check
+# 
+# Description:
+#   This control checks whether an EC2 Auto Scaling group uses AWS Nitro instance types that support network traffic encryption between instances, when overriding a launch template. The Auto Scaling group creates this override in the AWS::Autoscaling::AutoscalingGroup.MixedInstancesPolicy.LaunchTemplate parameter.
+# 
+# Reports on:
+#   AWS::AutoScaling::AutoScalingGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EC2 auto scaling group resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 auto scaling group resource
+#       And: 'Overrides' in 'MixedInstancesPolicy.LaunchTemplate' has not been provided or
+#            has been provided as an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 auto scaling group resource
+#       And: 'Overrides' in 'MixedInstancesPolicy.LaunchTemplate' has been provided as a non-empty list
+#       And: No entries in 'Overrides' include 'InstanceType' or 'InstanceRequirements'
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 auto scaling group resource
+#       And: 'Overrides' in 'MixedInstancesPolicy.LaunchTemplate' has been provided as a non-empty list
+#       And: For an entry in 'Overrides', 'InstanceType' has been provided and set to an instance type
+#            other than a Nitro instance type that supports encryption in-transit between instances
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 auto scaling group resource
+#       And: 'Overrides' in 'MixedInstancesPolicy.LaunchTemplate' has been provided as a non-empty list
+#       And: For an entry in 'Overrides', 'InstanceRequirements' has been provided
+#       And: For the same entry in 'Overrides', 'AllowedInstanceTypes' has not been provided or has been
+#            provided as an empty list
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 auto scaling group resource
+#       And: 'Overrides' in 'MixedInstancesPolicy.LaunchTemplate' has been provided as a non-empty list
+#       And: For an entry in 'Overrides', 'InstanceRequirements' has been provided
+#       And: For the same entry in 'Overrides', 'AllowedInstanceTypes' has been provided as a non-empty list
+#       And: An entry in 'AllowedInstanceTypes' is set to an instance type other than a Nitro instance type
+#            that supports encryption in-transit between instances
+#      Then: FAIL
+#   Scenario: 7
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 auto scaling group resource
+#       And: 'Overrides' in 'MixedInstancesPolicy.LaunchTemplate' has been provided as a non-empty list
+#       And: For an entry in 'Overrides', 'InstanceType' has been provided and set to a Nitro instance type
+#            that supports encryption in-transit between instances
+#      Then: PASS
+#   Scenario: 8
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 auto scaling group resource
+#       And: 'Overrides' in 'MixedInstancesPolicy.LaunchTemplate' has been provided as a non-empty list
+#       And: For an entry in 'Overrides', 'InstanceRequirements' has been provided
+#       And: For the same entry in 'Overrides', 'AllowedInstanceTypes' has been provided as a non-empty list
+#       And: Every entry in 'AllowedInstanceTypes' is set to a Nitro instance type that
+#            supports encryption in-transit between instances
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let AUTOSCALING_GROUP_TYPE = "AWS::AutoScaling::AutoScalingGroup"
+let NITRO_ENCRYPTION_IN_TRANSIT_INSTANCE_TYPES = [
+    /^c5a\..+?$/, /^c5ad\..+?$/, /^c5n\..+?$/, /^c6a\..+?$/, /^c6gn\..+?$/, /^c6i\..+?$/,
+    /^c6id\..+?$/, /^c6in\..+?$/, /^c7a\..+?$/, /^c7g\..+?$/, /^c7gd\..+?$/, /^c7gn\..+?$/,
+    /^c7i\..+?$/,
+    /^d3\..+?$/, /^d3en\..+?$/, /^dl1\..+?$/, /^dl2q\..+?$/,
+    /^g4ad\..+?$/, /^g4dn\..+?$/, /^g5\..+?$/,
+    /^hpc6a\..+?$/, /^hpc6id\..+?$/, /^hpc7a\..+?$/, /^hpc7g\..+?$/,
+    /^i3en\..+?$/, /^i4g\..+?$/, /^i4i\..+?$/, /^im4gn\..+?$/, /^inf1\..+?$/,
+    /^inf2\..+?$/, /^is4gen\..+?$/,
+    /^m5dn\..+?$/, /^m5n\..+?$/, /^m5zn\..+?$/, /^m6a\..+?$/, /^m6i\..+?$/, /^m6id\..+?$/,
+    /^m6idn\..+?$/, /^m6in\..+?$/, /^m7a\..+?$/, /^m7g\..+?$/, /^m7gd\..+?$/,
+    /^m7i-flex\..+?$/, /^m7i\..+?$/,
+    /^p3dn\..+?$/, /^p4d\..+?$/, /^p4de\..+?$/, /^p5\..+?$/,
+    /^r5dn\..+?$/, /^r5n\..+?$/, /^r6a\..+?$/, /^r6i\..+?$/, /^r6id\..+?$/, /^r6idn\..+?$/,
+    /^r6in\..+?$/, /^r7a\..+?$/, /^r7g\..+?$/, /^r7gd\..+?$/, /^r7i\..+?$/, /^r7iz\..+?$/,
+    /^trn1\..+?$/, /^trn1n\..+?$/,
+    /^u-12tb1\..+?$/, /^u-18tb1\..+?$/, /^u-24tb1\..+?$/, /^u-3tb1\..+?$/, /^u-6tb1\..+?$/,
+    /^u-9tb1\..+?$/,
+    /^vt1\..+?$/,
+    /^x2idn\..+?$/, /^x2iedn\..+?$/, /^x2iezn\..+?$/
+]
+
+#
+# Assignments
+#
+let autoscaling_groups = Resources.*[ Type == %AUTOSCALING_GROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule autoscaling_group_nitro_encryption_in_transit_override_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                                       %autoscaling_groups not empty {
+    check(%autoscaling_groups.Properties)
+        <<
+        [CT.AUTOSCALING.PR.11]: Require only AWS Nitro instance types that support network traffic encryption between instances to be added to an Amazon EC2 Auto Scaling group, when overriding a launch template
+        [FIX]: In 'MixedInstancesPolicy.LaunchTemplate' with one or more 'Overrides' that include 'InstanceType' or 'InstanceRequirements', set either 'InstanceType' to an EC2 instance type based on the AWS Nitro system that supports encryption in-transit between instances, or set 'AllowedInstanceTypes' in 'InstanceRequirements' to one or more EC2 instance types based on the AWS Nitro system that supports encryption in-transit between instances.
+        >>
+}
+
+rule autoscaling_group_nitro_encryption_in_transit_override_check when is_cfn_hook(%INPUT_DOCUMENT, %AUTOSCALING_GROUP_TYPE) {
+    check(%INPUT_DOCUMENT.%AUTOSCALING_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.AUTOSCALING.PR.11]: Require only AWS Nitro instance types that support network traffic encryption between instances to be added to an Amazon EC2 Auto Scaling group, when overriding a launch template
+        [FIX]: In 'MixedInstancesPolicy.LaunchTemplate' with one or more 'Overrides' that include 'InstanceType' or 'InstanceRequirements', set either 'InstanceType' to an EC2 instance type based on the AWS Nitro system that supports encryption in-transit between instances, or set 'AllowedInstanceTypes' in 'InstanceRequirements' to one or more EC2 instance types based on the AWS Nitro system that supports encryption in-transit between instances.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(autoscaling_group) {
+    %autoscaling_group [
+        # Scenarios 2 and 3
+        filter_launch_template_overrides(this)
+    ] {
+        MixedInstancesPolicy {
+            LaunchTemplate {
+                Overrides[ InstanceType exists ] {
+                    # Scenarios 4 and 7
+                    InstanceType in %NITRO_ENCRYPTION_IN_TRANSIT_INSTANCE_TYPES
+                }
+                Overrides[ InstanceRequirements exists ] {
+                    InstanceRequirements {
+                        # Scenarios 5, 6 and 8
+                        AllowedInstanceTypes exists
+                        AllowedInstanceTypes is_list
+                        AllowedInstanceTypes not empty
+                        AllowedInstanceTypes[*] in %NITRO_ENCRYPTION_IN_TRANSIT_INSTANCE_TYPES
+                    }
+                }
+            }
+        }
+    }
+}
+
+rule filter_launch_template_overrides(autoscaling_group) {
+    %autoscaling_group {
+        MixedInstancesPolicy exists
+        MixedInstancesPolicy is_struct
+
+        MixedInstancesPolicy {
+            LaunchTemplate exists
+            LaunchTemplate is_struct
+
+            LaunchTemplate {
+                Overrides exists
+                Overrides is_list
+                Overrides not empty
+
+                some Overrides[*] {
+                    InstanceType exists or
+                    InstanceRequirements exists
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

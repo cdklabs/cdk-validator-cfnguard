@@ -1,0 +1,123 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   msk_broker_node_tls_check
+# 
+# Description:
+#   This control checks whether an Amazon MSK cluster is configured to encrypt data in transit between broker nodes of the cluster.
+# 
+# Reports on:
+#   AWS::MSK::Cluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any MSK cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an MSK cluster resource
+#       And: 'InCluster' in 'EncryptionInfo.EncryptionInTransit' has been provided and
+#            set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an MSK cluster resource
+#       And: 'InCluster' in 'EncryptionInfo.EncryptionInTransit' has not been provided
+#      Then: PASS
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an MSK cluster resource
+#       And: 'InCluster' in 'EncryptionInfo.EncryptionInTransit' has been provided and
+#            set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let MSK_CLUSTER_TYPE = "AWS::MSK::Cluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let msk_clusters = Resources.*[ Type == %MSK_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule msk_broker_node_tls_check when is_cfn_template(%INPUT_DOCUMENT)
+                                    %msk_clusters not empty {
+    check(%msk_clusters.Properties)
+        <<
+        [CT.MSK.PR.1]: Require an Amazon Managed Streaming for Apache Kafka (MSK) cluster to enforce encryption in transit between cluster broker nodes
+        [FIX]: In the EncryptionInfo property, provide an 'EncryptionInTransit' configuration and set the value of 'InCluster' to true. Otherwise, omit the 'InCluster' property to adopt the default value of true.
+        >>
+}
+
+rule msk_broker_node_tls_check when is_cfn_hook(%INPUT_DOCUMENT, %MSK_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%MSK_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.MSK.PR.1]: Require an Amazon Managed Streaming for Apache Kafka (MSK) cluster to enforce encryption in transit between cluster broker nodes
+        [FIX]: In the EncryptionInfo property, provide an 'EncryptionInTransit' configuration and set the value of 'InCluster' to true. Otherwise, omit the 'InCluster' property to adopt the default value of true.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(msk_cluster) {
+    %msk_cluster {
+        # Scenario 3
+        EncryptionInfo not exists or
+        # Scenarios 2 and 4
+        check_encryption_info_config(this)
+    }
+}
+
+ rule check_encryption_info_config(msk_cluster) {
+     %msk_cluster {
+        EncryptionInfo exists
+        EncryptionInfo is_struct
+
+        EncryptionInfo {
+            EncryptionInTransit not exists or
+            check_encryption_in_transit_config(this)
+        }
+     }
+ }
+
+ rule check_encryption_in_transit_config(encryption_info_config) {
+     %encryption_info_config {
+        EncryptionInTransit exists
+        EncryptionInTransit is_struct
+
+        EncryptionInTransit {
+            InCluster not exists or
+            InCluster == true
+        }
+     }
+ }
+
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

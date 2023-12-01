@@ -1,0 +1,146 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   emr_sec_config_ebs_encryption_check
+# 
+# Description:
+#   This control checks whether Amazon EMR security configurations are configured with local disk encryption enabled, using EBS volume encryption and AWS KMS.
+# 
+# Reports on:
+#   AWS::EMR::SecurityConfiguration
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EMR security configuration resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has not been provided
+#            or has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has been provided as a struct
+#       And: 'EnableEbsEncryption' in 'AtRestEncryptionConfiguration.LocalDiskEncryptionConfiguration'
+#            has not been provided or has been provided and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EMR security configuration resource
+#       And: 'EncryptionConfiguration' in 'SecurityConfiguration' has been provided as a struct
+#       And: 'EnableAtRestEncryption' in 'EncryptionConfiguration' has been provided and
+#            set to bool(true)
+#       And: 'AtRestEncryptionConfiguration' has been provided as a struct
+#       And: 'EnableEbsEncryption' in 'AtRestEncryptionConfiguration.LocalDiskEncryptionConfiguration'
+#            has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let EMR_SECURITY_CONFIGURATION_TYPE = "AWS::EMR::SecurityConfiguration"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let emr_security_configurations = Resources.*[ Type == %EMR_SECURITY_CONFIGURATION_TYPE ]
+
+#
+# Primary Rules
+#
+rule emr_sec_config_ebs_encryption_check when is_cfn_template(%INPUT_DOCUMENT)
+                                              %emr_security_configurations not empty {
+    check(%emr_security_configurations.Properties)
+        <<
+        [CT.EMR.PR.3]: Require that an Amazon Elastic MapReduce (EMR) security configuration is configured with EBS volume local disk encryption using an AWS KMS key
+        [FIX]: In the 'EncryptionConfiguration' parameter, set the value of 'EnableAtRestEncryption' to true, and provide an 'AtRestEncryptionConfiguration' configuration, containing an 'LocalDiskEncryptionConfiguration' configuration that sets 'EnableEbsEncryption' to true.
+        >>
+}
+
+rule emr_sec_config_ebs_encryption_check when is_cfn_hook(%INPUT_DOCUMENT, %EMR_SECURITY_CONFIGURATION_TYPE) {
+    check(%INPUT_DOCUMENT.%EMR_SECURITY_CONFIGURATION_TYPE.resourceProperties)
+        <<
+        [CT.EMR.PR.3]: Require that an Amazon Elastic MapReduce (EMR) security configuration is configured with EBS volume local disk encryption using an AWS KMS key
+        [FIX]: In the 'EncryptionConfiguration' parameter, set the value of 'EnableAtRestEncryption' to true, and provide an 'AtRestEncryptionConfiguration' configuration, containing an 'LocalDiskEncryptionConfiguration' configuration that sets 'EnableEbsEncryption' to true.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(emr_security_configuration) {
+    %emr_security_configuration {
+        SecurityConfiguration exists
+        SecurityConfiguration is_struct
+
+        SecurityConfiguration {
+            # Scenario 2
+            EncryptionConfiguration exists
+            EncryptionConfiguration is_struct
+
+            EncryptionConfiguration {
+                # Scenario 3
+                EnableAtRestEncryption exists
+                EnableAtRestEncryption == true
+
+                # Scenario 4
+                AtRestEncryptionConfiguration exists
+                AtRestEncryptionConfiguration is_struct
+
+                # Scenarios 5 and 6
+                AtRestEncryptionConfiguration {
+                    LocalDiskEncryptionConfiguration exists
+                    LocalDiskEncryptionConfiguration is_struct
+
+                    LocalDiskEncryptionConfiguration {
+                        EnableEbsEncryption exists
+                        EnableEbsEncryption == true
+                    }
+                }
+            }
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

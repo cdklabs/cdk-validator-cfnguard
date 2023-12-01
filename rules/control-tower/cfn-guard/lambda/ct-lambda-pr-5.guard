@@ -1,0 +1,97 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   lambda_function_url_auth_check
+# 
+# Description:
+#   This control checks whether an AWS Lambda function URL is configured to use authentication that's based on AWS IAM.
+# 
+# Reports on:
+#   AWS::Lambda::Url
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Lambda function URL resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda function URL resource
+#       And: 'AuthType' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda function URL resource
+#       And: 'AuthType' been provided and set to a value other than 'AWS_IAM'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Lambda function URL resource
+#       And: 'AuthType' been provided and set to 'AWS_IAM'
+#      Then: PASS
+
+#
+# Constants
+#
+let LAMBDA_FUNCTION_URL_TYPE = "AWS::Lambda::Url"
+let AUTHORIZED_AUTHENTICATION_TYPES = ["AWS_IAM"]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let lambda_function_urls = Resources.*[ Type == %LAMBDA_FUNCTION_URL_TYPE ]
+
+#
+# Primary Rules
+#
+rule lambda_function_url_auth_check when is_cfn_template(%INPUT_DOCUMENT)
+                                         %lambda_function_urls not empty {
+    check(%lambda_function_urls.Properties)
+        <<
+        [CT.LAMBDA.PR.5]: Require an AWS Lambda function URL to use AWS IAM-based authentication
+        [FIX]: Set the 'AuthType' parameter to 'AWS_IAM'
+        >>
+}
+
+rule lambda_function_url_auth_check when is_cfn_hook(%INPUT_DOCUMENT, %LAMBDA_FUNCTION_URL_TYPE) {
+    check(%INPUT_DOCUMENT.%LAMBDA_FUNCTION_URL_TYPE.resourceProperties)
+        <<
+        [CT.LAMBDA.PR.5]: Require an AWS Lambda function URL to use AWS IAM-based authentication
+        [FIX]: Set the 'AuthType' parameter to 'AWS_IAM'
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(lambda_function_url) {
+    %lambda_function_url {
+        # Scenario 2
+        AuthType exists
+        # Scenarios 3 and 4
+        AuthType in %AUTHORIZED_AUTHENTICATION_TYPES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

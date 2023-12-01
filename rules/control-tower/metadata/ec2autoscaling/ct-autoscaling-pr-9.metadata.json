@@ -1,0 +1,94 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SC-7(10)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2",
+                "3.4",
+                "8.2.1"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Auto Scaling launch configurations with Amazon EBS volume block device mappings enable EBS volume encryption.",
+    "DisplayName": "Require an Amazon EBS volume configured through an Amazon EC2 Auto Scaling launch configuration to encrypt data at rest",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Create a launch configuration",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-launch-config.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::AutoScaling::LaunchConfiguration"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2 Auto Scaling"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.AUTOSCALING.PR.9",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [],
+    "ReleaseDate": "2023-11-27",
+    "RemediationMessage": "For every entry in the BlockDeviceMappings parameter with an 'Ebs' configuration, set the value of 'Encryption' to true.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

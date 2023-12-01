@@ -1,0 +1,91 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "CP-6(2)",
+                "SC-36",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Elastic Load Balancing v2 target group is configured so that it does not explicitly turn off cross-zone load balancing.",
+    "DisplayName": "Require that an Elastic Load Balancing v2 target group does not explicitly disable cross-zone load balancing",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Cross-zone load balancing for target groups",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/target-group-cross-zone.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::ElasticLoadBalancingV2::TargetGroup"
+    ],
+    "EvaluatedServices": [
+        "Elastic Load Balancing"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.ELASTICLOADBALANCING.PR.15",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "CT.ELASTICLOADBALANCING.PR.14",
+            "ControlOwner": "AWS Control Tower",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2023-10-05",
+    "RemediationMessage": "Do not set the load balancer attribute 'load_balancing.cross_zone.enabled' to adopt the default value of 'use_load_balancer_configuration'. Do not explicitly set the attribute to true, nor to the value 'use_load_balancer_configuration'.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

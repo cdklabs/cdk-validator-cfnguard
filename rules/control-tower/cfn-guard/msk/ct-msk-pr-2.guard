@@ -1,0 +1,136 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   msk_public_access_check
+# 
+# Description:
+#   This control checks whether an Amazon MSK cluster is configured to disallow public access to cluster brokers by means of the PublicAccess property.
+# 
+# Reports on:
+#   AWS::MSK::Cluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any MSK cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an MSK cluster resource
+#       And: 'BrokerNodeGroupInfo' has not been provided
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an MSK cluster resource
+#       And: 'BrokerNodeGroupInfo' has been provided
+#       And: 'Type' in 'ConnectivityInfo.PublicAccess' has been provided and
+#            set to a value other than 'DISABLED'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an MSK cluster resource
+#       And: 'BrokerNodeGroupInfo' has been provided
+#       And: 'Type' in 'ConnectivityInfo.PublicAccess' has not been provided
+#      Then: PASS
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an MSK cluster resource
+#       And: 'BrokerNodeGroupInfo' has been provided
+#       And: 'Type' in 'ConnectivityInfo.PublicAccess' has been provided and
+#            set to 'DISABLED'
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let MSK_CLUSTER_TYPE = "AWS::MSK::Cluster"
+let DISABLED_PUBLIC_ACCESS_TYPE = "DISABLED"
+
+#
+# Assignments
+#
+let msk_clusters = Resources.*[ Type == %MSK_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule msk_public_access_check when is_cfn_template(%INPUT_DOCUMENT)
+                                  %msk_clusters not empty {
+    check(%msk_clusters.Properties)
+        <<
+        [CT.MSK.PR.2]: Require an Amazon Managed Streaming for Apache Kafka (MSK) cluster to be configured with PublicAccess disabled
+        [FIX]: In the parameter BrokerNodeGroupInfo.ConnectivityInfo.PublicAccess, set the value of Type to DISABLED, or to adopt the default value of DISABLED, do not provide a PublicAccess configuration.
+        >>
+}
+
+rule msk_public_access_check when is_cfn_hook(%INPUT_DOCUMENT, %MSK_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%MSK_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.MSK.PR.2]: Require an Amazon Managed Streaming for Apache Kafka (MSK) cluster to be configured with PublicAccess disabled
+        [FIX]: In the parameter BrokerNodeGroupInfo.ConnectivityInfo.PublicAccess, set the value of Type to DISABLED, or to adopt the default value of DISABLED, do not provide a PublicAccess configuration.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(msk_cluster) {
+    %msk_cluster [
+        # Scenario 2
+        BrokerNodeGroupInfo exists
+        BrokerNodeGroupInfo is_struct
+    ] {
+        BrokerNodeGroupInfo {
+            # Scenarios 3, 4 and 5
+            ConnectivityInfo not exists or
+            check_connectivity_info_config(this)
+        }
+    }
+}
+
+ rule check_connectivity_info_config(broker_node_group_info) {
+     %broker_node_group_info {
+        ConnectivityInfo exists
+        ConnectivityInfo is_struct
+
+        ConnectivityInfo {
+            PublicAccess not exists or
+            check_public_access_config(this)
+        }
+     }
+ }
+
+ rule check_public_access_config(connectivity_info_config) {
+     %connectivity_info_config {
+        PublicAccess exists
+        PublicAccess is_struct
+
+        PublicAccess {
+            Type not exists or
+            Type == %DISABLED_PUBLIC_ACCESS_TYPE
+        }
+     }
+ }
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

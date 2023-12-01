@@ -1,0 +1,119 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_instance_nitro_encryption_in_transit_check
+# 
+# Description:
+#   This control checks whether an EC2 instance has been configured to run using a Nitro instance type that supports encryption in-transit between instances.
+# 
+# Reports on:
+#   AWS::EC2::Instance
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EC2 instance resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'InstanceType' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'InstanceType' been provided and set to an instance type other than a Nitro
+#            instance type that supports encryption in-transit between instances
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 instance resource
+#       And: 'InstanceType' been provided and set to a Nitro instance type that supports
+#            encryption in-transit between instances
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let EC2_INSTANCE_TYPE = "AWS::EC2::Instance"
+let NITRO_ENCRYPTION_IN_TRANSIT_INSTANCE_TYPES = [
+    /^c5a\..+?$/, /^c5ad\..+?$/, /^c5n\..+?$/, /^c6a\..+?$/, /^c6gn\..+?$/, /^c6i\..+?$/,
+    /^c6id\..+?$/, /^c6in\..+?$/, /^c7a\..+?$/, /^c7g\..+?$/, /^c7gd\..+?$/, /^c7gn\..+?$/,
+    /^c7i\..+?$/,
+    /^d3\..+?$/, /^d3en\..+?$/, /^dl1\..+?$/, /^dl2q\..+?$/,
+    /^g4ad\..+?$/, /^g4dn\..+?$/, /^g5\..+?$/,
+    /^hpc6a\..+?$/, /^hpc6id\..+?$/, /^hpc7a\..+?$/, /^hpc7g\..+?$/,
+    /^i3en\..+?$/, /^i4g\..+?$/, /^i4i\..+?$/, /^im4gn\..+?$/, /^inf1\..+?$/,
+    /^inf2\..+?$/, /^is4gen\..+?$/,
+    /^m5dn\..+?$/, /^m5n\..+?$/, /^m5zn\..+?$/, /^m6a\..+?$/, /^m6i\..+?$/, /^m6id\..+?$/,
+    /^m6idn\..+?$/, /^m6in\..+?$/, /^m7a\..+?$/, /^m7g\..+?$/, /^m7gd\..+?$/,
+    /^m7i-flex\..+?$/, /^m7i\..+?$/,
+    /^p3dn\..+?$/, /^p4d\..+?$/, /^p4de\..+?$/, /^p5\..+?$/,
+    /^r5dn\..+?$/, /^r5n\..+?$/, /^r6a\..+?$/, /^r6i\..+?$/, /^r6id\..+?$/, /^r6idn\..+?$/,
+    /^r6in\..+?$/, /^r7a\..+?$/, /^r7g\..+?$/, /^r7gd\..+?$/, /^r7i\..+?$/, /^r7iz\..+?$/,
+    /^trn1\..+?$/, /^trn1n\..+?$/,
+    /^u-12tb1\..+?$/, /^u-18tb1\..+?$/, /^u-24tb1\..+?$/, /^u-3tb1\..+?$/, /^u-6tb1\..+?$/,
+    /^u-9tb1\..+?$/,
+    /^vt1\..+?$/,
+    /^x2idn\..+?$/, /^x2iedn\..+?$/, /^x2iezn\..+?$/
+]
+
+#
+# Assignments
+#
+let ec2_instances = Resources.*[ Type == %EC2_INSTANCE_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_instance_nitro_encryption_in_transit_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                         %ec2_instances not empty {
+    check(%ec2_instances.Properties)
+        <<
+        [CT.EC2.PR.19]: Require an EC2 instance to use an AWS Nitro instance type that supports encryption in-transit between instances when created using the AWS::EC2::Instance resource type
+        [FIX]: Set 'InstanceType' to an EC2 instance type based on the AWS Nitro system that supports encryption in-transit between instances.
+        >>
+}
+
+rule ec2_instance_nitro_encryption_in_transit_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_INSTANCE_TYPE) {
+    check(%INPUT_DOCUMENT.%EC2_INSTANCE_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.19]: Require an EC2 instance to use an AWS Nitro instance type that supports encryption in-transit between instances when created using the AWS::EC2::Instance resource type
+        [FIX]: Set 'InstanceType' to an EC2 instance type based on the AWS Nitro system that supports encryption in-transit between instances.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ec2_instance) {
+    %ec2_instance {
+        # Scenario 2
+        InstanceType exists
+        # Scenarios 3 and 4
+        InstanceType in %NITRO_ENCRYPTION_IN_TRANSIT_INSTANCE_TYPES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

@@ -1,0 +1,102 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4",
+                "SC-13",
+                "SC-23",
+                "SC-23(3)",
+                "SC-7(4)",
+                "SC-8",
+                "SC-8(1)",
+                "SC-8(2)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.3",
+                "4.1",
+                "8.2.1"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "DMS_ENDPOINT_SSL_CONFIGURED",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an AWS Database Migration Service (DMS) Endpoint is configured to encrypt connections for source and target endpoints by using Secure Sockets Layer (SSL).",
+    "DisplayName": "Require an AWS Database Migration Service (DMS) Endpoint to encrypt connections for source and target endpoints",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Using SSL with AWS Database Migration Service",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.SSL.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::DMS::Endpoint"
+    ],
+    "EvaluatedServices": [
+        "AWS Database Migration Service"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.DMS.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.3",
+            "Name": "Encrypt data in transit"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.DMS.9",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2023-11-27",
+    "RemediationMessage": "Set the value of the SslMode property to a supported encryption mode for the endpoint engine (one of require, verify-ca, or verify-full).",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

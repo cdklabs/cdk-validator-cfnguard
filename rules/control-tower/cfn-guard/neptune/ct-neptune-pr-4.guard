@@ -1,0 +1,102 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   neptune_cluster_cloudwatch_audit_log_export_enabled
+# 
+# Description:
+#   This control checks whether an Amazon Neptune cluster is configured to send audit logs to Amazon CloudWatch Logs.
+# 
+# Reports on:
+#   AWS::Neptune::DBCluster
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Neptune DB cluster resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Neptune DB cluster resource
+#       And: 'EnableCloudwatchLogsExports' has not been provided or has been provided as an
+#            empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Neptune DB cluster resource
+#       And: 'EnableCloudwatchLogsExports' has been provided as a non-empty list
+#       And: 'EnableCloudwatchLogsExports' does not contain an entry with the value 'audit'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Neptune DB cluster resource
+#       And: 'EnableCloudwatchLogsExports' has been provided as a non-empty list
+#       And: 'EnableCloudwatchLogsExports' contains an entry with the value 'audit'
+#      Then: PASS
+
+#
+# Constants
+#
+let NEPTUNE_CLUSTER_TYPE = "AWS::Neptune::DBCluster"
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let neptune_db_clusters = Resources.*[ Type == %NEPTUNE_CLUSTER_TYPE ]
+
+#
+# Primary Rules
+#
+rule neptune_cluster_cloudwatch_audit_log_export_enabled when is_cfn_template(%INPUT_DOCUMENT)
+                                                              %neptune_db_clusters not empty {
+    check(%neptune_db_clusters.Properties)
+        <<
+        [CT.NEPTUNE.PR.4]: Require an Amazon Neptune DB cluster to enable Amazon CloudWatch log export for audit logs
+        [FIX]: In the 'EnableCloudwatchLogsExports' parameter, set an entry to the value audit.
+        >>
+}
+
+rule neptune_cluster_cloudwatch_audit_log_export_enabled when is_cfn_hook(%INPUT_DOCUMENT, %NEPTUNE_CLUSTER_TYPE) {
+    check(%INPUT_DOCUMENT.%NEPTUNE_CLUSTER_TYPE.resourceProperties)
+        <<
+        [CT.NEPTUNE.PR.4]: Require an Amazon Neptune DB cluster to enable Amazon CloudWatch log export for audit logs
+        [FIX]: In the 'EnableCloudwatchLogsExports' parameter, set an entry to the value audit.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(neptune_cluster) {
+    %neptune_cluster {
+        # Scenario 2
+        EnableCloudwatchLogsExports exists
+        EnableCloudwatchLogsExports is_list
+        EnableCloudwatchLogsExports not empty
+
+        # Scenarios 3 and 4
+        some EnableCloudwatchLogsExports[*] == "audit"
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
