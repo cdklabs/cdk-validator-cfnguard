@@ -12,7 +12,6 @@ const app = new App({
   policyValidationBeta1: [new CfnGuardValidator({
     disabledRules: [
       'ct-s3-pr-6',
-      'ct-s3-pr-7',
       'ct-s3-pr-4',
       'ct-s3-pr-2',
     ],
