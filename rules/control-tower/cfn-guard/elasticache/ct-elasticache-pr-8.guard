@@ -1,0 +1,154 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   elasticache_repl_grp_rbac_auth_enabled_check
+# 
+# Description:
+#   This control checks whether Amazon ElastiCache replication groups with an engine version greater than or equal to 6.0 have RBAC authentication enabled.
+# 
+# Reports on:
+#   AWS::ElastiCache::ReplicationGroup
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any ElastiCache replication group resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache replication group resource
+#       And: 'Engine' has not been provided or has been provided and is not set to 'redis'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache replication group resource
+#       And: 'Engine' has been provided and is set to 'redis'
+#       And: 'EngineVersion' has been provided and set to a version less than 6
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache replication group resource
+#       And: 'Engine' has been provided and set to 'redis'
+#       And: 'EngineVersion' has not been provided or has been provided and set to a version greater than or equal to 6
+#       And: 'UserGroupIds' has not been provided or has been provided as an empty list or a list containing an empty
+#            string or invalid local reference
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an ElastiCache replication group resource
+#       And: 'Engine' has been provided and set to 'redis'
+#       And: 'EngineVersion' has not been provided or has been provided and set to a version greater than or equal to 6
+#       And: 'UserGroupIds' has been provided as a list containing non-empty strings or valid local references
+#      Then: PASS
+
+#
+# Constants
+#
+let ELASTICACHE_REPLICATION_GROUP_TYPE = "AWS::ElastiCache::ReplicationGroup"
+let REDIS_ENGINE_TYPE = "redis"
+let UNSUPPORTED_REDIS_ENGINE_VERSIONS_FOR_RBAC = [
+    /^2\./,
+    /^3\./,
+    /^4\./,
+    /^5\./
+]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let elasticache_replication_groups = Resources.*[ Type == %ELASTICACHE_REPLICATION_GROUP_TYPE ]
+
+#
+# Primary Rules
+#
+rule elasticache_repl_grp_rbac_auth_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
+                                                       %elasticache_replication_groups not empty {
+    check(%elasticache_replication_groups.Properties)
+        <<
+        [CT.ELASTICACHE.PR.8]: Require an Amazon ElastiCache replication group of later Redis versions to have RBAC authentication activated
+        [FIX]: Set the value of the UserGroupIds property to a list that contains at least one Amazon ElastiCache user group identifier.
+        >>
+}
+
+rule elasticache_repl_grp_rbac_auth_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %ELASTICACHE_REPLICATION_GROUP_TYPE) {
+    check(%INPUT_DOCUMENT.%ELASTICACHE_REPLICATION_GROUP_TYPE.resourceProperties)
+        <<
+        [CT.ELASTICACHE.PR.8]: Require an Amazon ElastiCache replication group of later Redis versions to have RBAC authentication activated
+        [FIX]: Set the value of the UserGroupIds property to a list that contains at least one Amazon ElastiCache user group identifier.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(elasticache_replication_group) {
+    %elasticache_replication_group [
+        # Scenario 2
+        Engine exists
+        Engine == %REDIS_ENGINE_TYPE
+
+        # Scenario 3
+        EngineVersion not exists or
+        EngineVersion not in %UNSUPPORTED_REDIS_ENGINE_VERSIONS_FOR_RBAC
+    ] {
+        # Scenarios 4, 5 and 6
+        UserGroupIds exists
+        UserGroupIds is_list
+        UserGroupIds not empty
+
+        UserGroupIds[*] {
+            check_is_string_and_not_empty(this) or
+            check_local_references(%INPUT_DOCUMENT, this, "AWS::ElastiCache::UserGroup")
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule check_local_references(doc, reference_properties, referenced_resource_type) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_resource_type)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_resource_type) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_resource_type
+    }
+}

@@ -1,0 +1,126 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   glue_job_security_config_check
+# 
+# Description:
+#   This control checks whether an AWS Glue job has an associated security configuration.
+# 
+# Reports on:
+#   AWS::Glue::Job
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Glue job resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Glue job resource
+#       And: 'SecurityConfiguration' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a Glue job resource
+#       And: 'SecurityConfiguration 'has been provided as an empty string or invalid local
+#            reference
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation Hook Document
+#       And: The input document contains a Glue job resource
+#       And: 'SecurityConfiguration' has been provided as a non-empty string or valid
+#            local reference to a Glue security configuration resource
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let GLUE_JOB_TYPE = "AWS::Glue::Job"
+
+#
+# Assignments
+#
+let glue_jobs = Resources.*[ Type == %GLUE_JOB_TYPE ]
+
+#
+# Primary Rules
+#
+rule glue_job_security_config_check when is_cfn_template(%INPUT_DOCUMENT)
+                                         %glue_jobs not empty {
+    check(%glue_jobs.Properties)
+        <<
+        [CT.GLUE.PR.1]: Require an AWS Glue job to have an associated security configuration
+        [FIX]: Set the 'SecurityConfiguration' parameter to the name of an AWS Glue security configuration.
+        >>
+}
+
+rule glue_job_security_config_check when is_cfn_hook(%INPUT_DOCUMENT, %GLUE_JOB_TYPE) {
+    check(%INPUT_DOCUMENT.%GLUE_JOB_TYPE.resourceProperties)
+        <<
+        [CT.GLUE.PR.1]: Require an AWS Glue job to have an associated security configuration
+        [FIX]: Set the 'SecurityConfiguration' parameter to the name of an AWS Glue security configuration.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(glue_job) {
+    %glue_job{
+        # Scenario 2
+        SecurityConfiguration exists
+         # Scenario 3 and 4
+        check_is_string_and_not_empty(SecurityConfiguration) or
+        check_local_references(%INPUT_DOCUMENT, SecurityConfiguration, "AWS::Glue::SecurityConfiguration")
+    }
+}
+
+#
+# Utility Rules
+#
+rule check_is_string_and_not_empty(value) {
+    %value {
+        this is_string
+        this != /\A\s*\z/
+    }
+}
+
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
+
+rule check_local_references(doc, reference_properties, referenced_RESOURCE_TYPE) {
+    %reference_properties {
+        'Fn::GetAtt' {
+            query_for_resource(%doc, this[0], %referenced_RESOURCE_TYPE)
+                <<Local Stack reference was invalid>>
+        } or Ref {
+            query_for_resource(%doc, this, %referenced_RESOURCE_TYPE)
+                <<Local Stack reference was invalid>>
+        }
+    }
+}
+
+rule query_for_resource(doc, resource_key, referenced_RESOURCE_TYPE) {
+    let referenced_resource = %doc.Resources[ keys == %resource_key ]
+    %referenced_resource not empty
+    %referenced_resource {
+        Type == %referenced_RESOURCE_TYPE
+    }
+}

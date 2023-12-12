@@ -6,7 +6,7 @@
 #   docdb_cluster_backup_retention_check
 # 
 # Description:
-#   This control checks whether an Amazon DocumentDB cluster retention period is set to seven or more days (>=7).
+#   This control checks whether an Amazon DocumentDB cluster retention period is set to seven or more days (>=7). The default retention period is one day.
 # 
 # Reports on:
 #   AWS::DocDB::DBCluster
@@ -56,7 +56,7 @@ rule docdb_cluster_backup_retention_check when is_cfn_template(%INPUT_DOCUMENT)
                                                %document_db_clusters not empty {
     check(%document_db_clusters.Properties)
         <<
-        [CT.DOCUMENTDB.PR.2]: Require an Amazon DocumentDB cluster to have automatic backups enabled
+        [CT.DOCUMENTDB.PR.2]: Require an Amazon DocumentDB cluster to have a backup retention period greater than or equal to seven days
         [FIX]: Set the value of the 'BackupRetentionPeriod' parameter to an integer value between 7 and 35 days (inclusive).
         >>
 }
@@ -64,7 +64,7 @@ rule docdb_cluster_backup_retention_check when is_cfn_template(%INPUT_DOCUMENT)
 rule docdb_cluster_backup_retention_check when is_cfn_hook(%INPUT_DOCUMENT, %DOCUMENT_DB_CLUSTER_TYPE) {
     check(%INPUT_DOCUMENT.%DOCUMENT_DB_CLUSTER_TYPE.resourceProperties)
         <<
-        [CT.DOCUMENTDB.PR.2]: Require an Amazon DocumentDB cluster to have automatic backups enabled
+        [CT.DOCUMENTDB.PR.2]: Require an Amazon DocumentDB cluster to have a backup retention period greater than or equal to seven days
         [FIX]: Set the value of the 'BackupRetentionPeriod' parameter to an integer value between 7 and 35 days (inclusive).
         >>
 }

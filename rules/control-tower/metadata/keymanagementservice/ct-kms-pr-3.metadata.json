@@ -1,0 +1,96 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-2",
+                "AC-2(1)",
+                "AC-3",
+                "AC-3(15)",
+                "AC-3(7)",
+                "AC-5",
+                "AC-6",
+                "AC-6(3)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2",
+                "7.1.1",
+                "7.1.2",
+                "7.2.1",
+                "7.2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an AWS KMS key has an associated key policy statement that limits creation of AWS KMS grants to AWS services only.",
+    "DisplayName": "Require an AWS KMS key policy to have a statement that limits creation of AWS KMS grants to AWS services",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Grants in AWS KMS",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/kms/latest/developerguide/grants.html#about-grants"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::KMS::Key"
+    ],
+    "EvaluatedServices": [
+        "AWS Key Management Service (AWS KMS)"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.KMS.PR.3",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-10-05",
+    "RemediationMessage": "Configure a KMS key policy statement that denies access to the 'kms:CreateGrant' operation for all principals when the 'kms:GrantIsForAWSResource' and 'aws:PrincipalIsAWSService' conditions are both false, using the 'BoolIfExists' condition operator.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

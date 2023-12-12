@@ -1,0 +1,129 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   autoscaling_launch_config_encrypted_volumes_check
+# 
+# Description:
+#   This control checks whether Auto Scaling launch configurations with Amazon EBS volume block device mappings enable EBS volume encryption.
+# 
+# Reports on:
+#   AWS::AutoScaling::LaunchConfiguration
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EC2 Auto Scaling launch configuration resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 Auto Scaling launch configuration resource
+#       And: 'BlockDeviceMappings' has not been provided or has been provided as an empty list
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 Auto Scaling launch configuration resource
+#       And: 'BlockDeviceMappings' has been provided as a non-empty list
+#       And: No entries in 'BlockDeviceMappings' contain 'Ebs' as a struct
+#      Then: SKIP
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 Auto Scaling launch configuration resource
+#       And: 'BlockDeviceMappings' has been provided as a non-empty list
+#       And: An entry in 'BlockDeviceMappings' contains 'Ebs' as a struct
+#       And: In the same entry, 'Encrypted' in 'Ebs' has not been provided or has been provided
+#            and set to a value other than bool(true)
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an EC2 Auto Scaling launch configuration resource
+#       And: 'BlockDeviceMappings' has been provided as a non-empty list
+#       And: An entry in 'BlockDeviceMappings' contains 'Ebs' as a struct
+#       And: In the same entry, 'Encrypted' in 'Ebs' has been provided and set to bool(true)
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let AUTOSCALING_LAUNCH_CONFIGURATION_TYPE = "AWS::AutoScaling::LaunchConfiguration"
+
+#
+# Assignments
+#
+let autoscaling_launch_configurations = Resources.*[ Type == %AUTOSCALING_LAUNCH_CONFIGURATION_TYPE ]
+
+#
+# Primary Rules
+#
+rule autoscaling_launch_config_encrypted_volumes_check when is_cfn_template(this)
+                                                            %autoscaling_launch_configurations not empty {
+    check(%autoscaling_launch_configurations.Properties)
+        <<
+        [CT.AUTOSCALING.PR.9]: Require an Amazon EBS volume configured through an Amazon EC2 Auto Scaling launch configuration to encrypt data at rest
+        [FIX]: For every entry in the BlockDeviceMappings parameter with an 'Ebs' configuration, set the value of 'Encryption' to true.
+        >>
+}
+
+rule autoscaling_launch_config_encrypted_volumes_check when is_cfn_hook(%INPUT_DOCUMENT, %AUTOSCALING_LAUNCH_CONFIGURATION_TYPE) {
+    check(%INPUT_DOCUMENT.%AUTOSCALING_LAUNCH_CONFIGURATION_TYPE.resourceProperties)
+        <<
+        [CT.AUTOSCALING.PR.9]: Require an Amazon EBS volume configured through an Amazon EC2 Auto Scaling launch configuration to encrypt data at rest
+        [FIX]: For every entry in the BlockDeviceMappings parameter with an 'Ebs' configuration, set the value of 'Encryption' to true.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(autoscaling_launch_configuration) {
+    %autoscaling_launch_configuration [
+        # Scenarios 2 and 3
+        filter_launch_configuration_contains_ebs_block_device_mappings(this)
+    ] {
+        BlockDeviceMappings[
+            Ebs exists
+            Ebs is_struct
+        ] {
+            Ebs {
+                # Scenarios 4 and 5
+                Encrypted exists
+                Encrypted == true
+            }
+        }
+    }
+}
+
+rule filter_launch_configuration_contains_ebs_block_device_mappings(launch_configuration) {
+    %launch_configuration {
+        BlockDeviceMappings exists
+        BlockDeviceMappings is_list
+        BlockDeviceMappings not empty
+
+        some BlockDeviceMappings[*] {
+            Ebs exists
+            Ebs is_struct
+        }
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

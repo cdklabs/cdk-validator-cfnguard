@@ -1,0 +1,86 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CP-10",
+                "CP-6(2)",
+                "SC-36",
+                "SC-5(2)",
+                "SI-13(5)"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an Amazon MQ ActiveMQ broker is configured in an active/standby deployment mode.",
+    "DisplayName": "Require an Amazon MQ ActiveMQ broker to use use active/standby deployment mode for high availability",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Amazon MQ active/standby broker for high availability",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/active-standby-broker-deployment.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::AmazonMQ::Broker"
+    ],
+    "EvaluatedServices": [
+        "Amazon MQ"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.MQ.PR.1",
+    "ImplementationType": "CloudFormation guard rule",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        },
+        {
+            "Id": "CO.9",
+            "Name": "Improve availability"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-11-27",
+    "RemediationMessage": "For Amazon MQ brokers with an engine type of ACTIVEMQ, set the DeploymentMode property to ACTIVE_STANDBY_MULTI_AZ.",
+    "Severity": "LOW",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

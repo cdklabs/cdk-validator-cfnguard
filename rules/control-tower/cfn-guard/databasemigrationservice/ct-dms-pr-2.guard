@@ -1,0 +1,134 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   dms_endpoint_ssl_configured_check
+# 
+# Description:
+#   This control checks whether an AWS Database Migration Service (DMS) Endpoint is configured to encrypt connections for source and target endpoints by using Secure Sockets Layer (SSL).
+# 
+# Reports on:
+#   AWS::DMS::Endpoint
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any DMS endpoint resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DMS endpoint resource
+#       And: 'EngineName' has been set to an engine other than an engine that supports configuration
+#            of SSL connections via 'SslMode' (values other than 'mysql', 'oracle', 'postgres', 'mariadb',
+#            'aurora', 'aurora-postgresql', 'db2, 'sybase', 'mongodb', 'docdb', 'sqlserver')
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DMS endpoint resource
+#       And: 'EngineName' has been set to an engine that supports configuration of SSL connections via 'SslMode'
+#            ('mysql', 'oracle', 'postgres', 'mariadb', 'aurora', 'aurora-postgresql',
+#            'db2, 'sybase', 'mongodb', 'docdb', 'sqlserver')
+#       And: 'SslMode' has not been provided
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DMS endpoint resource
+#       And: 'EngineName' has been set to an engine that supports configuration of SSL connections via 'SslMode'
+#            ('mysql', 'oracle', 'postgres', 'mariadb', 'aurora', 'aurora-postgresql',
+#            'db2, 'sybase', 'mongodb', 'docdb', 'sqlserver')
+#       And: 'SslMode' has been provided and set to a value other than 'require', 'verify-ca' or 'verify-full'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a DMS endpoint resource
+#       And: 'EngineName' has been set to an engine that supports configuration of SSL connections via 'SslMode'
+#            ('mysql', 'oracle', 'postgres', 'mariadb', 'aurora', 'aurora-postgresql',
+#            'db2, 'sybase', 'mongodb', 'docdb', 'sqlserver')
+#       And: 'SslMode' has been provided and set to 'require', 'verify-ca' or 'verify-full'
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let DMS_ENDPOINT_TYPE = "AWS::DMS::Endpoint"
+let DMS_ENGINE_NAMES_WITH_SSL_SUPPORT = [
+    "mysql",
+    "oracle",
+    "postgres",
+    "mariadb",
+    "aurora",
+    "aurora-postgresql",
+    "db2",
+    "sybase",
+    "mongodb",
+    "docdb",
+    "sqlserver"
+]
+let ALLOWED_DMS_SSL_MODES = [
+    "require",
+    "verify-ca",
+    "verify-full"
+]
+
+#
+# Assignments
+#
+let dms_endpoints = Resources.*[ Type == %DMS_ENDPOINT_TYPE ]
+
+#
+# Primary Rules
+#
+rule dms_endpoint_ssl_configured_check when is_cfn_template(%INPUT_DOCUMENT)
+                                            %dms_endpoints not empty {
+    check(%dms_endpoints.Properties)
+        <<
+        [CT.DMS.PR.2]: Require an AWS Database Migration Service (DMS) Endpoint to encrypt connections for source and target endpoints
+        [FIX]: Set the value of the SslMode property to a supported encryption mode for the endpoint engine (one of require, verify-ca, or verify-full).
+        >>
+}
+
+rule dms_endpoint_ssl_configured_check when is_cfn_hook(%INPUT_DOCUMENT, %DMS_ENDPOINT_TYPE) {
+    check(%INPUT_DOCUMENT.%DMS_ENDPOINT_TYPE.resourceProperties)
+        <<
+        [CT.DMS.PR.2]: Require an AWS Database Migration Service (DMS) Endpoint to encrypt connections for source and target endpoints
+        [FIX]: Set the value of the SslMode property to a supported encryption mode for the endpoint engine (one of require, verify-ca, or verify-full).
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(dms_endpoint) {
+    %dms_endpoint [
+        # Scenario 2
+        EngineName exists
+        EngineName in %DMS_ENGINE_NAMES_WITH_SSL_SUPPORT
+    ] {
+        # Scenario 3
+        SslMode exists
+        # Scenarios 4 and 5
+        SslMode in %ALLOWED_DMS_SSL_MODES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

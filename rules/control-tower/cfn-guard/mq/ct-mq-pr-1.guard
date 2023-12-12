@@ -1,0 +1,110 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   mq_active_deployment_mode_check
+# 
+# Description:
+#   This control checks whether an Amazon MQ ActiveMQ broker is configured in an active/standby deployment mode.
+# 
+# Reports on:
+#   AWS::AmazonMQ::Broker
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Amazon MQ broker resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon MQ broker resource
+#       And: 'EngineType' has been provided and is equal to a value other than 'ACTIVEMQ'
+#      Then: SKIP
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon MQ broker resource
+#       And: 'EngineType' has been provided and set to 'ACTIVEMQ'
+#       And: 'DeploymentMode' has not been provided or has been provided and set to a value other
+#            than 'ACTIVE_STANDBY_MULTI_AZ'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Amazon MQ broker resource
+#       And: 'EngineType' has been provided and set to 'ACTIVEMQ'
+#       And: 'DeploymentMode' has been provided and set to 'ACTIVE_STANDBY_MULTI_AZ'
+#      Then: PASS
+
+#
+# Constants
+#
+let MQ_BROKER_TYPE = "AWS::AmazonMQ::Broker"
+let ENGINES_WITH_CLUSTER_DEPLOYMENT_SUPPORT = ["ACTIVEMQ"]
+let ALLOWED_DEPLOYMENT_MODES = ["ACTIVE_STANDBY_MULTI_AZ"]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let mq_brokers = Resources.*[ Type == %MQ_BROKER_TYPE ]
+
+#
+# Primary Rules
+#
+rule mq_active_deployment_mode_check when is_cfn_template(%INPUT_DOCUMENT)
+                                          %mq_brokers not empty {
+    check(%mq_brokers.Properties)
+        <<
+        [CT.MQ.PR.1]: Require an Amazon MQ ActiveMQ broker to use use active/standby deployment mode for high availability
+        [FIX]: For Amazon MQ brokers with an engine type of ACTIVEMQ, set the DeploymentMode property to ACTIVE_STANDBY_MULTI_AZ.
+        >>
+}
+
+rule mq_active_deployment_mode_check when is_cfn_hook(%INPUT_DOCUMENT, %MQ_BROKER_TYPE) {
+    check(%INPUT_DOCUMENT.%MQ_BROKER_TYPE.resourceProperties)
+        <<
+        [CT.MQ.PR.1]: Require an Amazon MQ ActiveMQ broker to use use active/standby deployment mode for high availability
+        [FIX]: For Amazon MQ brokers with an engine type of ACTIVEMQ, set the DeploymentMode property to ACTIVE_STANDBY_MULTI_AZ.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(mq_broker) {
+    %mq_broker [
+        # Scenario 2
+        filter_engine(this)
+    ] {
+        # Scenarios 3 and 4
+        DeploymentMode exists
+        DeploymentMode in %ALLOWED_DEPLOYMENT_MODES
+    }
+}
+
+rule filter_engine(mq_broker) {
+    %mq_broker {
+        EngineType exists
+        EngineType in %ENGINES_WITH_CLUSTER_DEPLOYMENT_SUPPORT
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

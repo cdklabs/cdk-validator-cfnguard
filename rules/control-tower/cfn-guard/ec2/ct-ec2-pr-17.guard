@@ -1,0 +1,165 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   ec2_host_nitro_check
+# 
+# Description:
+#   This control checks whether an EC2 dedicated host is configured to run using an AWS Nitro instance type or family.
+# 
+# Reports on:
+#   AWS::EC2::Host
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any EC2 dedicated host resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 dedicated host resource
+#       And: 'InstanceFamily' or 'InstanceType' have not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 dedicated host resource
+#       And: 'InstanceType' has not been provided
+#       And: 'InstanceFamily' has been provided and set to an instance family other than
+#            a Nitro instance family with dedicated host support
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 dedicated host resource
+#       And: 'InstanceFamily' has not been provided
+#       And: 'InstanceType' has been provided and set to an instance type other than
+#            a Nitro instance type with dedicated host support
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 dedicated host resource
+#       And: 'InstanceType' has not been provided
+#       And: 'InstanceFamily' has been provided and set to a Nitro instance family with
+#            dedicated host support
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a EC2 dedicated host resource
+#       And: 'InstanceFamily' has not been provided
+#       And: 'InstanceType' has been provided and set to a Nitro instance type with
+#            dedicated host support
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let EC2_DEDICATED_HOST_TYPE = "AWS::EC2::Host"
+let NITRO_INSTANCE_FAMILIES_WITH_DEDICATED_HOST_SUPPORT = [
+    /^a1$/,
+    /^c5$/, /^c5d$/, /^c5n$/, /^c6a$/, /^c6g$/, /^c6gd$/, /^c6gn$/, /^c6i$/, /^c6id$/,
+    /^c6in$/, /^c7a$/, /^c7g$/, /^c7gd$/, /^c7gn$/, /^c7i$/,
+    /^dl1$/,
+    /^g4ad$/, /^g4dn$/, /^g5$/, /^g5g$/,
+    /^i3en$/, /^i4g$/, /^i4i$/, /^im4gn$/, /^inf1$/, /^inf2$/,
+    /^m5$/, /^m5d$/, /^m5dn$/, /^m5n$/, /^m5zn$/, /^m6a$/, /^m6g$/, /^m6gd$/, /^m6i$/,
+    /^m6id$/, /^m6idn$/, /^m6in$/, /^m7a$/, /^m7g$/, /^m7gd$/, /^m7i$/,
+    /^p4d$/, /^p4de$/, /^p5$/,
+    /^r5$/, /^r5b$/, /^r5d$/, /^r5dn$/, /^r5n$/, /^r6a$/, /^r6g$/, /^r6gd$/, /^r6i$/,
+    /^r6id$/, /^r6idn$/, /^r6in$/, /^r7a$/, /^r7g$/, /^r7gd$/, /^r7i$/, /^r7iz$/,
+    /^t3$/, /^trn1$/,
+    /^u-12tb1$/, /^u-18tb1$/, /^u-24tb1$/, /^u-6tb1$/, /^u-9tb1$/,
+    /^x2gd$/, /^x2idn$/, /^x2iedn$/, /^x2iezn$/,
+    /^z1d$/
+]
+let NITRO_INSTANCE_TYPES_WITH_DEDICATED_HOST_SUPPORT = [
+    /^a1\..+?$/,
+    /^c5\..+?$/, /^c5d\..+?$/, /^c5n\..+?$/, /^c6a\..+?$/, /^c6g\..+?$/, /^c6gd\..+?$/,
+    /^c6gn\..+?$/, /^c6i\..+?$/, /^c6id\..+?$/, /^c6in\..+?$/, /^c7a\..+?$/, /^c7g\..+?$/,
+    /^c7gd\..+?$/, /^c7gn\..+?$/, /^c7i\..+?$/,
+    /^dl1\..+?$/,
+    /^g4ad\..+?$/, /^g4dn\..+?$/, /^g5\..+?$/, /^g5g\..+?$/,
+    /^i3\.metal$/, /^i3en\..+?$/, /^i4g\..+?$/, /^i4i\..+?$/, /^im4gn\..+?$/,
+    /^inf1\..+?$/, /^inf2\..+?$/,
+    /^m5\..+?$/, /^m5d\..+?$/, /^m5dn\..+?$/, /^m5n\..+?$/, /^m5zn\..+?$/, /^m6a\..+?$/,
+    /^m6g\..+?$/, /^m6gd\..+?$/, /^m6i\..+?$/, /^m6id\..+?$/, /^m6idn\..+?$/,
+    /^m6in\..+?$/, /^m7a\..+?$/, /^m7g\..+?$/, /^m7gd\..+?$/, /^m7i\..+?$/,
+    /^mac1\.metal$/, /^mac2-m2\.metal$/, /^mac2-m2pro\.metal$/, /^mac2\.metal$/,
+    /^p4d\..+?$/, /^p4de\..+?$/, /^p5\..+?$/,
+    /^r5\..+?$/, /^r5b\..+?$/, /^r5d\..+?$/, /^r5dn\..+?$/, /^r5n\..+?$/, /^r6a\..+?$/,
+    /^r6g\..+?$/, /^r6gd\..+?$/, /^r6i\..+?$/, /^r6id\..+?$/, /^r6idn\..+?$/,
+    /^r6in\..+?$/, /^r7a\..+?$/, /^r7g\..+?$/, /^r7gd\..+?$/, /^r7i\..+?$/, /^r7iz\..+?$/,
+    /^t3\..+?$/, /^trn1\..+?$/,
+    /^u-12tb1\..+?$/, /^u-18tb1\..+?$/, /^u-24tb1\..+?$/, /^u-6tb1\..+?$/, /^u-9tb1\..+?$/,
+    /^x2gd\..+?$/, /^x2idn\..+?$/, /^x2iedn\..+?$/, /^x2iezn\..+?$/,
+    /^z1d\..+?$/
+]
+
+#
+# Assignments
+#
+let ec2_dedicated_hosts = Resources.*[ Type == %EC2_DEDICATED_HOST_TYPE ]
+
+#
+# Primary Rules
+#
+rule ec2_host_nitro_check when is_cfn_template(%INPUT_DOCUMENT)
+                               %ec2_dedicated_hosts not empty {
+    check(%ec2_dedicated_hosts.Properties)
+        <<
+        [CT.EC2.PR.17]: Require an Amazon EC2 dedicated host to use an AWS Nitro instance type
+        [FIX]: Set the value of the InstanceType property to an EC2 instance type that is based on the AWS Nitro system, and that supports dedicated hosts, or set the value of the InstanceFamily property to an EC2 instance family that is based on the AWS Nitro system, and that supports dedicated hosts and multiple instance types.
+        >>
+}
+
+rule ec2_host_nitro_check when is_cfn_hook(%INPUT_DOCUMENT, %EC2_DEDICATED_HOST_TYPE) {
+    check(%INPUT_DOCUMENT.%EC2_DEDICATED_HOST_TYPE.resourceProperties)
+        <<
+        [CT.EC2.PR.17]: Require an Amazon EC2 dedicated host to use an AWS Nitro instance type
+        [FIX]: Set the value of the InstanceType property to an EC2 instance type that is based on the AWS Nitro system, and that supports dedicated hosts, or set the value of the InstanceFamily property to an EC2 instance family that is based on the AWS Nitro system, and that supports dedicated hosts and multiple instance types.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(ec2_dedicated_host) {
+    %ec2_dedicated_host {
+        # Scenario 2
+        InstanceFamily exists or
+        InstanceType exists
+    }
+
+    %ec2_dedicated_host[
+        InstanceFamily exists
+    ] {
+        # Scenario 3 and 5
+        InstanceFamily in %NITRO_INSTANCE_FAMILIES_WITH_DEDICATED_HOST_SUPPORT
+    }
+    %ec2_dedicated_host[
+        InstanceType exists
+    ] {
+        # Scenario 4 and 6
+        InstanceType in %NITRO_INSTANCE_TYPES_WITH_DEDICATED_HOST_SUPPORT
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

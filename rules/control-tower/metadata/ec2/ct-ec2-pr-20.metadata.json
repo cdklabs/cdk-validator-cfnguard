@@ -1,0 +1,94 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-2"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "2.2"
+            ]
+        }
+    ],
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether an EC2 fleet overrides only the launch templates based upon AWS Nitro instance types that support encryption in transit between instances.",
+    "DisplayName": "Require an Amazon EC2 fleet to override only those launch templates with AWS Nitro instance types that support encryption in transit between instances",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Encryption in transit",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/data-protection.html#encryption-transit"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EC2::EC2Fleet"
+    ],
+    "EvaluatedServices": [
+        "Amazon EC2"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EC2.PR.20",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.3",
+            "Name": "Encrypt data in transit"
+        },
+        {
+            "Id": "CO.4",
+            "Name": "Protect data integrity"
+        },
+        {
+            "Id": "CO.5",
+            "Name": "Enforce least privilege"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-11-27",
+    "RemediationMessage": "For any entry in the LaunchTemplateConfigs parameter, if it has one or more Overrides properties that also include 'InstanceType' or 'InstanceRequirements' fields, set the value of the InstanceType field to an EC2 instance type that's based on the AWS Nitro system, and that supports encryption in transit between instances, or set the value of the AllowedInstanceTypes field in the InstanceRequirements property to one or more EC2 instance types that are based on the AWS Nitro system, and that support encryption in transit between instances.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

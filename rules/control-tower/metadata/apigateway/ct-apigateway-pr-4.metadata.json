@@ -1,5 +1,37 @@
 {
     "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "AC-4(26)",
+                "AU-10",
+                "AU-12",
+                "AU-2",
+                "AU-3",
+                "AU-6(3)",
+                "AU-6(4)",
+                "CA-7",
+                "SC-7(9)",
+                "SI-7(8)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "10.1",
+                "10.2.1",
+                "10.2.4",
+                "10.2.7",
+                "10.3.1",
+                "10.3.2",
+                "10.3.3",
+                "10.3.4",
+                "10.3.5",
+                "10.3.6"
+            ]
+        }
+    ],
     "ConfigRuleIdentifier": "API_GW_V2_ACCESS_LOGS_ENABLED",
     "ControlOwner": "AWS Control Tower",
     "DeploymentMechanism": "AWS CloudFormation Hook",
@@ -52,16 +84,22 @@
         "ap-northeast-2",
         "ap-northeast-3",
         "ap-south-1",
+        "ap-south-2",
         "ap-southeast-1",
         "ap-southeast-2",
         "ap-southeast-3",
+        "ap-southeast-4",
         "ca-central-1",
         "eu-central-1",
+        "eu-central-2",
         "eu-north-1",
         "eu-south-1",
+        "eu-south-2",
         "eu-west-1",
         "eu-west-2",
         "eu-west-3",
+        "il-central-1",
+        "me-central-1",
         "me-south-1",
         "sa-east-1",
         "us-east-1",

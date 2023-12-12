@@ -1,0 +1,129 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   appsync_authorization_check
+# 
+# Description:
+#   This control checks that an AWS AppSync GraphQL API has been configured with an authentication type other than API_KEY authentication.
+# 
+# Reports on:
+#   AWS::AppSync::GraphQLApi
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any AppSync GraphQL API resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'AuthenticationType' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'AuthenticationType' has been provided and is equal to 'API_KEY'
+#       And: 'AdditionalAuthenticationProviders' has not been provided or provided as an empty list
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'AuthenticationType' has been provided and is equal to a value other than 'API_KEY'
+#       And: 'AdditionalAuthenticationProviders' has been provided as a non-empty list
+#       And: An entry in 'AdditionalAuthenticationProviders' has 'AuthenticationType' equal to 'API_KEY'
+#      Then: FAIL
+#   Scenario: 5
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'AuthenticationType' has been provided and is equal to a value other than 'API_KEY'
+#       And: 'AdditionalAuthenticationProviders' has not been provided or provided as an empty list
+#      Then: PASS
+#   Scenario: 6
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an AppSync GraphQL API resource
+#       And: 'AuthenticationType' has been provided and is equal to a value other than 'API_KEY'
+#       And: 'AdditionalAuthenticationProviders' has been provided as a non-empty list
+#       And: No entries in 'AdditionalAuthenticationProviders' have 'AuthenticationType' equal to 'API_KEY'
+#      Then: PASS
+
+#
+# Constants
+#
+let APPSYNC_GRAPHQL_API_TYPE = "AWS::AppSync::GraphQLApi"
+let DISALLOWED_AUTHORIZATION_TYPES = [ "API_KEY" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let appsync_graphql_apis = Resources.*[ Type == %APPSYNC_GRAPHQL_API_TYPE ]
+
+#
+# Primary Rules
+#
+rule appsync_authorization_check when is_cfn_template(%INPUT_DOCUMENT)
+                                      %appsync_graphql_apis not empty {
+    check(%appsync_graphql_apis.Properties)
+        <<
+        [CT.APPSYNC.PR.3]: Require that an AWS AppSync GraphQL API is not authenticated with API keys
+        [FIX]: Set the AuthenticationType property to a value other than API_KEY, and ensure no entry in the AdditionalAuthenticationProviders property has an AuthenticationType value of API_KEY.
+        >>
+}
+
+rule appsync_authorization_check when is_cfn_hook(%INPUT_DOCUMENT, %APPSYNC_GRAPHQL_API_TYPE) {
+    check(%INPUT_DOCUMENT.%APPSYNC_GRAPHQL_API_TYPE.resourceProperties)
+        <<
+        [CT.APPSYNC.PR.3]: Require that an AWS AppSync GraphQL API is not authenticated with API keys
+        [FIX]: Set the AuthenticationType property to a value other than API_KEY, and ensure no entry in the AdditionalAuthenticationProviders property has an AuthenticationType value of API_KEY.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(appsync_graphql_api) {
+    %appsync_graphql_api {
+        # Scenarios 2, 3 and 5
+        check_authentication_type(this)
+    }
+
+    %appsync_graphql_api [
+        AdditionalAuthenticationProviders exists
+        AdditionalAuthenticationProviders is_list
+        AdditionalAuthenticationProviders not empty
+    ] {
+        AdditionalAuthenticationProviders[*] {
+            # Scenarios 4 and 6
+            check_authentication_type(this)
+        }
+    }
+}
+
+rule check_authentication_type(appsync_configuration) {
+    %appsync_configuration {
+        AuthenticationType exists
+        AuthenticationType not in %DISALLOWED_AUTHORIZATION_TYPES
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

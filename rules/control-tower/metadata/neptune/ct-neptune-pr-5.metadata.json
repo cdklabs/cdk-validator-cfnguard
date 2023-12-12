@@ -1,0 +1,90 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "SI-12"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "3.1"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "NEPTUNE_CLUSTER_BACKUP_RETENTION_CHECK",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Neptune DB clusters have configured automatic backups with a retention period set to 7 or more days (>=7). The default retention period is one day.",
+    "DisplayName": "Require an Amazon Neptune DB cluster to set a backup retention period greater than or equal to seven days",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Overview of backing up and restoring a Neptune DB cluster",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/neptune/latest/userguide/backup-restore-overview.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::Neptune::DBCluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon Neptune"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.NEPTUNE.PR.5",
+    "ImplementationType": "CloudFormation guard rule",
+    "MinimumSupportedRuntimeVersion": "2.1",
+    "Objectives": [
+        {
+            "Id": "CO.8",
+            "Name": "Improve resiliency"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "Relationships": [
+        {
+            "ControlId": "SH.Neptune.5",
+            "ControlOwner": "AWS Security Hub",
+            "RelationshipType": "Can be used with (Inclusive)"
+        }
+    ],
+    "ReleaseDate": "2023-10-05",
+    "RemediationMessage": "Set the 'BackupRetentionPeriod' parameter to an integer value between 7 and 35 days (inclusive).",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

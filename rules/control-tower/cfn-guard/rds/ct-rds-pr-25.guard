@@ -6,7 +6,7 @@
 #   rds_cluster_logging_enabled_check
 # 
 # Description:
-#   This control checks whether Amazon RDS database clusters have all available log types enabled for export to Amazon CloudWatch Logs.
+#   This control checks whether Amazon RDS database clusters have all available log types configured for export to Amazon CloudWatch Logs.
 # 
 # Reports on:
 #   AWS::RDS::DBCluster
@@ -99,7 +99,7 @@ rule rds_cluster_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
                                              %rds_db_clusters not empty {
     check(%rds_db_clusters.Properties)
         <<
-        [CT.RDS.PR.25]: Require an Amazon RDS database cluster to have logging configured
+        [CT.RDS.PR.25]: Require an Amazon RDS database cluster to export logs to Amazon CloudWatch Logs by means of the EnableCloudwatchLogsExports property
         [FIX]: Specify 'EnableCloudwatchLogsExports' with a list of all supported log types for the Amazon RDS database cluster engine.
         >>
 }
@@ -107,7 +107,7 @@ rule rds_cluster_logging_enabled_check when is_cfn_template(%INPUT_DOCUMENT)
 rule rds_cluster_logging_enabled_check when is_cfn_hook(%INPUT_DOCUMENT, %RDS_DB_CLUSTER_TYPE) {
     check(%INPUT_DOCUMENT.%RDS_DB_CLUSTER_TYPE.resourceProperties)
         <<
-        [CT.RDS.PR.25]: Require an Amazon RDS database cluster to have logging configured
+        [CT.RDS.PR.25]: Require an Amazon RDS database cluster to export logs to Amazon CloudWatch Logs by means of the EnableCloudwatchLogsExports property
         [FIX]: Specify 'EnableCloudwatchLogsExports' with a list of all supported log types for the Amazon RDS database cluster engine.
         >>
 }

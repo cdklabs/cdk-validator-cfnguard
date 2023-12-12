@@ -1,0 +1,97 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Identifier:
+#   appsync_api_private_visibility_check
+# 
+# Description:
+#   This control checks whether an AWS AppSync GraphQL API has been configured with private visibility.
+# 
+# Reports on:
+#   AWS::AppSync::GraphQLApi
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any Appsync GraphQL API resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Appsync GraphQL API resource
+#       And: 'Visibility' has not been provided
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Appsync GraphQL API resource
+#       And: 'Visibility' has been provided and set to a value other than 'PRIVATE'
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains an Appsync GraphQL API resource
+#       And: 'Visibility' has been provided and set to 'PRIVATE'
+#      Then: PASS
+
+#
+# Constants
+#
+let APPSYNC_GRAPHQL_API_TYPE = "AWS::AppSync::GraphQLApi"
+let ALLOWED_VISIBILITY_LEVELS = [ "PRIVATE" ]
+let INPUT_DOCUMENT = this
+
+#
+# Assignments
+#
+let appsync_graphql_apis = Resources.*[ Type == %APPSYNC_GRAPHQL_API_TYPE ]
+
+#
+# Primary Rules
+#
+rule appsync_api_private_visibility_check when is_cfn_template(%INPUT_DOCUMENT)
+                                               %appsync_graphql_apis not empty {
+    check(%appsync_graphql_apis.Properties)
+        <<
+        [CT.APPSYNC.PR.2]: Require an AWS AppSync GraphQL API to be configured with private visibility
+        [FIX]: Set the Visibility property to PRIVATE.
+        >>
+}
+
+rule appsync_api_private_visibility_check when is_cfn_hook(%INPUT_DOCUMENT, %APPSYNC_GRAPHQL_API_TYPE) {
+    check(%INPUT_DOCUMENT.%APPSYNC_GRAPHQL_API_TYPE.resourceProperties)
+        <<
+        [CT.APPSYNC.PR.2]: Require an AWS AppSync GraphQL API to be configured with private visibility
+        [FIX]: Set the Visibility property to PRIVATE.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(appsync_graphql_api) {
+    %appsync_graphql_api {
+        # Scenario 2
+        Visibility exists
+        # Scenarios 3 and 4
+        Visibility in %ALLOWED_VISIBILITY_LEVELS
+    }
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}

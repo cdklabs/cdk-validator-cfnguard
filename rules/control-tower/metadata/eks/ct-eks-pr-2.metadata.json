@@ -1,0 +1,90 @@
+{
+    "Behavior": "PROACTIVE",
+    "ComplianceFrameworkMappings": [
+        {
+            "ComplianceFramework": "NIST 800-53 Rev 5",
+            "Ids": [
+                "CA-9(1)",
+                "CM-3(6)",
+                "SC-13",
+                "SC-28",
+                "SC-28(1)",
+                "SI-7(6)"
+            ]
+        },
+        {
+            "ComplianceFramework": "PCI DSS version 3.2.1",
+            "Ids": [
+                "8.2.1"
+            ]
+        }
+    ],
+    "ConfigRuleIdentifier": "EKS_SECRETS_ENCRYPTED",
+    "ControlOwner": "AWS Control Tower",
+    "DeploymentMechanism": "AWS CloudFormation Hook",
+    "DeploymentOwner": "AWS Control Tower",
+    "Description": "This control checks whether Amazon Elastic Kubernetes Service (Amazon EKS) clusters are configured to use Kubernetes secrets encrypted with AWS Key Management Service (KMS) keys.",
+    "DisplayName": "Require an Amazon EKS cluster to be configured with secret encryption using AWS Key Management Service (KMS) keys",
+    "DocumentationReferences": [
+        {
+            "DisplayName": "Enabling secret encryption on an existing cluster",
+            "Type": "AWS Documentation",
+            "Url": "https://docs.aws.amazon.com/eks/latest/userguide/enable-kms.html"
+        }
+    ],
+    "EvaluatedResourceTypes": [
+        "AWS::EKS::Cluster"
+    ],
+    "EvaluatedServices": [
+        "Amazon EKS"
+    ],
+    "Groups": [
+        "digital-sovereignty"
+    ],
+    "Guidance": "Elective",
+    "Id": "CT.EKS.PR.2",
+    "ImplementationType": "CloudFormation guard rule",
+    "Objectives": [
+        {
+            "Id": "CO.2",
+            "Name": "Encrypt data at rest"
+        }
+    ],
+    "RegionalPreference": "REGIONAL",
+    "ReleaseDate": "2023-10-05",
+    "RemediationMessage": "Provide an 'EncryptionConfig' configuration with a list of 'Resources' that contains 'secrets' and a 'Provider' configuration containing a 'KeyArn'.",
+    "Severity": "MEDIUM",
+    "SupportedRegions": [
+        "af-south-1",
+        "ap-east-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-south-1",
+        "ap-south-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ca-central-1",
+        "eu-central-1",
+        "eu-central-2",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "il-central-1",
+        "me-central-1",
+        "me-south-1",
+        "sa-east-1",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+    ],
+    "TargetOuType": "CUSTOM",
+    "Version": "1",
+    "Visibility": "PUBLIC"
+}

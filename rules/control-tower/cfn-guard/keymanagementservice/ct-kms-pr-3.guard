@@ -1,0 +1,170 @@
+# ###################################
+##       Rule Specification        ##
+#####################################
+# 
+# Rule Name:
+#   kms_create_grant_aws_service_check
+# 
+# Description:
+#   This control checks whether an AWS KMS key has an associated key policy statement that limits creation of AWS KMS grants to AWS services only.
+# 
+# Reports on:
+#   AWS::KMS::Key
+# 
+# Evaluates:
+#   AWS CloudFormation, AWS CloudFormation hook
+# 
+# Rule Parameters:
+#   None
+# 
+# Scenarios:
+#   Scenario: 1
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document does not contain any KMS Key resources
+#      Then: SKIP
+#   Scenario: 2
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS Key resource
+#       And: 'Statement' in 'KeyPolicy' has not been provided or has been provided as an empty list
+#      Then: FAIL
+#   Scenario: 3
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS Key resource
+#       And: 'Statement' in 'KeyPolicy' has been provided as a non-empty list
+#       And: 'Statement' in 'KeyPolicy' does not include a statement that denies all Principals ('*', AWS: '*')
+#            create grant permissions ('kms:CreateGrant') on the KMS key (resource of '*')
+#            when the conditions 'kms:GrantIsForAWSResource' and 'aws:PrincipalIsAWSService'
+#            are both 'false' ('BoolIfExists' condition operator)
+#      Then: FAIL
+#   Scenario: 4
+#     Given: The input document is an AWS CloudFormation or CloudFormation hook document
+#       And: The input document contains a KMS Key resource
+#       And: 'Statement' in 'KeyPolicy' has been provided as a non-empty list
+#       And: 'Statement' in 'KeyPolicy' includes a statement that denies all Principals ('*', AWS: '*')
+#            create grant permissions ('kms:CreateGrant') on the KMS key (resource of '*')
+#            when the conditions 'kms:GrantIsForAWSResource' and 'aws:PrincipalIsAWSService'
+#            are both 'false' ('BoolIfExists' condition operator)
+#      Then: PASS
+
+#
+# Constants
+#
+let INPUT_DOCUMENT = this
+let KMS_KEY_TYPE = "AWS::KMS::Key"
+let KMS_GRANT_IS_FOR_AWS_RESOURCE_KEY_PATTERN = /^(?i)kms:GrantIsForAWSResource$/
+let AWS_PRINCIPAL_IS_AWS_SERVICE_KEY_PATTERN = /^(?i)aws:PrincipalIsAWSService$/
+let ALLOWED_KEY_PATTERNS = [/^(?i)kms:GrantIsForAWSResource$/, /^(?i)aws:PrincipalIsAWSService$/]
+#
+# Assignments
+#
+let kms_keys = Resources.*[ Type == %KMS_KEY_TYPE ]
+
+#
+# Primary Rules
+#
+rule kms_create_grant_aws_service_check when is_cfn_template(%INPUT_DOCUMENT)
+                                             %kms_keys not empty {
+    check(%kms_keys.Properties)
+        <<
+        [CT.KMS.PR.3]: Require an AWS KMS key policy to have a statement that limits creation of AWS KMS grants to AWS services
+        [FIX]: Configure a KMS key policy statement that denies access to the 'kms:CreateGrant' operation for all principals when the 'kms:GrantIsForAWSResource' and 'aws:PrincipalIsAWSService' conditions are both false, using the 'BoolIfExists' condition operator.
+        >>
+}
+
+rule kms_create_grant_aws_service_check when is_cfn_hook(%INPUT_DOCUMENT, %KMS_KEY_TYPE) {
+    check(%INPUT_DOCUMENT.%KMS_KEY_TYPE.resourceProperties)
+        <<
+        [CT.KMS.PR.3]: Require an AWS KMS key policy to have a statement that limits creation of AWS KMS grants to AWS services
+        [FIX]: Configure a KMS key policy statement that denies access to the 'kms:CreateGrant' operation for all principals when the 'kms:GrantIsForAWSResource' and 'aws:PrincipalIsAWSService' conditions are both false, using the 'BoolIfExists' condition operator.
+        >>
+}
+
+#
+# Parameterized Rules
+#
+rule check(kms_keys) {
+    %kms_keys {
+        # Scenario 2
+        KeyPolicy exists
+        KeyPolicy is_struct
+
+        KeyPolicy {
+            Statement exists
+            Statement is_list
+            Statement not empty
+
+            #Scenario 3 and 4
+            some Statement[*] {
+                check_statement_create_grant_aws_services_only(this)
+            }
+        }
+    }
+}
+
+rule check_statement_create_grant_aws_services_only(statement) {
+    %statement{
+        check_all_required_statement_properties(this)
+
+        Effect == "Deny"
+        Action[*] in ["kms:CreateGrant"]
+
+        Principal == "*" or
+        Principal {
+            AWS exists
+            AWS == "*"
+        }
+
+        Resource[*] == "*"
+
+        Condition is_struct
+        struct_contains_only_allowed_keys(Condition, ["BoolIfExists"])
+
+        Condition {
+            BoolIfExists exists
+            BoolIfExists is_struct
+
+            struct_contains_only_allowed_keys(BoolIfExists, %ALLOWED_KEY_PATTERNS)
+            struct_contains_key_with_value(BoolIfExists, %KMS_GRANT_IS_FOR_AWS_RESOURCE_KEY_PATTERN, "false")
+            struct_contains_key_with_value(BoolIfExists, %AWS_PRINCIPAL_IS_AWS_SERVICE_KEY_PATTERN, "false")
+        }
+    }
+}
+
+rule check_all_required_statement_properties(statement) {
+    %statement {
+        Effect exists
+        Action exists
+        Principal exists
+        Condition exists
+        Resource exists
+    }
+}
+
+rule struct_contains_only_allowed_keys(struct, allowed_keys) {
+    let disallowed_keys = %struct[
+        keys not in %allowed_keys
+    ]
+    %disallowed_keys empty
+}
+
+rule struct_contains_key_with_value(struct, key, value) {
+    let key_present = %struct[
+        keys == %key
+    ]
+    %key_present not empty
+    %key_present == %value
+}
+
+#
+# Utility Rules
+#
+rule is_cfn_template(doc) {
+    %doc {
+        AWSTemplateFormatVersion exists  or
+        Resources exists
+    }
+}
+
+rule is_cfn_hook(doc, RESOURCE_TYPE) {
+    %doc.%RESOURCE_TYPE.resourceProperties exists
+}
