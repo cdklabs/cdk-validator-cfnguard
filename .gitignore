@@ -31,7 +31,6 @@ jspm_packages/
 *.tgz
 .yarn-integrity
 .cache
-!/.projenrc.js
 /test-reports/
 junit.xml
 /coverage/
@@ -61,3 +60,4 @@ cdk.out
 test/*.snapshot
 test/cdk-integ.out*
 !/.github/workflows/update-guard.yml
+!/.projenrc.ts
