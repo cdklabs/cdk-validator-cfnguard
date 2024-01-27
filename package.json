@@ -68,7 +68,7 @@
     "jsii-rosetta": "~5.0.0",
     "klaw": "^4.1.0",
     "mock-fs": "^5.2.0",
-    "projen": "^0.79.3",
+    "projen": "^0.79.6",
     "standard-version": "^9",
     "ts-jest": "^27",
     "ts-node": "^10.9.2",
