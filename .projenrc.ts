@@ -57,6 +57,9 @@ const project = new CdklabsJsiiProject({
     dotNetNamespace: 'Cdklabs.CdkValidatorCfnGuard',
     packageId: 'Cdklabs.CdkValidatorCfnGuard',
   },
+  publishToGo: {
+    moduleName: 'github.com/cdklabs/cdk-validator-cfnguard-go',
+  },
 
   jestOptions: {
     jestConfig: {

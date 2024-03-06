@@ -5,6 +5,7 @@ import { spawnSync } from 'child_process';
 export function exec(commandLine: string[], options: { cwd?: string; json?: boolean; verbose?: boolean; env?: any } = { }): any {
   const proc = spawnSync(commandLine[0], commandLine.slice(1), {
     stdio: ['ignore', 'pipe', options.verbose ? 'inherit' : 'pipe'], // inherit STDERR in verbose mode
+    maxBuffer: 10485760, // 10 MB. Default is 1MB
     env: {
       ...process.env,
       ...options.env,

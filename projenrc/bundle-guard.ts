@@ -52,16 +52,20 @@ export async function main() {
   if (!fs.existsSync(path.join(__dirname, '..', 'bin'))) {
     for (const asset of release.data.assets) {
       const platform = getPlatform(asset.name);
+      const arch = getArch(asset.name);
+      if (platform === 'other' || arch === 'other') {
+        continue;
+      }
       const downloadPath = await downloadReleaseAsset(octokit, asset);
       if (downloadPath) {
         spawnSync('tar', ['-xzf', asset.name], {
           cwd: path.join(downloadPath, '..'),
         });
-        fs.mkdirSync(path.join(__dirname, '../bin', 'macos'), { recursive: true });
-        fs.mkdirSync(path.join(__dirname, '../bin', 'ubuntu'), { recursive: true });
+        fs.mkdirSync(path.join(__dirname, '../bin', 'macos', arch), { recursive: true });
+        fs.mkdirSync(path.join(__dirname, '../bin', 'ubuntu', arch), { recursive: true });
         fs.copyFileSync(
           path.join(downloadPath, '..', path.basename(asset.name, '.tar.gz'), 'cfn-guard'),
-          path.join(__dirname, '..', 'bin', platform, 'cfn-guard'),
+          path.join(__dirname, '..', 'bin', platform, arch, 'cfn-guard'),
         );
       }
     }
@@ -71,6 +75,12 @@ export async function main() {
 function getPlatform(name: string): 'ubuntu' | 'macos' | 'other' {
   if (name.includes('ubuntu')) return 'ubuntu';
   if (name.includes('macos')) return 'macos';
+  return 'other';
+}
+
+function getArch(name: string): 'arm64' | 'x64' | 'other' {
+  if (name.includes('aarch64')) return 'arm64';
+  if (name.includes('x86_64')) return 'x64';
   return 'other';
 }
 
