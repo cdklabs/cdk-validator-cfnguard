@@ -383,7 +383,7 @@
       },
       "steps": [
         {
-          "exec": "npx npm-check-updates@16 --upgrade --target=minor --peer --dep=dev --filter=@octokit/rest,@octokit/types,@types/fs-extra,@types/jest,@types/klaw,@types/mock-fs,cdklabs-projen-project-types,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-docgen,jsii-pacmak,jsii-rosetta,jsii,mock-fs,projen,ts-jest,ts-node,typescript"
+          "exec": "npx npm-check-updates@16 --upgrade --target=minor --peer --dep=dev --filter=@octokit/rest,@octokit/types,@types/jest,@types/mock-fs,cdklabs-projen-project-types,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-docgen,jsii-pacmak,mock-fs,projen,ts-jest,ts-node,typescript"
         },
         {
           "exec": "yarn install --check-files"
