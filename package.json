@@ -68,7 +68,7 @@
     "jsii-rosetta": "~5.0.0",
     "klaw": "^4.1.0",
     "mock-fs": "^5.2.0",
-    "projen": "^0.81.15",
+    "projen": "^0.82.1",
     "standard-version": "^9",
     "ts-jest": "^27",
     "ts-node": "^10.9.2",
@@ -92,6 +92,7 @@
   },
   "version": "0.0.0",
   "jest": {
+    "coverageProvider": "v8",
     "globals": {
       "ts-jest": {
         "tsconfig": "tsconfig.dev.json",
