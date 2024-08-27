@@ -33,6 +33,7 @@
         "BUMPFILE": "dist/version.txt",
         "RELEASETAG": "dist/releasetag.txt",
         "RELEASE_TAG_PREFIX": "",
+        "BUMP_PACKAGE": "commit-and-tag-version@^12",
         "RELEASABLE_COMMITS": "git log --no-merges --oneline $LATEST_TAG..HEAD -E --grep \"^(feat|fix){1}(\\([^()[:space:]]+\\))?(!)?:[[:blank:]]+.+\""
       },
       "steps": [
@@ -325,6 +326,7 @@
         "BUMPFILE": "dist/version.txt",
         "RELEASETAG": "dist/releasetag.txt",
         "RELEASE_TAG_PREFIX": "",
+        "BUMP_PACKAGE": "commit-and-tag-version@^12",
         "RELEASABLE_COMMITS": "git log --no-merges --oneline $LATEST_TAG..HEAD -E --grep \"^(feat|fix){1}(\\([^()[:space:]]+\\))?(!)?:[[:blank:]]+.+\""
       },
       "steps": [
@@ -388,13 +390,13 @@
       },
       "steps": [
         {
-          "exec": "npx npm-check-updates@16 --upgrade --target=minor --peer --dep=dev --filter=@octokit/rest,@octokit/types,@types/jest,@types/mock-fs,cdklabs-projen-project-types,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-docgen,jsii-pacmak,mock-fs,projen,ts-jest,ts-node,typescript"
+          "exec": "npx npm-check-updates@16 --upgrade --target=minor --peer --dep=dev --filter=@octokit/rest,@octokit/types,@types/jest,@types/mock-fs,cdklabs-projen-project-types,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-pacmak,mock-fs,projen,ts-jest,ts-node,typescript"
         },
         {
           "exec": "yarn install --check-files"
         },
         {
-          "exec": "yarn upgrade @octokit/rest @octokit/types @types/fs-extra @types/jest @types/klaw @types/mock-fs @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser aws-cdk-lib cdklabs-projen-project-types constructs eslint-import-resolver-typescript eslint-plugin-import eslint fs-extra jest jest-junit jsii-diff jsii-docgen jsii-pacmak jsii-rosetta jsii klaw mock-fs projen standard-version ts-jest ts-node typescript"
+          "exec": "yarn upgrade @octokit/rest @octokit/types @types/fs-extra @types/jest @types/klaw @types/mock-fs @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser aws-cdk-lib cdklabs-projen-project-types commit-and-tag-version constructs eslint-import-resolver-typescript eslint-plugin-import eslint fs-extra jest jest-junit jsii-diff jsii-docgen jsii-pacmak jsii-rosetta jsii klaw mock-fs projen ts-jest ts-node typescript"
         },
         {
           "exec": "npx projen"
