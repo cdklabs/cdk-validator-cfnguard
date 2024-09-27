@@ -68,7 +68,7 @@
     "jsii-pacmak": "^1.103.1",
     "jsii-rosetta": "~5.0.0",
     "klaw": "^4.1.0",
-    "mock-fs": "^5.2.0",
+    "mock-fs": "^5.3.0",
     "projen": "^0.87.4",
     "ts-jest": "^27",
     "ts-node": "^10.9.2",
