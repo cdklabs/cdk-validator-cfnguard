@@ -9,23 +9,25 @@ import { getOctokit, getReleaseId, Octo, Release, ReleaseAsset } from './utils';
  * Download a GitHub release asset
  */
 async function downloadReleaseAsset(octokit: Octo, asset: ReleaseAsset): Promise<string | undefined> {
-  const tmpDir = fs.realpathSync(os.tmpdir());
-  const platform = getPlatform(asset.name);
-  if (['ubuntu', 'macos'].includes(platform)) {
-    const tarPath = path.join(tmpDir, asset.name);
-    const res = await octokit.octo.repos.getReleaseAsset({
-      asset_id: asset.id,
-      owner: octokit.owner,
-      repo: octokit.repo,
-      headers: {
-        ...octokit.headers,
-        accept: 'application/octet-stream',
-      },
-    });
-    fs.appendFileSync(tarPath, Buffer.from(res.data as unknown as ArrayBuffer));
-    return tarPath;
+  if (getPlatform(asset.name) === 'other') {
+    return;
   }
-  return;
+  if (getArchitecture(asset.name) === 'other') {
+    return;
+  }
+  const tmpDir = fs.realpathSync(os.tmpdir());
+  const tarPath = path.join(tmpDir, asset.name);
+  const res = await octokit.octo.repos.getReleaseAsset({
+    asset_id: asset.id,
+    owner: octokit.owner,
+    repo: octokit.repo,
+    headers: {
+      ...octokit.headers,
+      accept: 'application/octet-stream',
+    },
+  });
+  fs.appendFileSync(tarPath, Buffer.from(res.data as unknown as ArrayBuffer));
+  return tarPath;
 }
 
 async function getRelease(octokit: Octo): Promise<Release> {
@@ -52,16 +54,17 @@ export async function main() {
   if (!fs.existsSync(path.join(__dirname, '..', 'bin'))) {
     for (const asset of release.data.assets) {
       const platform = getPlatform(asset.name);
+      const architecture = getArchitecture(asset.name);
       const downloadPath = await downloadReleaseAsset(octokit, asset);
       if (downloadPath) {
         spawnSync('tar', ['-xzf', asset.name], {
           cwd: path.join(downloadPath, '..'),
         });
-        fs.mkdirSync(path.join(__dirname, '../bin', 'macos'), { recursive: true });
-        fs.mkdirSync(path.join(__dirname, '../bin', 'ubuntu'), { recursive: true });
+        const directoryPath = path.join(__dirname, '..', 'bin', platform, architecture);
+        fs.mkdirSync(directoryPath, { recursive: true });
         fs.copyFileSync(
           path.join(downloadPath, '..', path.basename(asset.name, '.tar.gz'), 'cfn-guard'),
-          path.join(__dirname, '..', 'bin', platform, 'cfn-guard'),
+          path.join(directoryPath, 'cfn-guard'),
         );
       }
     }
@@ -71,6 +74,12 @@ export async function main() {
 function getPlatform(name: string): 'ubuntu' | 'macos' | 'other' {
   if (name.includes('ubuntu')) return 'ubuntu';
   if (name.includes('macos')) return 'macos';
+  return 'other';
+}
+
+function getArchitecture(name: string): 'x86_64' | 'aarch64' | 'other' {
+  if (name.includes('x86_64')) return 'x86_64';
+  if (name.includes('aarch64')) return 'aarch64';
   return 'other';
 }
 

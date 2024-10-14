@@ -61,6 +61,37 @@ interface GuardExecutionConfig {
  * A validation plugin using CFN Guard
  */
 export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
+  private static getPlatform(): string {
+    const osPlatform = os.platform();
+    // guard calls it ubuntu but seems to apply to all linux
+    // https://github.com/aws-cloudformation/cloudformation-guard/blob/184002cdfc0ae9e29c61995aae41b7d1f1d3b26c/install-guard.sh#L43-L46
+    const platform = osPlatform === 'linux'
+      ? 'ubuntu'
+      : osPlatform === 'darwin'
+        ? 'macos'
+        : undefined;
+
+    if (!platform) {
+      throw new Error(`${os.platform()} not supported, must be either 'darwin' or 'linux'`);
+    }
+    return platform;
+  }
+
+  private static getArchitecture(): string {
+    const osArch = os.arch();
+    // https://github.com/aws-cloudformation/cloudformation-guard/blob/959e6c08d8d36856c10591115e32b6a6d8a16ee2/install-guard.sh#L113-L130
+    const architecture = osArch === 'x64'
+      ? 'x86_64'
+      : osArch === 'arm64'
+        ? 'aarch64'
+        : undefined;
+
+    if (!architecture) {
+      throw new Error(`${os.platform()} not supported, must be either 'x64' or 'arm64'`);
+    }
+    return architecture;
+  }
+
   public readonly name: string;
   public readonly version?: string;
   public readonly ruleIds?: string[];
@@ -76,17 +107,9 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
       this.rulesPaths.push(defaultRulesPath);
     }
     this.rulesPaths.push(...props.rules ?? []);
-    const osPlatform = os.platform();
-    // guard calls it ubuntu but seems to apply to all linux
-    // https://github.com/aws-cloudformation/cloudformation-guard/blob/184002cdfc0ae9e29c61995aae41b7d1f1d3b26c/install-guard.sh#L43-L46
-    const platform = osPlatform === 'linux'
-      ? 'ubuntu'
-      : osPlatform === 'darwin' ? 'macos' : undefined;
-
-    if (!platform) {
-      throw new Error(`${os.platform()} not supported, must be either 'darwin' or 'linux'`);
-    }
-    this.guard = path.join(__dirname, '..', 'bin', platform, 'cfn-guard');
+    const platform = CfnGuardValidator.getPlatform();
+    const architecture = CfnGuardValidator.getArchitecture();
+    this.guard = path.join(__dirname, '..', 'bin', platform, architecture, 'cfn-guard');
     this.ruleIds = this.rulesPaths.flatMap(rule => {
       const parsed = path.parse(rule);
       if (rule === defaultRulesPath || parsed.dir.startsWith(defaultRulesPath)) {
