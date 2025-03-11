@@ -57,7 +57,7 @@
     "commit-and-tag-version": "^12",
     "constructs": "^10.0.0",
     "eslint": "^8",
-    "eslint-import-resolver-typescript": "^3.8.3",
+    "eslint-import-resolver-typescript": "^3.8.4",
     "eslint-plugin-import": "^2.31.0",
     "fs-extra": "^11.1.1",
     "jest": "^27",
