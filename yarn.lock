@@ -22,9 +22,9 @@
     lru-cache "^10.4.3"
 
 "@aws-cdk/asset-awscli-v1@^2.2.97":
-  version "2.2.229"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.229.tgz#39bf5b70f1e1334031d1333ba42fe755cacbb441"
-  integrity sha512-apNt/Sfty7Jwi1+6hrZaQeVisqnJAW4+uQZI55VPKtBqjTFEsKPBc/KZDx9Tlw8Ii1yWrS3HNzLNGxpTXae8XQ==
+  version "2.2.230"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.230.tgz#6a39f8849ca99fddbad2fac96cbd8f81e33c8406"
+  integrity sha512-kUnhKIYu42hqBa6a8x2/7o29ObpJgjYGQy28lZDq9awXyvpR62I2bRxrNKNR3uFUQz3ySuT9JXhGHhuZPdbnFw==
 
 "@aws-cdk/asset-kubectl-v20@^2.1.1":
   version "2.1.4"
@@ -5848,9 +5848,9 @@ typescript@^4.9.5:
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
 typescript@next:
-  version "5.9.0-dev.20250330"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.0-dev.20250330.tgz#ce8685a87561527d162811d07b9753dd52fce4ab"
-  integrity sha512-0fBXnF2l9HbFy7inDnt2SiSq1/toj7eRPV/UygjZW5hBaV85HAfHjUFLBdw1pppxJ7/Xk9nxbU7jksCNy+nBgA==
+  version "5.9.0-dev.20250331"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.0-dev.20250331.tgz#e3fa5276f856a4b889ab537d08d1b0a8c5f709de"
+  integrity sha512-0wW/4BrQ4HacVwcyQh/60+vAJwIrTasAqYqBdIPgc3EWr9nF/ZXjjCuzE3itlIH/6nXoBNuAyVTt9g9U8kTTWQ==
 
 typescript@~5.0.4:
   version "5.0.4"
