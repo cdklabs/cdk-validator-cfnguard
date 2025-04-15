@@ -22,9 +22,9 @@
     lru-cache "^10.4.3"
 
 "@aws-cdk/asset-awscli-v1@^2.2.97":
-  version "2.2.231"
-  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.231.tgz#82805ae5ceed1fbfcc71e7fb5c5a1804c5cd4af8"
-  integrity sha512-vPqD/K2pK/ALhU5r5Nafdc2nLB+LJKxNyxUmQnLsazU6AWDJfkqjHQx8m3J4Cjl2C3chQkIRMdzSDuXIlo43GA==
+  version "2.2.232"
+  resolved "https://registry.yarnpkg.com/@aws-cdk/asset-awscli-v1/-/asset-awscli-v1-2.2.232.tgz#afae709ee662c2ab99f5e5ef848d513fde065652"
+  integrity sha512-x9aFQG9gA+RgGj9bGB+WC6y1Nq2/Y8R2yXFoKWoQZOet8PRFJ8M5/FeXoh9XmdWI4weJVctLU4WTIve6rOvPtA==
 
 "@aws-cdk/asset-kubectl-v20@^2.1.1":
   version "2.1.4"
@@ -2294,9 +2294,9 @@ dunder-proto@^1.0.0, dunder-proto@^1.0.1:
     gopd "^1.2.0"
 
 electron-to-chromium@^1.5.73:
-  version "1.5.136"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.136.tgz#854b45e6a892137762cb026ed6ec77391fc5c07b"
-  integrity sha512-kL4+wUTD7RSA5FHx5YwWtjDnEEkIIikFgWHR4P6fqjw1PPLlqYkxeOb++wAauAssat0YClCy8Y3C5SxgSkjibQ==
+  version "1.5.137"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.137.tgz#53a7fef3ea9f7eb5fcf704454050ff930c43ed92"
+  integrity sha512-/QSJaU2JyIuTbbABAo/crOs+SuAZLS+fVVS10PVrIT9hrRkmZl8Hb0xPSkKRUUWHQtYzXHpQUW3Dy5hwMzGZkA==
 
 emittery@^0.8.1:
   version "0.8.1"
@@ -5853,9 +5853,9 @@ typescript@^4.9.5:
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
 typescript@next:
-  version "5.9.0-dev.20250413"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.0-dev.20250413.tgz#325d473024bc83e2047c9bcbf870af1cba125325"
-  integrity sha512-1Tn82ztfp9eFLgdPbjtXUrZBnPo6rFwALgcDY6vyNIUMqNS4gos1kOfHcV+wAKSJw/MUBN5OaCIZDARLLHlOXQ==
+  version "5.9.0-dev.20250414"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.0-dev.20250414.tgz#9c65c3e1e8953e1b98e774b4b0e643c1c03ead84"
+  integrity sha512-7Fc7LUzC9HpK2hoeeaoBOaCQxzUqu6xu/yXx5vaaEHOnOmkcJvHznOqUsLU1ntREj9rGnnZFdiEphbQKneVKxg==
 
 typescript@~5.0.4:
   version "5.0.4"
