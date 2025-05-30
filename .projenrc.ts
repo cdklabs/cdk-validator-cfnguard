@@ -51,7 +51,7 @@ const project = new CdklabsJsiiProject({
     javaPackage: 'io.github.cdklabs.cdkvalidatorcfnguard',
     mavenGroupId: 'io.github.cdklabs',
     mavenArtifactId: 'cdk-validator-cfnguard',
-    mavenEndpoint: 'https://s01.oss.sonatype.org',
+    mavenServerId: 'central-ossrh',
   },
   publishToNuget: {
     dotNetNamespace: 'Cdklabs.CdkValidatorCfnGuard',
