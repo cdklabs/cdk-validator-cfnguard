@@ -1096,9 +1096,9 @@
   integrity sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==
 
 "@types/yargs@^16.0.0":
-  version "16.0.9"
-  resolved "https://registry.yarnpkg.com/@types/yargs/-/yargs-16.0.9.tgz#ba506215e45f7707e6cbcaf386981155b7ab956e"
-  integrity sha512-tHhzvkFXZQeTECenFoRljLBYPZJ7jAVxqqtEI0qTLOmuultnFp4I9yKE17vTuhf7BkhCu7I4XuemPgikDVuYqA==
+  version "16.0.10"
+  resolved "https://registry.yarnpkg.com/@types/yargs/-/yargs-16.0.10.tgz#2376eed83bc9dbda3d7253a44e18328fc0854477"
+  integrity sha512-0xbOE6Ht/oj0MTVVXCCdEZzUk7adwW3YB1Tg1ZBm95jrkrUMI0VA4sf3SgxC1TG8p5aKkn3jxT9A2BDw1mM/TQ==
   dependencies:
     "@types/yargs-parser" "*"
 
@@ -2381,9 +2381,9 @@ dunder-proto@^1.0.0, dunder-proto@^1.0.1:
     gopd "^1.2.0"
 
 electron-to-chromium@^1.5.238:
-  version "1.5.239"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.239.tgz#46b24e9f5f22ba6bdfa015aa5d2690700aadeb1f"
-  integrity sha512-1y5w0Zsq39MSPmEjHjbizvhYoTaulVtivpxkp5q5kaPmQtsK6/2nvAzGRxNMS9DoYySp9PkW0MAQDwU1m764mg==
+  version "1.5.240"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.240.tgz#bfd946570a723aa3754370065d02e23e30824774"
+  integrity sha512-OBwbZjWgrCOH+g6uJsA2/7Twpas2OlepS9uvByJjR2datRDuKGYeD+nP8lBBks2qnB7bGJNHDUx7c/YLaT3QMQ==
 
 emittery@^0.8.1:
   version "0.8.1"
@@ -6055,9 +6055,9 @@ typescript@^4.9.5:
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
 
 typescript@next:
-  version "6.0.0-dev.20251023"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-6.0.0-dev.20251023.tgz#477adda3dc608ddc162022d996e513b481780225"
-  integrity sha512-46h60oV08FdjoDQTcJ4WSImkCyCK9PD7fXxPx9wvDRbBZ0ncUR4ORJl0VB0a8S8J2qELj+NfbVT1qiAymH7bag==
+  version "6.0.0-dev.20251027"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-6.0.0-dev.20251027.tgz#e643fc72ba29fb3ba5ca5fd57db496fbf42a1b81"
+  integrity sha512-rGAY+HgHFOCqrFDxjuCkzLetu5z6GpLt+0EKp/ybP8BXvsSfs+lkWd+C8vKka8l4Hn4eXS/+v3YLEHwyhT2jIg==
 
 typescript@~5.0.4:
   version "5.0.4"
