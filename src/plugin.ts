@@ -38,6 +38,17 @@ export interface CfnGuardValidatorProps {
    * @default - no local rules will be used
    */
   readonly rules?: string[];
+
+  /**
+   * The maximum buffer size for the cfn-guard process stdout/stderr in bytes.
+   *
+   * If cfn-guard output exceeds this limit the process will be killed.
+   * Increase this value if you are validating large CloudFormation templates
+   * and encounter ENOBUFS errors.
+   *
+   * @default - 1024 * 1024 (1 MB, Node.js default)
+   */
+  readonly maxBuffer?: number;
 }
 
 /**
@@ -98,10 +109,12 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
   private readonly rulesPaths: string[] = [];
   private readonly guard: string;
   private readonly disabledRules: string[];
+  private readonly maxBuffer?: number;
 
   constructor(props: CfnGuardValidatorProps = {}) {
     this.name = 'cdk-validator-cfnguard';
     this.disabledRules = props.disabledRules ?? [];
+    this.maxBuffer = props.maxBuffer;
     const defaultRulesPath = path.join(__dirname, '..', 'rules/control-tower/cfn-guard');
     if (props.controlTowerRulesEnabled ?? true) {
       this.rulesPaths.push(defaultRulesPath);
@@ -178,6 +191,7 @@ export class CfnGuardValidator implements IPolicyValidationPluginBeta1 {
     try {
       const result = exec([this.guard, ...flags], {
         json: true,
+        maxBuffer: this.maxBuffer,
       });
       const guardResults: GuardResult[] = JSON.parse(JSON.stringify(result), reviver);
       for (const guardResult of guardResults) {

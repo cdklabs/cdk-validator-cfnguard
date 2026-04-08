@@ -503,5 +503,39 @@ describe('CfnGuardPlugin', () => {
       });
     }).toThrow(/CfnGuardValidator plugin failed processing/);
   });
+
+  test('custom maxBuffer is forwarded to exec', () => {
+    // GIVEN
+    const validator = new plugin.CfnGuardValidator({
+      maxBuffer: 50 * 1024 * 1024,
+    });
+
+    // WHEN
+    validator.validate({
+      templatePaths: ['mytemplate.json'],
+    });
+
+    // THEN
+    expect(execMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ maxBuffer: 50 * 1024 * 1024 }),
+    );
+  });
+
+  test('default maxBuffer is undefined (Node.js 1MB default)', () => {
+    // GIVEN
+    const validator = new plugin.CfnGuardValidator();
+
+    // WHEN
+    validator.validate({
+      templatePaths: ['mytemplate.json'],
+    });
+
+    // THEN
+    expect(execMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ json: true, maxBuffer: undefined }),
+    );
+  });
 });
 
