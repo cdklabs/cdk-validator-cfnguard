@@ -1,15 +1,26 @@
 import * as path from 'path';
-import { CdklabsJsiiProject } from 'cdklabs-projen-project-types';
-import { JsonPatch, TextFile } from 'projen';
+import { CdklabsJsiiProject, JsiiLanguage } from 'cdklabs-projen-project-types';
+import { javascript, JsonPatch, TextFile } from 'projen';
 import { NpmAccess } from 'projen/lib/javascript';
 import { BundleGuard } from './projenrc';
 const project = new CdklabsJsiiProject({
+  name: '@cdklabs/cdk-validator-cfnguard',
+  keywords: [
+    'cdk',
+    'validator',
+    'policy as code',
+  ],
   private: false,
   author: 'AWS',
   authorAddress: 'aws-cdk-dev@amazon.com',
-  defaultReleaseBranch: 'main',
+  repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
+
+  projenrcTs: true,
+  packageManager: javascript.NodePackageManager.YARN_BERRY,
   minNodeVersion: '16.14.0',
-  cdklabsPublishingDefaults: false,
+
+  jsiiVersion: '6.0.x',
+  typescriptVersion: '6.0.x',
   devDeps: [
     'cdklabs-projen-project-types',
     '@octokit/types',
@@ -25,24 +36,15 @@ const project = new CdklabsJsiiProject({
     'klaw@^4.1.0',
     '@types/klaw@3.0.3',
   ],
-  name: '@cdklabs/cdk-validator-cfnguard',
-  jsiiVersion: '~5.0.0',
-  keywords: [
-    'cdk',
-    'validator',
-    'policy as code',
-  ],
-  githubOptions: {
-    mergify: false,
-  },
-  npmAccess: NpmAccess.PUBLIC,
-  enablePRAutoMerge: true,
-  projenrcTs: true,
-  release: true,
-  repositoryUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard.git',
   peerDeps: [
     'aws-cdk-lib@^2.76.0',
   ],
+
+  release: true,
+  npmAccess: NpmAccess.PUBLIC,
+  defaultReleaseBranch: 'main',
+
+  jsiiTargetLanguages: [JsiiLanguage.PYTHON, JsiiLanguage.JAVA, JsiiLanguage.DOTNET],
   publishToPypi: {
     distName: 'cdklabs.cdk-validator-cfnguard',
     module: 'cdklabs.cdk_validator_cfnguard',
@@ -58,6 +60,8 @@ const project = new CdklabsJsiiProject({
     packageId: 'Cdklabs.CdkValidatorCfnGuard',
   },
 
+  autoDetectBin: false,
+  enablePRAutoMerge: true,
   jestOptions: {
     jestConfig: {
       globals: {
@@ -67,9 +71,6 @@ const project = new CdklabsJsiiProject({
       },
     },
   },
-  // deps: [],                /* Runtime dependencies of this module. */
-  // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
-  // packageName: undefined,  /* The "name" in package.json. */
 });
 
 
@@ -80,7 +81,7 @@ project.addTask('integ', {
 
 const rosettaTask = project.addTask('rosetta:extract', {
   description: 'Test rosetta extract',
-  exec: 'yarn --silent jsii-rosetta extract --strict',
+  exec: 'jsii-rosetta extract --strict',
 });
 project.postCompileTask.spawn(rosettaTask);
 project.addGitIgnore('.jsii.tabl.json');
@@ -133,7 +134,6 @@ for (const workflow of ['build', 'release']) {
   file?.patch(JsonPatch.add(`/jobs/${workflow}/env/GITHUB_TOKEN`, '${{ secrets.GITHUB_TOKEN }}' ));
   file?.patch(JsonPatch.add(`/jobs/${workflow}/env/NODE_OPTIONS`, '--max-old-space-size=8196 --experimental-worker ${NODE_OPTIONS:-}'));
 }
-project.tsconfig?.addInclude('projenrc/**/*.ts');
 project.gitignore.exclude('bin');
 project.gitignore.exclude('cdk.out');
 project.gitignore.exclude('test/*.snapshot');

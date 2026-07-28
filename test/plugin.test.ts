@@ -213,7 +213,7 @@ describe('CfnGuardPlugin', () => {
     expect(result).toEqual({
       success: false,
       violations: [{
-        fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
+        fix: "The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleMetadata: {
           DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
@@ -242,7 +242,7 @@ describe('CfnGuardPlugin', () => {
     expect(result).toEqual({
       success: false,
       violations: [{
-        fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
+        fix: "The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleName: 's3_bucket_level_public_access_prohibited_check',
         ruleMetadata: {
@@ -285,7 +285,7 @@ describe('CfnGuardPlugin', () => {
     expect(result).toEqual({
       success: false,
       violations: [{
-        fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
+        fix: "The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleMetadata: {
           DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
@@ -319,7 +319,7 @@ describe('CfnGuardPlugin', () => {
     expect(result).toEqual({
       success: false,
       violations: [{
-        fix: "[FIX]: The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
+        fix: "The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.",
         description: '[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured',
         ruleMetadata: {
           DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
@@ -438,7 +438,7 @@ describe('CfnGuardPlugin', () => {
         ruleMetadata: {
           DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
-        fix: "[FIX]: Set the 'KMSKeyId' property to a valid KMS key.",
+        fix: "Set the 'KMSKeyId' property to a valid KMS key.",
         ruleName: 'cloud_trail_encryption_enabled_check',
         violatingResources: [
           {
@@ -473,7 +473,7 @@ describe('CfnGuardPlugin', () => {
         ruleMetadata: {
           DocumentationUrl: 'https://github.com/cdklabs/cdk-validator-cfnguard#bundled-control-tower-rules',
         },
-        fix: "[FIX]: Provide a 'ViewerCertificate' configuration with values for 'AcmCertificateArn', 'MinimumProtocolVersion', and 'SslSupportMethod'.",
+        fix: "Provide a 'ViewerCertificate' configuration with values for 'AcmCertificateArn', 'MinimumProtocolVersion', and 'SslSupportMethod'.",
         ruleName: 'cloudfront_custom_ssl_certificate_check',
         violatingResources: [
           {
@@ -487,6 +487,25 @@ describe('CfnGuardPlugin', () => {
         ],
       }],
     });
+  });
+
+  test('strips the [FIX] prefix from the fix but leaves the description rule-id prefix intact', () => {
+    // GIVEN
+    execMock.mockReturnValue(getData('guard-unresolved-rule-check.json'));
+    const validator = new plugin.CfnGuardValidator();
+
+    // WHEN
+    const result = validator.validate({
+      templatePaths: ['mytemplate.json'],
+    });
+
+    // THEN
+    const violation = result.violations[0];
+    // the '[FIX]:' authoring marker is removed so consumers do not render it doubled
+    expect(violation.fix).not.toMatch(/^\[FIX\]/);
+    expect(violation.fix).toEqual("The parameters 'BlockPublicAcls', 'BlockPublicPolicy', 'IgnorePublicAcls', 'RestrictPublicBuckets' must be set to true under the bucket-level 'PublicAccessBlockConfiguration'.");
+    // only '[FIX]' is stripped; the description keeps its rule-id prefix
+    expect(violation.description).toEqual('[CT.S3.PR.1]: Require an Amazon S3 bucket to have block public access settings configured');
   });
 
   test('guard fails', () => {

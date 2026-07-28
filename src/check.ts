@@ -232,7 +232,8 @@ export class ViolationCheck {
         message.forEach(m => {
           const mes = m.trim();
           if (mes.startsWith('[FIX]')) {
-            this.violation.fix = mes;
+            // Detect on the '[FIX]' marker but do not store it.
+            this.violation.fix = mes.replace(/^\[FIX\]:\s*/, '');
           } else {
             this.violation.description = mes;
           }
