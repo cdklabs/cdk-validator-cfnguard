@@ -5,37 +5,38 @@
     "url": "https://github.com/cdklabs/cdk-validator-cfnguard.git"
   },
   "scripts": {
-    "build": "npx projen build",
-    "bump": "npx projen bump",
-    "bundle-guard": "npx projen bundle-guard",
-    "clobber": "npx projen clobber",
-    "compat": "npx projen compat",
-    "compile": "npx projen compile",
-    "default": "npx projen default",
-    "docgen": "npx projen docgen",
-    "eject": "npx projen eject",
-    "eslint": "npx projen eslint",
-    "integ": "npx projen integ",
-    "package": "npx projen package",
-    "package-all": "npx projen package-all",
-    "package:dotnet": "npx projen package:dotnet",
-    "package:java": "npx projen package:java",
-    "package:js": "npx projen package:js",
-    "package:python": "npx projen package:python",
-    "post-compile": "npx projen post-compile",
-    "post-upgrade": "npx projen post-upgrade",
-    "pre-compile": "npx projen pre-compile",
-    "release": "npx projen release",
-    "rosetta:extract": "npx projen rosetta:extract",
-    "test": "npx projen test",
-    "test:watch": "npx projen test:watch",
-    "unbump": "npx projen unbump",
-    "update-guard": "npx projen update-guard",
-    "upgrade": "npx projen upgrade",
-    "upgrade-cdklabs-projen-project-types": "npx projen upgrade-cdklabs-projen-project-types",
-    "upgrade-dev-deps": "npx projen upgrade-dev-deps",
-    "watch": "npx projen watch",
-    "projen": "npx projen"
+    "build": "projen build",
+    "bump": "projen bump",
+    "bump:releasable-commits": "projen bump:releasable-commits",
+    "bundle-guard": "projen bundle-guard",
+    "clobber": "projen clobber",
+    "compat": "projen compat",
+    "compile": "projen compile",
+    "default": "projen default",
+    "docgen": "projen docgen",
+    "eject": "projen eject",
+    "eslint": "projen eslint",
+    "integ": "projen integ",
+    "package": "projen package",
+    "package-all": "projen package-all",
+    "package:dotnet": "projen package:dotnet",
+    "package:java": "projen package:java",
+    "package:js": "projen package:js",
+    "package:python": "projen package:python",
+    "post-compile": "projen post-compile",
+    "post-upgrade": "projen post-upgrade",
+    "pre-compile": "projen pre-compile",
+    "release": "projen release",
+    "rosetta:extract": "projen rosetta:extract",
+    "test": "projen test",
+    "test:watch": "projen test:watch",
+    "unbump": "projen unbump",
+    "update-guard": "projen update-guard",
+    "upgrade": "projen upgrade",
+    "upgrade-cdklabs-projen-project-types": "projen upgrade-cdklabs-projen-project-types",
+    "upgrade-dev-deps": "projen upgrade-dev-deps",
+    "watch": "projen watch",
+    "projen": "projen"
   },
   "author": {
     "name": "Amazon Web Services",
@@ -54,26 +55,26 @@
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
     "aws-cdk-lib": "2.76.0",
-    "cdklabs-projen-project-types": "^0.3.7",
+    "cdklabs-projen-project-types": "^0.6.8",
     "commit-and-tag-version": "^12",
     "constructs": "^10.0.0",
     "eslint": "^9",
     "eslint-import-resolver-typescript": "^3.10.1",
     "eslint-plugin-import": "^2.32.0",
     "fs-extra": "^11.1.1",
-    "jest": "^27",
-    "jest-junit": "^16",
-    "jsii": "~5.0.0",
-    "jsii-diff": "^1.138.0",
+    "jest": "^29",
+    "jest-junit": "^17",
+    "jsii": "6.0.x",
+    "jsii-diff": "^1.139.0",
     "jsii-docgen": "^10.5.0",
-    "jsii-pacmak": "^1.138.0",
-    "jsii-rosetta": "~5.0.0",
+    "jsii-pacmak": "^1.139.0",
+    "jsii-rosetta": "6.0.x",
     "klaw": "^4.1.0",
     "mock-fs": "^5.5.0",
-    "projen": "^0.98.4",
-    "ts-jest": "^27",
+    "projen": "^0.101.21",
+    "ts-jest": "^29",
     "ts-node": "^10.9.2",
-    "typescript": "^4.9.5"
+    "typescript": "6.0.x"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.76.0"
@@ -86,17 +87,25 @@
   "engines": {
     "node": ">= 16.14.0"
   },
+  "devEngines": {
+    "packageManager": {
+      "name": "yarn",
+      "version": ">=4",
+      "onFail": "ignore"
+    }
+  },
   "main": "lib/index.js",
   "license": "Apache-2.0",
+  "stability": "stable",
   "publishConfig": {
     "access": "public"
   },
   "version": "0.0.0",
+  "packageManager": "yarn@4.13.0",
   "jest": {
     "coverageProvider": "v8",
     "globals": {
       "ts-jest": {
-        "tsconfig": "tsconfig.dev.json",
         "isolatedModules": true
       }
     },
@@ -134,10 +143,16 @@
         }
       ]
     ],
-    "preset": "ts-jest"
+    "transform": {
+      "^.+\\.[t]sx?$": [
+        "ts-jest",
+        {
+          "tsconfig": "test/tsconfig.json"
+        }
+      ]
+    }
   },
   "types": "lib/index.d.ts",
-  "stability": "stable",
   "jsii": {
     "outdir": "dist",
     "targets": {
@@ -157,10 +172,8 @@
         "packageId": "Cdklabs.CdkValidatorCfnGuard"
       }
     },
-    "tsc": {
-      "outDir": "lib",
-      "rootDir": "src"
-    }
+    "tsconfig": "tsconfig.json",
+    "validateTsconfig": "strict"
   },
-  "//": "~~ Generated by projen. To modify, edit .projenrc.ts and run \"npx projen\"."
+  "//": "~~ Generated by projen. To modify, edit .projenrc.ts and run \"yarn projen\"."
 }
