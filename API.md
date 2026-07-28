@@ -19,6 +19,7 @@ const cfnGuardValidatorProps: CfnGuardValidatorProps = { ... }
 | --- | --- | --- |
 | <code><a href="#@cdklabs/cdk-validator-cfnguard.CfnGuardValidatorProps.property.controlTowerRulesEnabled">controlTowerRulesEnabled</a></code> | <code>boolean</code> | Enable the default Control Tower Guard rules. |
 | <code><a href="#@cdklabs/cdk-validator-cfnguard.CfnGuardValidatorProps.property.disabledRules">disabledRules</a></code> | <code>string[]</code> | List of rule names to disable. |
+| <code><a href="#@cdklabs/cdk-validator-cfnguard.CfnGuardValidatorProps.property.maxBuffer">maxBuffer</a></code> | <code>number</code> | The maximum buffer size for the cfn-guard process stdout/stderr in bytes. |
 | <code><a href="#@cdklabs/cdk-validator-cfnguard.CfnGuardValidatorProps.property.rules">rules</a></code> | <code>string[]</code> | Local file paths to either a directory containing guard rules, or to an individual guard rule file. |
 
 ---
@@ -46,6 +47,23 @@ public readonly disabledRules: string[];
 - *Default:* no rules are disabled
 
 List of rule names to disable.
+
+---
+
+##### `maxBuffer`<sup>Optional</sup> <a name="maxBuffer" id="@cdklabs/cdk-validator-cfnguard.CfnGuardValidatorProps.property.maxBuffer"></a>
+
+```typescript
+public readonly maxBuffer: number;
+```
+
+- *Type:* number
+- *Default:* 1024 * 1024 (1 MB, Node.js default)
+
+The maximum buffer size for the cfn-guard process stdout/stderr in bytes.
+
+If cfn-guard output exceeds this limit the process will be killed.
+Increase this value if you are validating large CloudFormation templates
+and encounter ENOBUFS errors.
 
 ---
 
