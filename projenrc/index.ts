@@ -1,5 +1,6 @@
 import { CdklabsJsiiProject } from 'cdklabs-projen-project-types';
 import { Component } from 'projen';
+import { WorkflowActions, WorkflowSteps } from 'projen/lib/github';
 import { JobPermission } from 'projen/lib/github/workflows-model';
 
 export class BundleGuard extends Component {
@@ -26,32 +27,19 @@ export class BundleGuard extends Component {
         },
         runsOn: ['ubuntu-latest'],
         steps: [
-          { uses: 'actions/checkout@v3' },
-          { run: 'yarn install' },
+          WorkflowSteps.checkout(),
+          ...project.renderWorkflowSetup({ mutable: true }),
           { run: this.project.runTaskCommand(updateTask) },
 
           // create a pull request
-          {
-            uses: 'peter-evans/create-pull-request@v4',
-            with: {
-              'token': '${{ secrets.PROJEN_GITHUB_TOKEN }}',
-              'title': 'feat: update guard version',
-              'commit-message': 'feat: update guard version',
-              'branch': 'automation/update-guard',
-              'committer': 'GitHub Automation <noreply@github.com>',
-              'labels': 'auto-approve',
-            },
-          },
-          // Auto-approve PR
-          {
-            if: 'steps.create-pr.outputs.pull-request-number != 0',
-            uses: 'peter-evans/enable-pull-request-automerge@v2',
-            with: {
-              'token': '${{ secrets.PROJEN_GITHUB_TOKEN }}',
-              'pull-request-number': '${{ steps.create-pr.outputs.pull-request-number }}',
-              'merge-method': 'squash',
-            },
-          },
+          ...WorkflowActions.createPullRequest({
+            workflowName: 'update-guard',
+            pullRequestTitle: 'feat: update guard version',
+            pullRequestDescription: 'Updates the bundled cfn-guard version to the latest release.',
+            branchName: 'automation/update-guard',
+            labels: ['auto-approve'],
+            credentials: project.github?.projenCredentials,
+          }),
         ],
       },
     });
