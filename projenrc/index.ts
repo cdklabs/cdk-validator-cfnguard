@@ -1,5 +1,6 @@
 import { CdklabsJsiiProject } from 'cdklabs-projen-project-types';
 import { Component } from 'projen';
+import { WorkflowSteps } from 'projen/lib/github';
 import { JobPermission } from 'projen/lib/github/workflows-model';
 
 export class BundleGuard extends Component {
@@ -26,8 +27,8 @@ export class BundleGuard extends Component {
         },
         runsOn: ['ubuntu-latest'],
         steps: [
-          { uses: 'actions/checkout@v3' },
-          { run: 'yarn install' },
+          WorkflowSteps.checkout(),
+          ...project.renderWorkflowSetup({ mutable: true }),
           { run: this.project.runTaskCommand(updateTask) },
 
           // create a pull request

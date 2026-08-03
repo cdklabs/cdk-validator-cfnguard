@@ -11,10 +11,21 @@ jobs:
     permissions:
       contents: write
     steps:
-      - id: auto_656c9688
-        uses: actions/checkout@v3
-      - id: auto_5169ecce
-        run: yarn install
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v6
+      - name: Enable corepack
+        id: enable_corepack
+        run: corepack enable
+      - name: Setup Node.js
+        id: setup_node_js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          package-manager-cache: false
+      - name: Install dependencies
+        id: install_dependencies
+        run: yarn install --no-immutable
       - id: auto_f7d185db
         run: yarn projen update-guard
       - id: auto_5bf9002e
