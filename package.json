@@ -71,7 +71,7 @@
     "jsii-rosetta": "6.0.x",
     "klaw": "^4.1.0",
     "mock-fs": "^5.5.0",
-    "projen": "^0.101.21",
+    "projen": "^0.101.23",
     "ts-jest": "^29",
     "ts-node": "^10.9.2",
     "typescript": "6.0.x"

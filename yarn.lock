@@ -440,7 +440,7 @@ __metadata:
     jsii-rosetta: "npm:6.0.x"
     klaw: "npm:^4.1.0"
     mock-fs: "npm:^5.5.0"
-    projen: "npm:^0.101.21"
+    projen: "npm:^0.101.23"
     ts-jest: "npm:^29"
     ts-node: "npm:^10.9.2"
     typescript: "npm:6.0.x"
@@ -6314,9 +6314,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"projen@npm:^0.101.21":
-  version: 0.101.21
-  resolution: "projen@npm:0.101.21"
+"projen@npm:^0.101.23":
+  version: 0.101.23
+  resolution: "projen@npm:0.101.23"
   dependencies:
     "@iarna/toml": "npm:^2.2.5"
     case: "npm:^1.6.3"
@@ -6337,7 +6337,7 @@ __metadata:
     constructs: ^10.5.0
   bin:
     projen: bin/projen
-  checksum: 10c0/9866221d7fb950235068e46c13c840c6b3f5fc5bbf22ce0330e07d65ad6dd7af72c74e69a476b5812ccd7925d4ba9129dc21d9e0e361ed1cf46b7666ce665728
+  checksum: 10c0/3bc942b662866ec5d9d60067bb969bc36b3f29a7ecbd528e6e27ec8a7a13ba81b707693ef416c2a6c738a90df478930cef241dcb324d7810cdb93f7d059b0487
   languageName: node
   linkType: hard
 

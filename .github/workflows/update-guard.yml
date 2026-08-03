@@ -11,10 +11,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
-      - run: yarn install
-      - run: yarn projen update-guard
-      - uses: peter-evans/create-pull-request@v4
+      - id: auto_656c9688
+        uses: actions/checkout@v3
+      - id: auto_5169ecce
+        run: yarn install
+      - id: auto_f7d185db
+        run: yarn projen update-guard
+      - id: auto_5bf9002e
+        uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.PROJEN_GITHUB_TOKEN }}
           title: "feat: update guard version"
@@ -22,7 +26,8 @@ jobs:
           branch: automation/update-guard
           committer: GitHub Automation <noreply@github.com>
           labels: auto-approve
-      - if: steps.create-pr.outputs.pull-request-number != 0
+      - id: auto_60dba1ab
+        if: steps.create-pr.outputs.pull-request-number != 0
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
           token: ${{ secrets.PROJEN_GITHUB_TOKEN }}
