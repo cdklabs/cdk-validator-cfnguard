@@ -2576,9 +2576,9 @@ __metadata:
   linkType: hard
 
 "constructs@npm:^10.0.0, constructs@npm:^10.5.0":
-  version: 10.7.1
-  resolution: "constructs@npm:10.7.1"
-  checksum: 10c0/ca472f5079f6bbe193738cc6456a7f8cb1ca97ee3125637df0b4c48210a60e6870cfa9754d0eac7803cb6b8240441834b4f21c9b45c6f78f147aae12861b569f
+  version: 10.7.2
+  resolution: "constructs@npm:10.7.2"
+  checksum: 10c0/b96b0d9926cbf86198e12cf5a6ab44eb971654bec77d6ab46068d47ea1481759b88f177b4199dba241679f6d311784b077e1734398e8f83ee1ccf71665adc5a1
   languageName: node
   linkType: hard
 
@@ -5271,8 +5271,8 @@ __metadata:
   linkType: hard
 
 "jsii@npm:6.0.x, jsii@npm:~6.0.0":
-  version: 6.0.6
-  resolution: "jsii@npm:6.0.6"
+  version: 6.0.7
+  resolution: "jsii@npm:6.0.7"
   dependencies:
     "@jsii/check-node": "npm:1.139.0"
     "@jsii/spec": "npm:1.139.0"
@@ -5283,12 +5283,12 @@ __metadata:
     semver: "npm:^7.8.5"
     semver-intersect: "npm:^1.5.0"
     sort-json: "npm:^2.0.1"
-    spdx-license-list: "npm:^6.11.0"
+    spdx-license-list: "npm:^6.12.0"
     typescript: "npm:~6.0"
     yargs: "npm:^17.7.3"
   bin:
     jsii: bin/jsii
-  checksum: 10c0/7bcfad39be645b703f31bbda58eae9485119ade84d47ea6abf8f38cbf767147927dcf284574f884c386cb74628bcb246577ee06365514d39889cc078ffa913dc
+  checksum: 10c0/7f4e7d1711cd3ddf369bab8560e1a845198be75ae67552bde5b67374bbae08e28dedaa84239fbb9122b406e1f296b80251b173ef25279e155630330c261e8075
   languageName: node
   linkType: hard
 
@@ -6925,7 +6925,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"spdx-license-list@npm:^6.11.0":
+"spdx-license-list@npm:^6.11.0, spdx-license-list@npm:^6.12.0":
   version: 6.12.0
   resolution: "spdx-license-list@npm:6.12.0"
   checksum: 10c0/e65657a6e4324ab00722dd9bf624a06d498014dee1a1ebdc89bbdd7c9816eee5a401839ef0f8b257f5a8bcb6976cad36937f434fd15ed11cee5f06ead8508926
