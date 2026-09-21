@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { CdklabsJsiiProject, JsiiLanguage } from 'cdklabs-projen-project-types';
 import { javascript, JsonPatch, TextFile } from 'projen';
 import { NpmAccess } from 'projen/lib/javascript';
@@ -18,6 +17,7 @@ const project = new CdklabsJsiiProject({
   projenrcTs: true,
   packageManager: javascript.NodePackageManager.YARN_BERRY,
   minNodeVersion: '16.14.0',
+  workflowNodeVersion: '24.19.0',
 
   jsiiVersion: '6.0.x',
   typescriptVersion: '6.0.x',
@@ -130,7 +130,7 @@ project.postCompileTask.spawn(rosettaTask);
 project.addGitIgnore('.jsii.tabl.json');
 
 for (const workflow of ['build', 'release']) {
-  const file = project.tryFindObjectFile(path.join(__dirname, `./.github/workflows/${workflow}.yml`));
+  const file = project.github?.tryFindWorkflow(workflow)?.file;
   file?.patch(JsonPatch.add(`/jobs/${workflow}/env/GITHUB_TOKEN`, '${{ secrets.GITHUB_TOKEN }}' ));
   file?.patch(JsonPatch.add(`/jobs/${workflow}/env/NODE_OPTIONS`, '--max-old-space-size=8196 --experimental-worker ${NODE_OPTIONS:-}'));
 }

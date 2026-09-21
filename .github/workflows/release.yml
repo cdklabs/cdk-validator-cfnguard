@@ -46,7 +46,7 @@ jobs:
         id: setup_node_js
         uses: actions/setup-node@v7.0.0
         with:
-          node-version: lts/*
+          node-version: 24.19.0
           package-manager-cache: false
       - name: Install dependencies
         id: install_dependencies
@@ -97,7 +97,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v7.0.0
         with:
-          node-version: lts/*
+          node-version: 24.19.0
           package-manager-cache: false
       - name: Download build artifacts
         id: download_build_artifacts
@@ -132,7 +132,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v7.0.0
         with:
-          node-version: lts/*
+          node-version: 24.19.0
           package-manager-cache: false
       - name: Download build artifacts
         id: download_build_artifacts
@@ -191,7 +191,7 @@ jobs:
           java-version: "11"
       - uses: actions/setup-node@v7.0.0
         with:
-          node-version: lts/*
+          node-version: 24.19.0
           package-manager-cache: false
       - name: Download build artifacts
         id: download_build_artifacts
@@ -249,7 +249,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v7.0.0
         with:
-          node-version: lts/*
+          node-version: 24.19.0
           package-manager-cache: false
       - uses: actions/setup-python@v7.0.0
         with:
@@ -305,7 +305,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v7.0.0
         with:
-          node-version: lts/*
+          node-version: 24.19.0
           package-manager-cache: false
       - uses: actions/setup-dotnet@v6.0.0
         with:
