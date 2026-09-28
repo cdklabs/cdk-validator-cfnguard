@@ -424,7 +424,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8"
     "@typescript-eslint/parser": "npm:^8"
     aws-cdk-lib: "npm:2.76.0"
-    cdklabs-projen-project-types: "npm:^0.6.15"
+    cdklabs-projen-project-types: "npm:^0.6.16"
     commit-and-tag-version: "npm:^13"
     constructs: "npm:^10.0.0"
     eslint: "npm:^9"
@@ -440,7 +440,7 @@ __metadata:
     jsii-rosetta: "npm:6.0.x"
     klaw: "npm:^4.1.0"
     mock-fs: "npm:^5.5.0"
-    projen: "npm:^0.103.25"
+    projen: "npm:^0.103.27"
     ts-jest: "npm:^29"
     ts-node: "npm:^10.9.2"
     typescript: "npm:6.0.x"
@@ -2449,15 +2449,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cdklabs-projen-project-types@npm:^0.6.15":
-  version: 0.6.15
-  resolution: "cdklabs-projen-project-types@npm:0.6.15"
+"cdklabs-projen-project-types@npm:^0.6.16":
+  version: 0.6.16
+  resolution: "cdklabs-projen-project-types@npm:0.6.16"
   dependencies:
-    yaml: "npm:^2.9.0"
+    yaml: "npm:^2.9.1"
   peerDependencies:
     constructs: ^10.0.0
     projen: ">=0.101.15 <1.0.0"
-  checksum: 10c0/4f273fa0b18b49483a11baa2d376da0c6bac29d719125760cd93a538e56deef1a44e50795ee6ad66f5f3fd2a00b303291d950628e931d741846ad624d6b00964
+  checksum: 10c0/f50f51d717129e313420e6351152f4728cd6d6ce7c391a18f4fe0208547cf9f34febcbaee53db24b3efb9a3a24d27923708d1d20799e8a73172cbcd73c61e6d2
   languageName: node
   linkType: hard
 
@@ -5900,9 +5900,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"projen@npm:^0.103.25":
-  version: 0.103.25
-  resolution: "projen@npm:0.103.25"
+"projen@npm:^0.103.27":
+  version: 0.103.27
+  resolution: "projen@npm:0.103.27"
   dependencies:
     "@iarna/toml": "npm:^2.2.5"
     case: "npm:^1.6.3"
@@ -5924,7 +5924,7 @@ __metadata:
     constructs: ^10.5.0
   bin:
     projen: bin/projen
-  checksum: 10c0/813c2d46419201c2fe4748bfa744d534609ce26f8693754e76bb349c4e815bcb809f41b6bdf2aaf3a6e112c562101d1e4560bb547759eab3c5e55b7f531e2ed7
+  checksum: 10c0/26b50b8494b4386cd400334e815644cf7d5d2bf8da8853be65427ef0ef765e5cad190a4507ef234f60182c03be83c48052eb322c3cf133a5ae1330c7548dd5dc
   languageName: node
   linkType: hard
 
@@ -7273,6 +7273,15 @@ __metadata:
   bin:
     yaml: bin.mjs
   checksum: 10c0/f340718df45e97a9551b9bf9dac61c80050bc464513b710debfb5067c380c8472e3b67809cffacb4ab5ffb5e66ef9310816c88b05f371cec60abfedd8c88e0a2
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "yaml@npm:2.9.1"
+  bin:
+    yaml: bin.mjs
+  checksum: 10c0/9d06676ef02b89559a8b10a71882bd2cdae81e8393dc8dbc871615c3259475d9609ad973d19cb3c9e71e72d6206e3d1e7aa241c7e55f3d16fd2e77db305827d6
   languageName: node
   linkType: hard
 
