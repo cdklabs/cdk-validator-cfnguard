@@ -424,7 +424,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^8"
     "@typescript-eslint/parser": "npm:^8"
     aws-cdk-lib: "npm:2.76.0"
-    cdklabs-projen-project-types: "npm:^0.6.16"
+    cdklabs-projen-project-types: "npm:^0.6.17"
     commit-and-tag-version: "npm:^13"
     constructs: "npm:^10.0.0"
     eslint: "npm:^9"
@@ -2449,15 +2449,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cdklabs-projen-project-types@npm:^0.6.16":
-  version: 0.6.16
-  resolution: "cdklabs-projen-project-types@npm:0.6.16"
+"cdklabs-projen-project-types@npm:^0.6.17":
+  version: 0.6.17
+  resolution: "cdklabs-projen-project-types@npm:0.6.17"
   dependencies:
     yaml: "npm:^2.9.1"
   peerDependencies:
     constructs: ^10.0.0
     projen: ">=0.101.15 <1.0.0"
-  checksum: 10c0/f50f51d717129e313420e6351152f4728cd6d6ce7c391a18f4fe0208547cf9f34febcbaee53db24b3efb9a3a24d27923708d1d20799e8a73172cbcd73c61e6d2
+  checksum: 10c0/75d04c25d9de3a0515b113e85665f4fbadf3c45bac6cf0e7495862561bc927ecf1dd04c14bdbe62f14f4b717df8b05d2f57af0c9befc63ed58d0ae9d08693ef7
   languageName: node
   linkType: hard
 
